@@ -1,16 +1,26 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookCover } from '../components/BookCover'
-import { SAMPLE_BOOKS } from '../data/sampleBooks'
+import { LanguageTile } from '../components/LanguageTile'
+import { api, toSummary } from '../lib/api'
 import { LANGUAGE_ORDER, LANGUAGES, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
+import type { BookSummary } from '../lib/types'
 
 export function LibraryPage() {
   const [language, setLanguage] = useState<LanguageCode | null>(null)
   const [level, setLevel] = useState<ReadingLevel | null>(null)
+  const [books, setBooks] = useState<BookSummary[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const books = SAMPLE_BOOKS
+  useEffect(() => {
+    api
+      .listBooks()
+      .then((list) => setBooks(list.map(toSummary)))
+      .catch((e: Error) => setError(e.message))
+  }, [])
+
   const shown = useMemo(
-    () => books.filter((b) => (!language || b.language === language) && (!level || b.level === level)),
+    () => (books ?? []).filter((b) => (!language || b.language === language) && (!level || b.level === level)),
     [books, language, level],
   )
 
@@ -26,31 +36,22 @@ export function LibraryPage() {
 
         <div className="mt-8 grid grid-cols-3 gap-2.5 sm:max-w-2xl sm:gap-4" role="group" aria-label="Choose a language">
           {LANGUAGE_ORDER.map((code) => {
-            const lang = LANGUAGES[code]
             const active = language === code
-            const count = books.filter((b) => b.language === code).length
+            const count = (books ?? []).filter((b) => b.language === code).length
             return (
-              <button
+              <LanguageTile
                 key={code}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setLanguage(active ? null : code)}
-                className="flex min-h-28 flex-col items-start justify-between rounded-2xl border-2 p-3 text-left transition-colors sm:min-h-32 sm:p-4"
-                style={{
-                  borderColor: lang.color,
-                  background: active ? lang.color : 'var(--color-sheet)',
-                  color: active ? '#fff' : lang.color,
-                }}
-              >
-                <span lang={code} className="pt-1 text-[1.6rem] leading-[1.3] font-semibold sm:text-4xl" style={{ fontFamily: lang.storyFont }}>
-                  {lang.nativeName}
-                </span>
-                <span className={`text-xs leading-snug sm:text-sm ${active ? 'text-white/85' : 'text-ink-soft'}`}>
-                  {lang.name}
-                  <br />
-                  {count} {count === 1 ? 'book' : 'books'}
-                </span>
-              </button>
+                code={code}
+                selected={active}
+                onSelect={() => setLanguage(active ? null : code)}
+                sublabel={
+                  <>
+                    {LANGUAGES[code].name}
+                    <br />
+                    {count} {count === 1 ? 'book' : 'books'}
+                  </>
+                }
+              />
             )
           })}
         </div>
@@ -72,7 +73,17 @@ export function LibraryPage() {
         </div>
       </div>
 
-      {shown.length > 0 ? (
+      {error ? (
+        <p role="alert" className="rounded-2xl border-2 border-margin/40 bg-sheet px-6 py-8 text-center">
+          {error}
+        </p>
+      ) : books === null ? (
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6" aria-label="Loading books">
+          {[0, 1, 2, 3].map((i) => (
+            <li key={i} className="aspect-[3/4] animate-pulse rounded-[var(--radius-cover)] bg-rule/40" />
+          ))}
+        </ul>
+      ) : shown.length > 0 ? (
         <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
           {shown.map((book) => (
             <li key={book.id}>

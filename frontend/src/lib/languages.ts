@@ -50,6 +50,14 @@ export const LANGUAGES: Record<LanguageCode, Language> = {
 
 export const LANGUAGE_ORDER: LanguageCode[] = ['te', 'kn', 'mr']
 
+/** Display details for any story language, including English (the second language in two-language books). */
+export function languageDisplay(code: LanguageCode | 'en') {
+  if (code === 'en') {
+    return { name: 'English', nativeName: 'English', color: 'var(--color-ink)', storyFont: 'var(--font-display)' }
+  }
+  return LANGUAGES[code]
+}
+
 export const READING_LEVELS = [
   { id: 1, label: 'First words', ages: '3–5' },
   { id: 2, label: 'Short sentences', ages: '5–7' },

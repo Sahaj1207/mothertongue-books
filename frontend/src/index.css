@@ -40,6 +40,13 @@
     line-height: 1.6;
   }
 
+  /* Quick repeated taps (children turning pages) must not trigger double-tap zoom. */
+  button,
+  a,
+  [role='radio'] {
+    touch-action: manipulation;
+  }
+
   :focus-visible {
     outline: 3px solid var(--color-turmeric);
     outline-offset: 2px;

@@ -26,11 +26,10 @@ def build_steps(job: Job) -> list[Step]:
         Step(key="planner", label="Planning the story"),
     ]
     for lang in story_languages(job):
-        name = LANGUAGE_NAMES[lang]
         steps += [
-            Step(key=f"writer:{lang}", label=f"Writing in {name}"),
-            Step(key=f"reading_level:{lang}", label=f"Checking the {name} reading level"),
-            Step(key=f"safety:{lang}", label=f"Safety review of the {name} story"),
+            Step(key=f"writer:{lang}", label="Writing the story"),
+            Step(key=f"reading_level:{lang}", label="Checking the reading level"),
+            Step(key=f"safety:{lang}", label="Safety review"),
         ]
     return steps
 
