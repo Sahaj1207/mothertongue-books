@@ -7,6 +7,7 @@ import httpx
 
 from app.config import settings
 from app.models import Book, Job
+from app.usage import UsageEntry
 
 
 class Store(Protocol):
@@ -15,12 +16,27 @@ class Store(Protocol):
     async def save_book(self, book: Book) -> None: ...
     async def get_book(self, book_id: str) -> Book | None: ...
     async def list_books(self, published_only: bool = True) -> list[Book]: ...
+    async def save_usage(self, job_id: str, entries: list[UsageEntry]) -> None: ...
+    async def spent_today_usd(self) -> float: ...
+
+
+def _today_start() -> datetime:
+    return datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class MemoryStore:
     def __init__(self) -> None:
         self.jobs: dict[str, Job] = {}
         self.books: dict[str, Book] = {}
+        self.usage: list[tuple[datetime, UsageEntry]] = []
+
+    async def save_usage(self, job_id: str, entries: list[UsageEntry]) -> None:
+        now = datetime.now(UTC)
+        self.usage += [(now, e) for e in entries]
+
+    async def spent_today_usd(self) -> float:
+        start = _today_start()
+        return sum(e.cost_usd for at, e in self.usage if at >= start)
 
     async def save_job(self, job: Job) -> None:
         self.jobs[job.id] = job
@@ -56,17 +72,43 @@ class SupabaseStore:
         r.raise_for_status()
 
     async def _select(self, table: str, params: dict) -> list[dict]:
-        r = await self.http.get(f"/{table}", params={"select": "*", **params})
+        r = await self.http.get(f"/{table}", params={"select": "*"} | params)
         r.raise_for_status()
         return r.json()
 
     async def save_job(self, job: Job) -> None:
-        row = job.model_dump(mode="json", include={"id", "status", "request", "steps", "book_id", "message"})
+        row = job.model_dump(
+            mode="json", include={"id", "status", "request", "steps", "book_id", "message", "cost_usd"}
+        )
         await self._upsert("jobs", row | {"updated_at": datetime.now(UTC).isoformat()})
 
     async def get_job(self, job_id: str) -> Job | None:
         rows = await self._select("jobs", {"id": f"eq.{job_id}"})
         return Job.model_validate(rows[0]) if rows else None
+
+    async def save_usage(self, job_id: str, entries: list[UsageEntry]) -> None:
+        if not entries:
+            return
+        rows = [
+            {
+                "job_id": job_id,
+                "provider": e.provider,
+                "model": e.model,
+                "agent": e.agent,
+                "input_tokens": e.input_tokens,
+                "output_tokens": e.output_tokens,
+                "cost_usd": round(e.cost_usd, 6),
+            }
+            for e in entries
+        ]
+        r = await self.http.post("/model_usage", json=rows, headers={"Prefer": "return=minimal"})
+        r.raise_for_status()
+
+    async def spent_today_usd(self) -> float:
+        rows = await self._select(
+            "model_usage", {"select": "cost_usd", "created_at": f"gte.{_today_start().isoformat()}"}
+        )
+        return sum(float(r["cost_usd"]) for r in rows)
 
     async def save_book(self, book: Book) -> None:
         req = book.request

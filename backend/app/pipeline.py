@@ -9,6 +9,7 @@ from app.agents.schemas import StoryDraft, StoryPlan
 from app.config import settings
 from app.models import Book, Job, Step
 from app.store import Store
+from app.usage import UsageMeter, current_meter
 
 
 class StoryRejected(Exception):
@@ -97,6 +98,8 @@ async def run_pipeline(client: ModelClient, job: Job, store: Store) -> None:
     for step in job.steps:
         step.model = client.model_name(step.key.split(":")[0])
     run = Run(client, job, store)
+    meter = UsageMeter()
+    meter_token = current_meter.set(meter)
     try:
         topic = await run.step("topic_check", agents.check_topic(client, job.request))
         if not topic.allowed:
@@ -120,4 +123,7 @@ async def run_pipeline(client: ModelClient, job: Job, store: Store) -> None:
         job.message = "Something went wrong while making the book. Try again."
         raise
     finally:
+        current_meter.reset(meter_token)
+        job.cost_usd = round(meter.cost_usd, 6)
+        await store.save_usage(job.id, meter.entries)
         await run.save()

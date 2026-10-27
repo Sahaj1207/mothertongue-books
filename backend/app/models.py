@@ -24,6 +24,7 @@ class Job(BaseModel):
     steps: list[Step] = Field(default_factory=list)
     book_id: str | None = None
     message: str | None = None
+    cost_usd: float = 0.0
 
     def step(self, key: str) -> Step:
         return next(s for s in self.steps if s.key == key)

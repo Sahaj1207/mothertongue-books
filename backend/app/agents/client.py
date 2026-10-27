@@ -8,6 +8,7 @@ from pydantic import BaseModel, ValidationError
 
 from app.agents import mock_responses
 from app.config import settings
+from app.usage import record_usage
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -41,13 +42,17 @@ class MockModelClient:
 
 
 # Writing needs the most thought; checks and planning need less, which saves reasoning tokens.
-META_EFFORT = {
+EFFORT = {
     "topic_check": "low",
     "planner": "medium",
     "writer": "high",
     "reading_level": "low",
     "safety": "low",
 }
+
+# Hard ceiling on tokens per call (reasoning included), so no single call can run up a large bill.
+MAX_TOKENS = {"planner": 8000, "writer": 12000}
+DEFAULT_MAX_TOKENS = 4000
 
 
 class MetaModelClient:
@@ -68,10 +73,12 @@ class MetaModelClient:
                 model=self.model,
                 messages=messages,
                 response_format=schema,
-                reasoning_effort=META_EFFORT.get(agent, "low"),
+                reasoning_effort=EFFORT.get(agent, "low"),
+                max_tokens=MAX_TOKENS.get(agent, DEFAULT_MAX_TOKENS),
             )
         except ValidationError as exc:
             raise ModelError(f"{agent}: {_first_error(exc)}") from exc
+        record_usage("meta", self.model, agent, response.usage)
         message = response.choices[0].message
         if message.parsed is None:
             raise ModelError(f"{agent}: no structured output ({message.refusal or 'empty response'}).")
@@ -100,8 +107,10 @@ class OpenWeightClient:
                 "type": "json_schema",
                 "json_schema": {"name": schema.__name__, "schema": schema.model_json_schema()},
             },
-            reasoning_effort="low",
+            reasoning_effort=EFFORT.get(agent, "low"),
+            max_tokens=MAX_TOKENS.get(agent, DEFAULT_MAX_TOKENS),
         )
+        record_usage("baseten", self.model, agent, response.usage)
         return parse_json_reply(response.choices[0].message.content or "", schema, agent)
 
     def model_name(self, agent: str) -> str:
@@ -165,12 +174,19 @@ class RoutedClient:
 def get_client() -> ModelClient:
     if settings.use_mock_ai:
         return MockModelClient()
+
+    open_weight = None
+    if settings.baseten_api_key:
+        open_weight = OpenWeightClient(
+            settings.baseten_api_key, settings.baseten_base_url, settings.open_weight_model
+        )
+
+    if settings.story_provider == "open-weight":
+        if open_weight is None:
+            raise RuntimeError("STORY_PROVIDER=open-weight needs BASETEN_API_KEY in backend/.env.")
+        return open_weight
+
     if not settings.model_api_key:
         raise RuntimeError("MODEL_API_KEY is missing. Add it to backend/.env or set USE_MOCK_AI=true.")
     meta = MetaModelClient(settings.model_api_key, settings.meta_base_url, settings.story_model)
-    routes: dict[str, ModelClient] = {}
-    if settings.baseten_api_key:
-        routes["safety"] = OpenWeightClient(
-            settings.baseten_api_key, settings.baseten_base_url, settings.open_weight_model
-        )
-    return RoutedClient(meta, routes)
+    return RoutedClient(meta, {"safety": open_weight} if open_weight else {})

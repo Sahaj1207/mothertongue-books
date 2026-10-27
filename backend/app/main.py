@@ -32,6 +32,8 @@ async def health() -> dict:
 
 @app.post("/api/books", status_code=202)
 async def create_book(request: BookRequest) -> Job:
+    if not settings.use_mock_ai and await store.spent_today_usd() >= settings.daily_budget_usd:
+        raise HTTPException(429, "Today's book-making budget is used up. New books can be made tomorrow.")
     job = Job(request=request)
     await store.save_job(job)
     task = asyncio.create_task(run_pipeline(get_client(), job, store))

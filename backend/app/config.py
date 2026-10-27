@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,6 +19,13 @@ class Settings(BaseSettings):
     baseten_api_key: str | None = None
     baseten_base_url: str = "https://inference.baseten.co/v1"
     open_weight_model: str = "meta-models/muse-spark-open-1026"
+
+    # "meta": Muse Spark writes, Muse Spark Open reviews safety.
+    # "open-weight": every agent runs on Muse Spark Open (used before Meta credits were active).
+    story_provider: Literal["meta", "open-weight"] = "meta"
+
+    # New books are refused once today's model spending (UTC day) reaches this.
+    daily_budget_usd: float = 2.0
 
     # Supabase. The service key bypasses row-level security: backend only, never sent to the browser.
     supabase_url: str | None = None

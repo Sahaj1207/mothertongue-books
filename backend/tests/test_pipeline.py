@@ -91,3 +91,30 @@ def test_two_language_book_writes_each_language_from_one_plan():
 def test_two_language_book_needs_a_different_second_language():
     with pytest.raises(ValueError):
         BookRequest(language="te", level=1, topic="rain", kind="two-language", pair_language="te")
+
+
+def test_usage_is_recorded_and_costed_per_book():
+    from types import SimpleNamespace
+
+    from app.usage import record_usage
+
+    class Metered(ScriptedClient):
+        async def structured(self, *, agent, instructions, prompt, schema):
+            record_usage(
+                "baseten",
+                "meta-models/muse-spark-open-1026",
+                agent,
+                SimpleNamespace(prompt_tokens=1_000, completion_tokens=2_000),
+            )
+            return await super().structured(
+                agent=agent, instructions=instructions, prompt=prompt, schema=schema
+            )
+
+    job = make_job()
+    store = run(Metered(), job)
+
+    calls = len(store.usage)
+    assert calls == 5  # topic, planner, writer, reading level, safety
+    per_call = (1_000 * 1.25 + 2_000 * 4.25) / 1_000_000
+    assert job.cost_usd == pytest.approx(calls * per_call)
+    assert asyncio.run(store.spent_today_usd()) == pytest.approx(job.cost_usd)
