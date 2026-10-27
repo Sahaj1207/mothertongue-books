@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,13 +27,13 @@ _tasks: set[asyncio.Task] = set()
 
 @app.get("/api/health")
 async def health() -> dict:
-    return {"ok": True, "mock_ai": settings.use_mock_ai}
+    return {"ok": True, "mock_ai": settings.use_mock_ai, "storage": type(store).__name__}
 
 
 @app.post("/api/books", status_code=202)
 async def create_book(request: BookRequest) -> Job:
     job = Job(request=request)
-    store.jobs[job.id] = job
+    await store.save_job(job)
     task = asyncio.create_task(run_pipeline(get_client(), job, store))
     _tasks.add(task)
     task.add_done_callback(_finish_task)
@@ -47,18 +48,33 @@ def _finish_task(task: asyncio.Task) -> None:
 
 @app.get("/api/jobs/{job_id}")
 async def get_job(job_id: str) -> Job:
-    if job_id not in store.jobs:
+    job = await store.get_job(job_id)
+    if not job:
         raise HTTPException(404, "No job with that id.")
-    return store.jobs[job_id]
+    return job
 
 
 @app.get("/api/books")
 async def list_books() -> list[Book]:
-    return sorted(store.books.values(), key=lambda b: b.created_at, reverse=True)
+    return await store.list_books(published_only=True)
 
 
 @app.get("/api/books/{book_id}")
 async def get_book(book_id: str) -> Book:
-    if book_id not in store.books:
+    book = await store.get_book(book_id)
+    if not book:
         raise HTTPException(404, "No book with that id.")
-    return store.books[book_id]
+    return book
+
+
+@app.post("/api/books/{book_id}/publish")
+async def publish_book(book_id: str) -> Book:
+    # Temporary until the review-and-approve screen (Day 4) adds sign-in and edits.
+    book = await store.get_book(book_id)
+    if not book:
+        raise HTTPException(404, "No book with that id.")
+    if book.status != "published":
+        book.status = "published"
+        book.published_at = datetime.now(UTC)
+        await store.save_book(book)
+    return book

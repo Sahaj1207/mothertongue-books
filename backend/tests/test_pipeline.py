@@ -43,6 +43,7 @@ def test_story_is_made_and_every_step_finishes():
 
     assert job.status == "done"
     assert all(step.status == "done" for step in job.steps)
+    assert store.jobs[job.id].status == "done"
     book = store.books[job.book_id]
     assert [d.language for d in book.drafts] == ["te"]
     assert len(book.drafts[0].pages) == len(book.plan.pages)

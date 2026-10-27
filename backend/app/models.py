@@ -17,7 +17,7 @@ class Step(BaseModel):
 
 
 class Job(BaseModel):
-    id: str = Field(default_factory=lambda: uuid4().hex)
+    id: str = Field(default_factory=lambda: str(uuid4()))
     status: Literal["running", "done", "blocked", "failed"] = "running"
     request: BookRequest
     steps: list[Step] = Field(default_factory=list)
@@ -29,9 +29,10 @@ class Job(BaseModel):
 
 
 class Book(BaseModel):
-    id: str = Field(default_factory=lambda: uuid4().hex)
+    id: str = Field(default_factory=lambda: str(uuid4()))
     request: BookRequest
     plan: StoryPlan
     drafts: list[StoryDraft]
     status: Literal["draft", "published"] = "draft"
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    published_at: datetime | None = None
