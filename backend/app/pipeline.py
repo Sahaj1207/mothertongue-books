@@ -94,6 +94,8 @@ class Run:
 
 async def run_pipeline(client: ModelClient, job: Job, store: Store) -> None:
     job.steps = build_steps(job)
+    for step in job.steps:
+        step.model = client.model_name(step.key.split(":")[0])
     run = Run(client, job, store)
     try:
         topic = await run.step("topic_check", agents.check_topic(client, job.request))

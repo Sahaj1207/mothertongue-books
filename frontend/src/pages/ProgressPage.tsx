@@ -178,7 +178,18 @@ function StepGroup({ title, steps, lang }: { title: string; steps: Step[]; lang?
             {step.detail ? (
               <span className="rounded-full bg-turmeric-soft px-2.5 py-0.5 text-xs whitespace-nowrap">{step.detail}</span>
             ) : (
-              <span className="hidden text-xs text-ink-faint sm:inline">{AGENT_NAME[step.key.split(':')[0]]}</span>
+              <span className="hidden items-center gap-1.5 text-xs text-ink-faint sm:inline-flex">
+                {AGENT_NAME[step.key.split(':')[0]]}
+                {step.model && step.model !== 'Practice mode' && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-medium ${
+                      step.model.includes('Open') ? 'bg-kannada-soft text-kannada' : 'bg-telugu-soft text-telugu'
+                    }`}
+                  >
+                    {step.model}
+                  </span>
+                )}
+              </span>
             )}
           </li>
         ))}

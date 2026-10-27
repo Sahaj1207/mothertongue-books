@@ -18,6 +18,8 @@ export interface Step {
   label: string
   status: StepStatus
   detail: string | null
+  /** Model that runs this step, e.g. "Muse Spark" or "Muse Spark Open". */
+  model: string | null
 }
 
 export interface Job {

@@ -14,6 +14,7 @@ class Step(BaseModel):
     label: str
     status: StepStatus = "waiting"
     detail: str | None = None
+    model: str | None = None
 
 
 class Job(BaseModel):
