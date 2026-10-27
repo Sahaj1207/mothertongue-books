@@ -1,0 +1,31 @@
+[project]
+name = "mothertongue-backend"
+version = "0.1.0"
+description = "Story-generation API and agent pipeline for MotherTongue Books"
+authors = [
+    { name = "Sahaj Alatage", email = "sahaj12407@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.162.0",
+    "httpx>=0.28.1",
+    "openai>=3.39.0",
+    "pydantic-settings>=2.16.1",
+    "uvicorn[standard]>=0.54.0",
+]
+
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 110
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
