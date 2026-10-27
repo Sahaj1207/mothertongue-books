@@ -35,6 +35,8 @@ class Book(BaseModel):
     request: BookRequest
     plan: StoryPlan
     drafts: list[StoryDraft]
+    # Reading-level notes the checker still had after the writer's retries, for the adult reviewer.
+    review_notes: list[str] = Field(default_factory=list)
     status: Literal["draft", "published"] = "draft"
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     published_at: datetime | None = None

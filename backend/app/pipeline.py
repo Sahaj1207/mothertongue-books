@@ -40,6 +40,7 @@ class Run:
 
     def __init__(self, client: ModelClient, job: Job, store: Store) -> None:
         self.client, self.job, self.store = client, job, store
+        self.notes: list[str] = []
 
     async def save(self) -> None:
         await self.store.save_job(self.job)
@@ -87,10 +88,15 @@ class Run:
                 return draft
             feedback = level_review.problems + safety_review.problems
 
-        raise StoryRejected(
-            f"The {LANGUAGE_NAMES[lang]} story didn't pass review after "
-            f"{settings.max_writer_retries + 1} tries. Try a simpler topic."
-        )
+        if not safety_review.passed:
+            raise StoryRejected(
+                f"The {LANGUAGE_NAMES[lang]} story didn't pass the safety review after "
+                f"{settings.max_writer_retries + 1} tries. Try a different topic."
+            )
+        # Safe but still not quite at the reading level: keep it, and hand the notes to the adult reviewer.
+        reading.detail = "Notes for your review"
+        self.notes += [f"{LANGUAGE_NAMES[lang]}: {p}" for p in level_review.problems]
+        return draft
 
 
 async def run_pipeline(client: ModelClient, job: Job, store: Store) -> None:
@@ -111,7 +117,7 @@ async def run_pipeline(client: ModelClient, job: Job, store: Store) -> None:
         plan = await run.step("planner", agents.plan_story(client, job.request))
         drafts = [await run.write_and_review(plan, lang) for lang in story_languages(job)]
 
-        book = Book(request=job.request, plan=plan, drafts=drafts)
+        book = Book(request=job.request, plan=plan, drafts=drafts, review_notes=run.notes)
         await store.save_book(book)
         job.book_id = book.id
         job.status = "done"

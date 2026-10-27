@@ -78,9 +78,12 @@ async def check_reading_level(client: ModelClient, draft: StoryDraft, level: int
     return await client.structured(
         agent="reading_level",
         instructions=(
-            f"You are an early-reading teacher fluent in {LANGUAGE_NAMES[draft.language]}. Check that every page "
-            "matches the reading level: word difficulty, sentence length and number of sentences. List each "
-            "problem with its page number. Pass only if every page fits."
+            f"You are an early-reading teacher fluent in {LANGUAGE_NAMES[draft.language]}, checking a picture "
+            "book that a parent reads aloud with the child. Judge each word by whether a child of this age hears "
+            "it at home, not by its length: Indian-language words are naturally long because they join parts "
+            "together, and that is fine. Also check the number of sentences per page and grammar such as gender "
+            "and number agreement. Report only real problems a parent would notice, each with its page number "
+            "and a concrete fix. Minor style preferences are not problems. Pass if no page has a real problem."
         ),
         prompt=f"Reading level: {LEVEL_GUIDE[level]}\nStory:\n{draft.model_dump_json(indent=2)}",
         schema=Review,

@@ -118,3 +118,23 @@ def test_usage_is_recorded_and_costed_per_book():
     per_call = (1_000 * 1.25 + 2_000 * 4.25) / 1_000_000
     assert job.cost_usd == pytest.approx(calls * per_call)
     assert asyncio.run(store.spent_today_usd()) == pytest.approx(job.cost_usd)
+
+
+class StrictReader(ScriptedClient):
+    """The reading-level checker never passes; safety always does."""
+
+    async def structured(self, *, agent, instructions, prompt, schema):
+        if agent == "reading_level":
+            self.calls.append(agent)
+            return schema.model_validate({"problems": ["Page 2: one word is hard"], "passed": False})
+        return await super().structured(agent=agent, instructions=instructions, prompt=prompt, schema=schema)
+
+
+def test_safe_book_is_kept_with_notes_when_reading_level_never_passes():
+    job = make_job()
+    store = run(StrictReader(), job)
+
+    assert job.status == "done"
+    book = store.books[job.book_id]
+    assert book.review_notes == ["Telugu: Page 2: one word is hard"]
+    assert job.step("reading_level:te").detail == "Notes for your review"

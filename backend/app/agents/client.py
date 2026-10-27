@@ -96,7 +96,10 @@ class OpenWeightClient:
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, max_retries=3, timeout=180)
 
     async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
-        instructions += "\nReply with JSON only, matching the schema."
+        # The model reasons before answering and doesn't see response_format while it plans, so without
+        # the schema in the prompt it plans a different shape and the constrained answer comes out empty.
+        schema_text = json.dumps(schema.model_json_schema(), ensure_ascii=False)
+        instructions += f"\nReply with JSON only, exactly matching this JSON Schema:\n{schema_text}"
         return await with_correction(self._once, agent, instructions, prompt, schema)
 
     async def _once(self, agent: str, messages: list[dict], schema: type[T]) -> T:
