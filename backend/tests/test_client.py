@@ -53,3 +53,31 @@ def test_contributor_models_are_refused():
 
     with pytest.raises(ValueError):
         MetaModelClient("key", "https://api.meta.ai/v1", "muse-spark-1.3-contributor")
+
+
+def test_failed_review_without_reasons_is_rejected():
+    with pytest.raises(ModelError, match="must list its problems"):
+        parse_json_reply('{"problems": [], "passed": false}', Review, "safety")
+
+
+class FlakyOnce:
+    """First reply breaks the rules, the second is valid."""
+
+    def __init__(self):
+        self.prompts: list[list[dict]] = []
+
+    async def once(self, agent, messages, schema):
+        self.prompts.append(messages)
+        if len(self.prompts) == 1:
+            return parse_json_reply('{"problems": [], "passed": false}', schema, agent)
+        return parse_json_reply('{"problems": ["Page 2: frightening"], "passed": false}', schema, agent)
+
+
+def test_rejected_reply_is_retried_with_the_reason():
+    from app.agents.client import with_correction
+
+    flaky = FlakyOnce()
+    review = asyncio.run(with_correction(flaky.once, "safety", "rules", "story", Review))
+
+    assert review.problems == ["Page 2: frightening"]
+    assert "must list its problems" in flaky.prompts[1][-1]["content"]

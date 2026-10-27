@@ -60,12 +60,18 @@ class MetaModelClient:
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, max_retries=3, timeout=180)
 
     async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
-        response = await self.client.chat.completions.parse(
-            model=self.model,
-            messages=[{"role": "system", "content": instructions}, {"role": "user", "content": prompt}],
-            response_format=schema,
-            reasoning_effort=META_EFFORT.get(agent, "low"),
-        )
+        return await with_correction(self._once, agent, instructions, prompt, schema)
+
+    async def _once(self, agent: str, messages: list[dict], schema: type[T]) -> T:
+        try:
+            response = await self.client.chat.completions.parse(
+                model=self.model,
+                messages=messages,
+                response_format=schema,
+                reasoning_effort=META_EFFORT.get(agent, "low"),
+            )
+        except ValidationError as exc:
+            raise ModelError(f"{agent}: {_first_error(exc)}") from exc
         message = response.choices[0].message
         if message.parsed is None:
             raise ModelError(f"{agent}: no structured output ({message.refusal or 'empty response'}).")
@@ -83,12 +89,13 @@ class OpenWeightClient:
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, max_retries=3, timeout=180)
 
     async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
+        instructions += "\nReply with JSON only, matching the schema."
+        return await with_correction(self._once, agent, instructions, prompt, schema)
+
+    async def _once(self, agent: str, messages: list[dict], schema: type[T]) -> T:
         response = await self.client.chat.completions.create(
             model=self.model,
-            messages=[
-                {"role": "system", "content": instructions + "\nReply with JSON only, matching the schema."},
-                {"role": "user", "content": prompt},
-            ],
+            messages=messages,
             response_format={
                 "type": "json_schema",
                 "json_schema": {"name": schema.__name__, "schema": schema.model_json_schema()},
@@ -110,12 +117,31 @@ def parse_json_reply[M: BaseModel](text: str, schema: type[M], agent: str) -> M:
     start, end = text.find("{"), text.rfind("}")
     if start != -1 and end > start:
         candidates.append(text[start : end + 1])
+    problem = f"reply wasn't valid {schema.__name__} JSON"
     for candidate in candidates:
         try:
             return schema.model_validate(json.loads(candidate))
-        except (json.JSONDecodeError, ValidationError):
+        except json.JSONDecodeError:
             continue
-    raise ModelError(f"{agent}: reply wasn't valid {schema.__name__} JSON.")
+        except ValidationError as exc:
+            problem = _first_error(exc)
+    raise ModelError(f"{agent}: {problem}")
+
+
+def _first_error(exc: ValidationError) -> str:
+    return exc.errors()[0]["msg"]
+
+
+async def with_correction[M: BaseModel](
+    once, agent: str, instructions: str, prompt: str, schema: type[M]
+) -> M:
+    """One call, plus one retry that tells the model what was wrong with its first reply."""
+    messages = [{"role": "system", "content": instructions}, {"role": "user", "content": prompt}]
+    try:
+        return await once(agent, messages, schema)
+    except ModelError as exc:
+        fix = f"Your last reply was rejected: {exc}. Reply again, following the schema and its rules exactly."
+        return await once(agent, [*messages, {"role": "user", "content": fix}], schema)
 
 
 class RoutedClient:

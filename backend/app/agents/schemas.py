@@ -24,9 +24,10 @@ class BookRequest(BaseModel):
         return self
 
 
+# Reason fields come before verdicts so the model explains itself before deciding.
 class TopicCheck(BaseModel):
-    allowed: bool
     reason: str = Field(description="Short reason, shown to the adult if the topic is blocked.")
+    allowed: bool
 
 
 class Character(BaseModel):
@@ -62,7 +63,16 @@ class StoryDraft(BaseModel):
 
 
 class Review(BaseModel):
-    passed: bool
     problems: list[str] = Field(
-        default_factory=list, description="Specific, fixable problems. Empty when passed."
+        description="Every specific, fixable problem, each starting with its page number. Empty only if none."
     )
+    passed: bool = Field(description="True only when the problems list is empty.")
+
+    @model_validator(mode="after")
+    def verdict_matches_problems(self) -> "Review":
+        # A failure without reasons gives the writer nothing to fix.
+        if not self.passed and not self.problems:
+            raise ValueError("A failed review must list its problems.")
+        if self.passed and self.problems:
+            raise ValueError("A review that lists problems cannot pass.")
+        return self
