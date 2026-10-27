@@ -18,6 +18,7 @@ create table public.books (
 );
 
 create index books_published_idx on public.books (status, language, level, published_at desc);
+create index books_owner_idx on public.books (owner_id);
 
 create table public.jobs (
   id uuid primary key default gen_random_uuid(),
@@ -30,6 +31,9 @@ create table public.jobs (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create index jobs_owner_idx on public.jobs (owner_id);
+create index jobs_book_idx on public.jobs (book_id);
 
 -- Native-speaker fixes, reused by the writer for every later book in that language.
 create table public.corrections (
@@ -44,6 +48,9 @@ create table public.corrections (
   unique (language, wrong)
 );
 
+create index corrections_book_idx on public.corrections (book_id);
+create index corrections_created_by_idx on public.corrections (created_by);
+
 alter table public.books enable row level security;
 alter table public.jobs enable row level security;
 alter table public.corrections enable row level security;
@@ -55,12 +62,12 @@ create policy "Anyone can read published books"
 create policy "Owners can read their own books"
   on public.books for select
   to authenticated
-  using (owner_id = auth.uid());
+  using (owner_id = (select auth.uid()));
 
 create policy "Owners can read their own jobs"
   on public.jobs for select
   to authenticated
-  using (owner_id = auth.uid());
+  using (owner_id = (select auth.uid()));
 
 -- Storage: illustrations and PDFs, publicly readable, written only by the backend.
 insert into storage.buckets (id, name, public)
