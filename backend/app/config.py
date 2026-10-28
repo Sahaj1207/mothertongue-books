@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # New books are refused once today's model spending (UTC day) reaches this.
     daily_budget_usd: float = 2.0
 
+    # Lifetime caps per provider, set below the free credits ($150 Meta, $100 Baseten) with a margin,
+    # so the card on file is never charged. Meta's own "spend limit" only sends an email.
+    provider_budget_usd: dict[str, float] = {"meta": 120.0, "baseten": 80.0}
+
     # Supabase. The service key bypasses row-level security: backend only, never sent to the browser.
     supabase_url: str | None = None
     supabase_service_key: str | None = None

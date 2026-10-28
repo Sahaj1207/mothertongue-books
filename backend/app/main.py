@@ -32,14 +32,30 @@ async def health() -> dict:
 
 @app.post("/api/books", status_code=202)
 async def create_book(request: BookRequest) -> Job:
-    if not settings.use_mock_ai and await store.spent_today_usd() >= settings.daily_budget_usd:
-        raise HTTPException(429, "Today's book-making budget is used up. New books can be made tomorrow.")
+    if not settings.use_mock_ai:
+        await check_budget()
     job = Job(request=request)
     await store.save_job(job)
     task = asyncio.create_task(run_pipeline(get_client(), job, store))
     _tasks.add(task)
     task.add_done_callback(_finish_task)
     return job
+
+
+def providers_in_use() -> list[str]:
+    if settings.story_provider == "open-weight":
+        return ["baseten"]
+    return ["meta", "baseten"] if settings.baseten_api_key else ["meta"]
+
+
+async def check_budget() -> None:
+    if await store.spent_today_usd() >= settings.daily_budget_usd:
+        raise HTTPException(429, "Today's book-making budget is used up. New books can be made tomorrow.")
+    for provider in providers_in_use():
+        cap = settings.provider_budget_usd.get(provider)
+        if cap is not None and await store.spent_total_usd(provider) >= cap:
+            log.warning("Provider %s reached its lifetime budget of $%.2f", provider, cap)
+            raise HTTPException(429, "Book making is paused: the AI credit budget has been reached.")
 
 
 def _finish_task(task: asyncio.Task) -> None:

@@ -16,8 +16,9 @@ class Store(Protocol):
     async def save_book(self, book: Book) -> None: ...
     async def get_book(self, book_id: str) -> Book | None: ...
     async def list_books(self, published_only: bool = True) -> list[Book]: ...
-    async def save_usage(self, job_id: str, entries: list[UsageEntry]) -> None: ...
+    async def save_usage(self, job_id: str | None, entries: list[UsageEntry]) -> None: ...
     async def spent_today_usd(self) -> float: ...
+    async def spent_total_usd(self, provider: str) -> float: ...
 
 
 def _today_start() -> datetime:
@@ -30,13 +31,16 @@ class MemoryStore:
         self.books: dict[str, Book] = {}
         self.usage: list[tuple[datetime, UsageEntry]] = []
 
-    async def save_usage(self, job_id: str, entries: list[UsageEntry]) -> None:
+    async def save_usage(self, job_id: str | None, entries: list[UsageEntry]) -> None:
         now = datetime.now(UTC)
         self.usage += [(now, e) for e in entries]
 
     async def spent_today_usd(self) -> float:
         start = _today_start()
         return sum(e.cost_usd for at, e in self.usage if at >= start)
+
+    async def spent_total_usd(self, provider: str) -> float:
+        return sum(e.cost_usd for _, e in self.usage if e.provider == provider)
 
     async def save_job(self, job: Job) -> None:
         self.jobs[job.id] = job
@@ -86,7 +90,7 @@ class SupabaseStore:
         rows = await self._select("jobs", {"id": f"eq.{job_id}"})
         return Job.model_validate(rows[0]) if rows else None
 
-    async def save_usage(self, job_id: str, entries: list[UsageEntry]) -> None:
+    async def save_usage(self, job_id: str | None, entries: list[UsageEntry]) -> None:
         if not entries:
             return
         rows = [
@@ -108,6 +112,10 @@ class SupabaseStore:
         rows = await self._select(
             "model_usage", {"select": "cost_usd", "created_at": f"gte.{_today_start().isoformat()}"}
         )
+        return sum(float(r["cost_usd"]) for r in rows)
+
+    async def spent_total_usd(self, provider: str) -> float:
+        rows = await self._select("model_usage", {"select": "cost_usd", "provider": f"eq.{provider}"})
         return sum(float(r["cost_usd"]) for r in rows)
 
     async def save_book(self, book: Book) -> None:

@@ -10,6 +10,8 @@ from app.agents import agents
 from app.agents.client import MetaModelClient, OpenWeightClient
 from app.agents.schemas import BookRequest, StoryDraft, StoryPage
 from app.config import settings
+from app.store import store
+from app.usage import UsageMeter, current_meter
 
 SAMPLE = StoryDraft(
     language="te",
@@ -33,6 +35,17 @@ async def timed(label: str, coro):
 
 
 async def main() -> None:
+    # Count these calls too, so the per-provider budget caps include test spending.
+    meter = UsageMeter()
+    current_meter.set(meter)
+    try:
+        await run_checks()
+    finally:
+        await store.save_usage(None, meter.entries)
+        print(f"Recorded ${meter.cost_usd:.4f} of usage")
+
+
+async def run_checks() -> None:
     if settings.baseten_api_key:
         open_model = OpenWeightClient(
             settings.baseten_api_key, settings.baseten_base_url, settings.open_weight_model
