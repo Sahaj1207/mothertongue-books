@@ -49,6 +49,7 @@ export function ReaderPage() {
   const [main, second] = book.drafts
   const lang = LANGUAGES[book.request.language]
   const scene = book.plan.pages[page]?.scene
+  const image = book.images?.[String(main.pages[page].number)]
   const isLast = page === total - 1
 
 
@@ -91,14 +92,23 @@ export function ReaderPage() {
 
       <article className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2">
         <figure
-          className="flex aspect-[4/3] items-end p-5 sm:aspect-[16/9] lg:aspect-auto lg:min-h-[28rem]"
+          className="relative flex aspect-[4/3] items-end overflow-hidden sm:aspect-[16/9] lg:aspect-auto lg:min-h-[28rem]"
           style={{ background: lang.softColor }}
-          aria-label="Picture for this page"
         >
-          <figcaption className="max-w-md text-sm text-ink-soft">
-            <span className="font-medium text-ink">Picture: </span>
-            {scene}
-          </figcaption>
+          {image ? (
+            <img
+              key={image}
+              src={image}
+              alt={scene ?? ''}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading={page === 0 ? 'eager' : 'lazy'}
+            />
+          ) : (
+            <figcaption className="max-w-md p-5 text-sm text-ink-soft">
+              <span className="font-medium text-ink">Picture: </span>
+              {scene}
+            </figcaption>
+          )}
         </figure>
         <div className="notebook min-h-48 py-[0.9rem] pr-5 pl-16 sm:pl-20 lg:py-[2.25rem]">
           <p

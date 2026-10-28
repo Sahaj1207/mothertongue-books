@@ -132,9 +132,19 @@ export function ReviewPage() {
       <ol className="mt-10 space-y-8">
         {book.plan.pages.map((planPage, pageIndex) => (
           <li key={planPage.number} className="overflow-hidden rounded-3xl border border-rule bg-sheet">
-            <div className="flex items-baseline justify-between gap-4 border-b border-rule px-5 py-3">
-              <h3 className="font-semibold">Page {planPage.number}</h3>
-              <p className="truncate text-sm text-ink-faint">Picture: {planPage.scene}</p>
+            <div className="flex items-center gap-4 border-b border-rule px-5 py-3">
+              {book.images?.[String(planPage.number)] && (
+                <img
+                  src={book.images?.[String(planPage.number)]}
+                  alt={planPage.scene}
+                  loading="lazy"
+                  className="h-16 w-20 shrink-0 rounded-lg object-cover"
+                />
+              )}
+              <div className="min-w-0">
+                <h3 className="font-semibold">Page {planPage.number}</h3>
+                <p className="line-clamp-2 text-sm text-ink-faint">Picture: {planPage.scene}</p>
+              </div>
             </div>
             <div className="space-y-3 p-4">
               {book.drafts.map((d, draftIndex) => (

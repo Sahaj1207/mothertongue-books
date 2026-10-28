@@ -56,6 +56,8 @@ export interface Book {
   drafts: StoryDraft[]
   /** Reading-level notes the checker still had, for the adult reviewing the book. */
   review_notes: string[]
+  /** Picture URL per page number; pages without a picture are missing. */
+  images?: Record<string, string>
   owner_id: string | null
   status: 'draft' | 'published'
   created_at: string
