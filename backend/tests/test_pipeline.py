@@ -66,6 +66,7 @@ def test_writer_rewrites_after_a_failed_review():
 
     assert job.status == "done"
     assert client.calls.count("writer") == 2
+    assert job.step("writer:te").detail == "Improved after review"
 
 
 def test_book_fails_when_reviews_never_pass():

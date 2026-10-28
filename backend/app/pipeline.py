@@ -86,6 +86,8 @@ class Run:
             await self.save()
 
             if level_review.passed and safety_review.passed:
+                writer.detail = "Improved after review" if attempt else None
+                await self.save()
                 return draft
             feedback = level_review.problems + safety_review.problems
 

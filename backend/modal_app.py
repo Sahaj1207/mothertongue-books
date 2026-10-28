@@ -27,6 +27,12 @@ app = modal.App("mothertongue-books")
 @modal.concurrent(max_inputs=50)
 @modal.asgi_app()
 def api():
+    import os
+
+    # The live site uses real models; backend/.env (and so the secret) keeps practice mode for local work.
+    # Spending stays capped by DAILY_BUDGET_USD and the per-provider budgets in app/config.py.
+    os.environ["USE_MOCK_AI"] = "false"
+
     from app.main import app as fastapi_app
 
     return fastapi_app
