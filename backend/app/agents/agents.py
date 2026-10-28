@@ -2,6 +2,7 @@
 
 from app.agents.client import ModelClient
 from app.agents.schemas import BookRequest, Review, StoryDraft, StoryPlan, TopicCheck
+from app.models import Correction
 
 LANGUAGE_NAMES = {"te": "Telugu", "kn": "Kannada", "mr": "Marathi", "en": "English"}
 
@@ -50,12 +51,23 @@ async def plan_story(client: ModelClient, request: BookRequest) -> StoryPlan:
 
 
 async def write_story(
-    client: ModelClient, plan: StoryPlan, language: str, level: int, feedback: list[str] | None = None
+    client: ModelClient,
+    plan: StoryPlan,
+    language: str,
+    level: int,
+    feedback: list[str] | None = None,
+    corrections: list[Correction] | None = None,
 ) -> StoryDraft:
     fix_note = ""
+    if corrections:
+        fixes = [f"{c.wrong} -> {c.right_text}" + (f" ({c.note})" if c.note else "") for c in corrections]
+        fix_note += "\nNative speakers corrected these before. Never use the wrong form:\n- " + "\n- ".join(
+            fixes
+        )
     if feedback:
-        fix_note = "\nA reviewer found these problems in your last draft. Fix all of them:\n- " + "\n- ".join(
-            feedback
+        fix_note += (
+            "\nA reviewer found these problems in your last draft. Fix all of them:\n- "
+            + "\n- ".join(feedback)
         )
     return await client.structured(
         agent="writer",

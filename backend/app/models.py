@@ -25,6 +25,7 @@ class Job(BaseModel):
     book_id: str | None = None
     message: str | None = None
     cost_usd: float = 0.0
+    owner_id: str | None = None
 
     def step(self, key: str) -> Step:
         return next(s for s in self.steps if s.key == key)
@@ -40,3 +41,13 @@ class Book(BaseModel):
     status: Literal["draft", "published"] = "draft"
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     published_at: datetime | None = None
+    owner_id: str | None = None
+
+
+class Correction(BaseModel):
+    """A native speaker's fix, applied to the book and reused by the writer in later books."""
+
+    language: Literal["te", "kn", "mr", "en"]
+    wrong: str = Field(min_length=1, max_length=120)
+    right_text: str = Field(min_length=1, max_length=120)
+    note: str | None = Field(default=None, max_length=300)

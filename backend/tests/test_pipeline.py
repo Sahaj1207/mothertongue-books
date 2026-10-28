@@ -138,3 +138,28 @@ def test_safe_book_is_kept_with_notes_when_reading_level_never_passes():
     book = store.books[job.book_id]
     assert book.review_notes == ["Telugu: Page 2: one word is hard"]
     assert job.step("reading_level:te").detail == "Notes for your review"
+
+
+def test_writer_is_told_about_saved_corrections():
+    from app.models import Correction
+
+    class Recording(ScriptedClient):
+        def __init__(self):
+            super().__init__()
+            self.writer_prompts: list[str] = []
+
+        async def structured(self, *, agent, instructions, prompt, schema):
+            if agent == "writer":
+                self.writer_prompts.append(prompt)
+            return await super().structured(
+                agent=agent, instructions=instructions, prompt=prompt, schema=schema
+            )
+
+    store = MemoryStore()
+    asyncio.run(
+        store.save_correction(Correction(language="te", wrong="వచ్చాడు", right_text="వచ్చింది"), None, "u")
+    )
+    client = Recording()
+    asyncio.run(run_pipeline(client, make_job(), store))
+
+    assert "వచ్చాడు -> వచ్చింది" in client.writer_prompts[0]

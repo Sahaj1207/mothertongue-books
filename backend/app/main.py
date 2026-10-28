@@ -1,24 +1,30 @@
 import asyncio
 import logging
 from datetime import UTC, datetime
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from app.agents.client import get_client
-from app.agents.schemas import BookRequest
+from app.agents.schemas import BookRequest, StoryPage
+from app.auth import User, optional_user, require_user
 from app.config import settings
-from app.models import Book, Job
+from app.models import Book, Correction, Job
 from app.pipeline import run_pipeline
 from app.store import store
 
 log = logging.getLogger("mothertongue")
 
+SignedIn = Annotated[User, Depends(require_user)]
+MaybeSignedIn = Annotated[User | None, Depends(optional_user)]
+
 app = FastAPI(title="MotherTongue Books API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
 )
 
@@ -31,10 +37,10 @@ async def health() -> dict:
 
 
 @app.post("/api/books", status_code=202)
-async def create_book(request: BookRequest) -> Job:
+async def create_book(request: BookRequest, user: SignedIn) -> Job:
     if not settings.use_mock_ai:
         await check_budget()
-    job = Job(request=request)
+    job = Job(request=request, owner_id=user.id)
     await store.save_job(job)
     task = asyncio.create_task(run_pipeline(get_client(), job, store))
     _tasks.add(task)
@@ -64,10 +70,15 @@ def _finish_task(task: asyncio.Task) -> None:
         log.error("Pipeline crashed", exc_info=task.exception())
 
 
+def _is_owner(owner_id: str | None, user: User | None) -> bool:
+    # Books made before sign-in existed have no owner; anyone with the link may see those drafts.
+    return owner_id is None or (user is not None and user.id == owner_id)
+
+
 @app.get("/api/jobs/{job_id}")
-async def get_job(job_id: str) -> Job:
+async def get_job(job_id: str, user: MaybeSignedIn) -> Job:
     job = await store.get_job(job_id)
-    if not job:
+    if not job or not _is_owner(job.owner_id, user):
         raise HTTPException(404, "No job with that id.")
     return job
 
@@ -77,20 +88,81 @@ async def list_books() -> list[Book]:
     return await store.list_books(published_only=True)
 
 
-@app.get("/api/books/{book_id}")
-async def get_book(book_id: str) -> Book:
+@app.get("/api/me/books")
+async def my_books(user: SignedIn) -> list[Book]:
+    return await store.list_books_by_owner(user.id)
+
+
+async def _readable_book(book_id: str, user: User | None) -> Book:
     book = await store.get_book(book_id)
-    if not book:
+    if not book or (book.status != "published" and not _is_owner(book.owner_id, user)):
         raise HTTPException(404, "No book with that id.")
     return book
 
 
-@app.post("/api/books/{book_id}/publish")
-async def publish_book(book_id: str) -> Book:
-    # Temporary until the review-and-approve screen (Day 4) adds sign-in and edits.
+async def _owned_book(book_id: str, user: User) -> Book:
     book = await store.get_book(book_id)
-    if not book:
+    if not book or book.owner_id != user.id:
         raise HTTPException(404, "No book with that id.")
+    return book
+
+
+@app.get("/api/books/{book_id}")
+async def get_book(book_id: str, user: MaybeSignedIn) -> Book:
+    return await _readable_book(book_id, user)
+
+
+class PageEdits(BaseModel):
+    """New text for each language version, page by page, in the book's existing order."""
+
+    pages: list[list[StoryPage]] = Field(description="One list of pages per draft, in draft order.")
+    titles: list[str]
+
+
+@app.put("/api/books/{book_id}")
+async def edit_book(book_id: str, edits: PageEdits, user: SignedIn) -> Book:
+    book = await _owned_book(book_id, user)
+    if len(edits.pages) != len(book.drafts) or len(edits.titles) != len(book.drafts):
+        raise HTTPException(422, "Edits must cover every language version of the book.")
+    for draft, pages, title in zip(book.drafts, edits.pages, edits.titles, strict=True):
+        if [p.number for p in pages] != [p.number for p in draft.pages]:
+            raise HTTPException(422, "Pages can be edited but not added, removed or reordered.")
+        if not title.strip() or any(not p.text.strip() for p in pages):
+            raise HTTPException(422, "Every page and title needs some text.")
+        draft.title, draft.pages = title.strip(), pages
+    await store.save_book(book)
+    return book
+
+
+class CorrectionRequest(Correction):
+    book_id: str
+
+
+@app.post("/api/corrections")
+async def add_correction(fix: CorrectionRequest, user: SignedIn) -> Book:
+    """Save a native speaker's fix for future books, and apply it to this book right away."""
+    book = await _owned_book(fix.book_id, user)
+    draft = next((d for d in book.drafts if d.language == fix.language), None)
+    if draft is None:
+        raise HTTPException(422, "This book has no version in that language.")
+    if not any(fix.wrong in p.text or fix.wrong in draft.title for p in draft.pages):
+        raise HTTPException(422, f"“{fix.wrong}” doesn't appear in this book.")
+    draft.title = draft.title.replace(fix.wrong, fix.right_text)
+    for page in draft.pages:
+        page.text = page.text.replace(fix.wrong, fix.right_text)
+    await store.save_correction(Correction(**fix.model_dump(exclude={"book_id"})), book.id, user.id)
+    await store.save_book(book)
+    return book
+
+
+@app.get("/api/corrections/{language}")
+async def list_corrections(language: str, user: SignedIn) -> list[Correction]:
+    return await store.list_corrections(language)
+
+
+@app.post("/api/books/{book_id}/publish")
+async def publish_book(book_id: str, user: SignedIn) -> Book:
+    book = await _owned_book(book_id, user)
     if book.status != "published":
         book.status = "published"
         book.published_at = datetime.now(UTC)

@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     # Supabase. The service key bypasses row-level security: backend only, never sent to the browser.
     supabase_url: str | None = None
     supabase_service_key: str | None = None
+    # Publishable keys are meant to be public; used to verify users' access tokens.
+    supabase_publishable_key: str = "sb_publishable_xpi2tGOTJZUeiMYqsO1HLg_sfX4PdVP"
 
     max_writer_retries: int = 2
     cors_origins: list[str] = ["http://localhost:5173"]

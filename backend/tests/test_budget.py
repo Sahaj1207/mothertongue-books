@@ -1,12 +1,21 @@
 import asyncio
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app import main
+from app.auth import User, require_user
 from app.store import MemoryStore
 from app.usage import UsageEntry
 
 BOOK = {"language": "te", "level": 1, "topic": "sharing mangoes"}
+
+
+@pytest.fixture(autouse=True)
+def signed_in():
+    main.app.dependency_overrides[require_user] = lambda: User(id="u1", email=None)
+    yield
+    main.app.dependency_overrides.clear()
 
 
 def test_new_books_are_refused_once_the_daily_budget_is_spent(monkeypatch):

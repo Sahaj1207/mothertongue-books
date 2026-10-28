@@ -64,12 +64,13 @@ class Run:
             self.job.step(f"{k}:{lang}") for k in ("writer", "reading_level", "safety")
         )
         feedback: list[str] | None = None
+        corrections = await self.store.list_corrections(lang)
 
         for attempt in range(settings.max_writer_retries + 1):
             writer.status = "running"
             writer.detail = f"Rewriting with reviewer notes (try {attempt + 1})" if attempt else None
             await self.save()
-            draft = await agents.write_story(self.client, plan, lang, level, feedback)
+            draft = await agents.write_story(self.client, plan, lang, level, feedback, corrections)
             writer.status = "done"
 
             reading.status = safety.status = "running"
@@ -117,7 +118,9 @@ async def run_pipeline(client: ModelClient, job: Job, store: Store) -> None:
         plan = await run.step("planner", agents.plan_story(client, job.request))
         drafts = [await run.write_and_review(plan, lang) for lang in story_languages(job)]
 
-        book = Book(request=job.request, plan=plan, drafts=drafts, review_notes=run.notes)
+        book = Book(
+            request=job.request, plan=plan, drafts=drafts, review_notes=run.notes, owner_id=job.owner_id
+        )
         await store.save_book(book)
         job.book_id = book.id
         job.status = "done"

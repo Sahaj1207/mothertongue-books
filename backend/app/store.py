@@ -6,7 +6,7 @@ from typing import Protocol
 import httpx
 
 from app.config import settings
-from app.models import Book, Job
+from app.models import Book, Correction, Job
 from app.usage import UsageEntry
 
 
@@ -19,6 +19,9 @@ class Store(Protocol):
     async def save_usage(self, job_id: str | None, entries: list[UsageEntry]) -> None: ...
     async def spent_today_usd(self) -> float: ...
     async def spent_total_usd(self, provider: str) -> float: ...
+    async def list_books_by_owner(self, owner_id: str) -> list[Book]: ...
+    async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None: ...
+    async def list_corrections(self, language: str) -> list[Correction]: ...
 
 
 def _today_start() -> datetime:
@@ -30,6 +33,17 @@ class MemoryStore:
         self.jobs: dict[str, Job] = {}
         self.books: dict[str, Book] = {}
         self.usage: list[tuple[datetime, UsageEntry]] = []
+        self.corrections: dict[tuple[str, str], Correction] = {}
+
+    async def list_books_by_owner(self, owner_id: str) -> list[Book]:
+        books = [b for b in self.books.values() if b.owner_id == owner_id]
+        return sorted(books, key=lambda b: b.created_at, reverse=True)
+
+    async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None:
+        self.corrections[(c.language, c.wrong)] = c
+
+    async def list_corrections(self, language: str) -> list[Correction]:
+        return [c for (lang, _), c in self.corrections.items() if lang == language]
 
     async def save_usage(self, job_id: str | None, entries: list[UsageEntry]) -> None:
         now = datetime.now(UTC)
@@ -82,7 +96,8 @@ class SupabaseStore:
 
     async def save_job(self, job: Job) -> None:
         row = job.model_dump(
-            mode="json", include={"id", "status", "request", "steps", "book_id", "message", "cost_usd"}
+            mode="json",
+            include={"id", "status", "request", "steps", "book_id", "message", "cost_usd", "owner_id"},
         )
         await self._upsert("jobs", row | {"updated_at": datetime.now(UTC).isoformat()})
 
@@ -135,8 +150,33 @@ class SupabaseStore:
                 "status": book.status,
                 "created_at": book.created_at.isoformat(),
                 "published_at": book.published_at.isoformat() if book.published_at else None,
+                "owner_id": book.owner_id,
             },
         )
+
+    async def list_books_by_owner(self, owner_id: str) -> list[Book]:
+        rows = await self._select("books", {"owner_id": f"eq.{owner_id}", "order": "created_at.desc"})
+        return [_book_from_row(r) for r in rows]
+
+    async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None:
+        r = await self.http.post(
+            "/corrections",
+            params={"on_conflict": "language,wrong"},
+            json=c.model_dump() | {"book_id": book_id, "created_by": user_id},
+            headers={"Prefer": "resolution=merge-duplicates,return=minimal"},
+        )
+        r.raise_for_status()
+
+    async def list_corrections(self, language: str) -> list[Correction]:
+        rows = await self._select(
+            "corrections",
+            {
+                "select": "language,wrong,right_text,note",
+                "language": f"eq.{language}",
+                "order": "created_at.desc",
+            },
+        )
+        return [Correction.model_validate(r) for r in rows]
 
     async def get_book(self, book_id: str) -> Book | None:
         rows = await self._select("books", {"id": f"eq.{book_id}"})
@@ -161,6 +201,7 @@ def _book_from_row(row: dict) -> Book:
             "status": row["status"],
             "created_at": row["created_at"],
             "published_at": row["published_at"],
+            "owner_id": row.get("owner_id"),
         }
     )
 
