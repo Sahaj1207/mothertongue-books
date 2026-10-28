@@ -1,3 +1,4 @@
+import { accessToken } from './supabase'
 import type { LanguageCode, ReadingLevel } from './languages'
 import type { BookKind, BookSummary } from './types'
 
@@ -53,9 +54,19 @@ export interface Book {
     pages: { number: number; event: string; scene: string }[]
   }
   drafts: StoryDraft[]
+  /** Reading-level notes the checker still had, for the adult reviewing the book. */
+  review_notes: string[]
+  owner_id: string | null
   status: 'draft' | 'published'
   created_at: string
   published_at: string | null
+}
+
+export interface Correction {
+  language: AnyLanguage
+  wrong: string
+  right_text: string
+  note?: string | null
 }
 
 export class ApiError extends Error {
@@ -68,11 +79,16 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = await accessToken()
   let res: Response
   try {
     res = await fetch(`/api${path}`, {
       ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init?.headers,
+      },
     })
   } catch {
     throw new ApiError("Can't reach the server. Check your connection and try again.", 0)
@@ -90,6 +106,11 @@ export const api = {
   getJob: (id: string) => request<Job>(`/jobs/${id}`),
   getBook: (id: string) => request<Book>(`/books/${id}`),
   listBooks: () => request<Book[]>('/books'),
+  myBooks: () => request<Book[]>('/me/books'),
+  editBook: (id: string, edits: { titles: string[]; pages: StoryPage[][] }) =>
+    request<Book>(`/books/${id}`, { method: 'PUT', body: JSON.stringify(edits) }),
+  addCorrection: (fix: Correction & { book_id: string }) =>
+    request<Book>('/corrections', { method: 'POST', body: JSON.stringify(fix) }),
   publishBook: (id: string) => request<Book>(`/books/${id}/publish`, { method: 'POST' }),
 }
 

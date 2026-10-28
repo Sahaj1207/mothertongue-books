@@ -190,7 +190,7 @@ export function CreatePage() {
             <FieldError id="topic-error">{errors.topic}</FieldError>
           ) : (
             <p id="topic-hint" className="mt-2 text-sm text-ink-faint">
-              Write in English or any language. Names, places and festivals are welcome.
+              Write in English or any language. Places and festivals are welcome; please don't include a real child's name or personal details.
             </p>
           )}
           <div className="mt-4 flex flex-wrap gap-2">

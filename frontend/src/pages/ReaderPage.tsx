@@ -12,7 +12,6 @@ export function ReaderPage() {
   const [book, setBook] = useState<Book | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(0)
-  const [publishing, setPublishing] = useState(false)
 
   useEffect(() => {
     api
@@ -52,30 +51,18 @@ export function ReaderPage() {
   const scene = book.plan.pages[page]?.scene
   const isLast = page === total - 1
 
-  async function publish() {
-    setPublishing(true)
-    try {
-      setBook(await api.publishBook(book!.id))
-    } catch (e) {
-      setError((e as Error).message)
-    } finally {
-      setPublishing(false)
-    }
-  }
 
   return (
     <main className="mx-auto max-w-3xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 lg:max-w-6xl">
       {book.status === 'draft' && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-turmeric-soft px-4 py-3">
-          <p className="text-sm">This book is a draft. Only people with the link can see it.</p>
-          <button
-            type="button"
-            onClick={publish}
-            disabled={publishing}
-            className="h-10 rounded-full bg-ink px-4 text-sm font-medium text-white hover:bg-ink-soft disabled:opacity-60"
+          <p className="text-sm">This book is a draft. Only you can see it.</p>
+          <Link
+            to={`/books/${book.id}/review`}
+            className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-white hover:bg-ink-soft"
           >
-            {publishing ? 'Publishing…' : 'Publish to the library'}
-          </button>
+            Review and publish
+          </Link>
         </div>
       )}
 

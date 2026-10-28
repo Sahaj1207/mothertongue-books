@@ -104,10 +104,10 @@ export function ProgressPage() {
 
       {job.status === 'done' && job.book_id && (
         <Link
-          to={`/books/${job.book_id}`}
+          to={`/books/${job.book_id}/review`}
           className="mt-8 inline-flex h-14 w-full items-center justify-center rounded-full bg-ink px-10 text-lg font-semibold text-white hover:bg-ink-soft sm:w-auto"
         >
-          Read the book
+          Review the book
         </Link>
       )}
 
