@@ -11,6 +11,7 @@ from app.agents.client import get_client
 from app.agents.schemas import BookRequest, StoryPage
 from app.auth import User, optional_user, require_user
 from app.config import settings
+from app.illustrations import ImageMaker, ModalImageMaker
 from app.models import Book, Correction, Job
 from app.pipeline import run_pipeline
 from app.store import store
@@ -42,16 +43,23 @@ async def create_book(request: BookRequest, user: SignedIn) -> Job:
         await check_budget()
     job = Job(request=request, owner_id=user.id)
     await store.save_job(job)
-    task = asyncio.create_task(run_pipeline(get_client(), job, store))
+    task = asyncio.create_task(run_pipeline(get_client(), job, store, get_image_maker()))
     _tasks.add(task)
     task.add_done_callback(_finish_task)
     return job
 
 
+def get_image_maker() -> ImageMaker | None:
+    if settings.use_mock_ai or not settings.illustrations_enabled:
+        return None
+    return ModalImageMaker(settings.illustrator_app)
+
+
 def providers_in_use() -> list[str]:
+    providers = ["modal"] if settings.illustrations_enabled else []
     if settings.story_provider == "open-weight":
-        return ["baseten"]
-    return ["meta", "baseten"] if settings.baseten_api_key else ["meta"]
+        return [*providers, "baseten"]
+    return [*providers, "meta", "baseten"] if settings.baseten_api_key else [*providers, "meta"]
 
 
 async def check_budget() -> None:

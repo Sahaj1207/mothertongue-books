@@ -29,7 +29,12 @@ class Settings(BaseSettings):
 
     # Lifetime caps per provider, set below the free credits ($150 Meta, $100 Baseten) with a margin,
     # so the card on file is never charged. Meta's own "spend limit" only sends an email.
-    provider_budget_usd: dict[str, float] = {"meta": 120.0, "baseten": 80.0}
+    provider_budget_usd: dict[str, float] = {"meta": 120.0, "baseten": 80.0, "modal": 60.0}
+
+    # Illustrations: FLUX.1 [schnell] on a Modal GPU (illustrator_app.py). Off in practice mode.
+    illustrations_enabled: bool = True
+    illustrator_app: str = "mothertongue-illustrator"
+    illustration_concurrency: int = 4
 
     # Supabase. The service key bypasses row-level security: backend only, never sent to the browser.
     supabase_url: str | None = None

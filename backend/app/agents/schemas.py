@@ -33,12 +33,17 @@ class TopicCheck(BaseModel):
 class Character(BaseModel):
     name: str
     description: str
+    look: str = Field(
+        description="Fixed appearance for every picture: age, hair, clothes and colours, in one sentence.",
+    )
 
 
 class PagePlan(BaseModel):
     number: int
     event: str = Field(description="What happens on this page, in English.")
-    scene: str = Field(description="What the picture shows, in English.")
+    scene: str = Field(
+        description="What the picture shows, in English. Name the characters in it; describe the setting."
+    )
 
 
 class StoryPlan(BaseModel):

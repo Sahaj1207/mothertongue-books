@@ -17,9 +17,13 @@ class UsageEntry:
     agent: str
     input_tokens: int
     output_tokens: int
+    # For usage billed by time rather than tokens (GPU drawing).
+    fixed_cost_usd: float | None = None
 
     @property
     def cost_usd(self) -> float:
+        if self.fixed_cost_usd is not None:
+            return self.fixed_cost_usd
         price_in, price_out = PRICES.get(self.model, (0.0, 0.0))
         return (self.input_tokens * price_in + self.output_tokens * price_out) / 1_000_000
 
@@ -44,3 +48,10 @@ def record_usage(provider: str, model: str, agent: str, usage) -> None:
     meter.entries.append(
         UsageEntry(provider, model, agent, usage.prompt_tokens or 0, usage.completion_tokens or 0)
     )
+
+
+def record_cost(provider: str, model: str, agent: str, cost_usd: float) -> None:
+    """Add one time-billed call (no tokens) to the meter of the book being made, if any."""
+    meter = current_meter.get()
+    if meter is not None:
+        meter.entries.append(UsageEntry(provider, model, agent, 0, 0, fixed_cost_usd=cost_usd))

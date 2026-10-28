@@ -38,6 +38,8 @@ class Book(BaseModel):
     drafts: list[StoryDraft]
     # Reading-level notes the checker still had after the writer's retries, for the adult reviewer.
     review_notes: list[str] = Field(default_factory=list)
+    # Public picture URL for each page that has one; pages are shared by every language version.
+    images: dict[int, str] = Field(default_factory=dict)
     status: Literal["draft", "published"] = "draft"
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     published_at: datetime | None = None

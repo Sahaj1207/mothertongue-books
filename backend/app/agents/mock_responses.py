@@ -41,8 +41,16 @@ def respond(agent: str, prompt: str) -> dict:
             "setting": "A small village with a mango tree near the school.",
             "lesson": "Sharing makes everyone happier.",
             "characters": [
-                {"name": "Anu", "description": "A curious six-year-old girl."},
-                {"name": "Ajji", "description": "Anu's grandmother, who tells stories."},
+                {
+                    "name": "Anu",
+                    "description": "A curious six-year-old girl.",
+                    "look": "Six-year-old girl with two braids, yellow skirt and red bangles.",
+                },
+                {
+                    "name": "Ajji",
+                    "description": "Anu's grandmother, who tells stories.",
+                    "look": "Grandmother with grey hair in a bun and a green cotton saree.",
+                },
             ],
             "pages": [
                 {

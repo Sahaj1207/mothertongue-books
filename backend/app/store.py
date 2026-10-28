@@ -22,6 +22,7 @@ class Store(Protocol):
     async def list_books_by_owner(self, owner_id: str) -> list[Book]: ...
     async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None: ...
     async def list_corrections(self, language: str) -> list[Correction]: ...
+    async def save_image(self, book_id: str, page: int, data: bytes) -> str: ...
 
 
 def _today_start() -> datetime:
@@ -34,6 +35,12 @@ class MemoryStore:
         self.books: dict[str, Book] = {}
         self.usage: list[tuple[datetime, UsageEntry]] = []
         self.corrections: dict[tuple[str, str], Correction] = {}
+        self.images: dict[str, bytes] = {}
+
+    async def save_image(self, book_id: str, page: int, data: bytes) -> str:
+        path = f"{book_id}/page-{page}.webp"
+        self.images[path] = data
+        return f"memory://{path}"
 
     async def list_books_by_owner(self, owner_id: str) -> list[Book]:
         books = [b for b in self.books.values() if b.owner_id == owner_id]
@@ -77,6 +84,7 @@ class SupabaseStore:
     """Talks to Supabase's REST API with the service key, so row-level security doesn't apply here."""
 
     def __init__(self, url: str, service_key: str) -> None:
+        self.url = url
         self.http = httpx.AsyncClient(
             base_url=f"{url}/rest/v1",
             headers={"apikey": service_key, "Authorization": f"Bearer {service_key}"},
@@ -147,6 +155,7 @@ class SupabaseStore:
                 "plan": book.plan.model_dump(mode="json"),
                 "drafts": [d.model_dump(mode="json") for d in book.drafts],
                 "review_notes": book.review_notes,
+                "images": {str(n): url for n, url in book.images.items()},
                 "status": book.status,
                 "created_at": book.created_at.isoformat(),
                 "published_at": book.published_at.isoformat() if book.published_at else None,
@@ -166,6 +175,16 @@ class SupabaseStore:
             headers={"Prefer": "resolution=merge-duplicates,return=minimal"},
         )
         r.raise_for_status()
+
+    async def save_image(self, book_id: str, page: int, data: bytes) -> str:
+        path = f"{book_id}/page-{page}.webp"
+        r = await self.http.post(
+            f"{self.url}/storage/v1/object/book-assets/{path}",
+            content=data,
+            headers={"Content-Type": "image/webp", "x-upsert": "true", "Cache-Control": "max-age=31536000"},
+        )
+        r.raise_for_status()
+        return f"{self.url}/storage/v1/object/public/book-assets/{path}"
 
     async def list_corrections(self, language: str) -> list[Correction]:
         rows = await self._select(
@@ -190,6 +209,9 @@ class SupabaseStore:
 
 
 def _book_from_row(row: dict) -> Book:
+    # Books planned before characters had a fixed look.
+    for character in row["plan"].get("characters", []):
+        character.setdefault("look", "")
     request = {k: row[k] for k in ("language", "pair_language", "level", "kind", "topic")}
     return Book.model_validate(
         {
@@ -198,6 +220,7 @@ def _book_from_row(row: dict) -> Book:
             "plan": row["plan"],
             "drafts": row["drafts"],
             "review_notes": row.get("review_notes") or [],
+            "images": row.get("images") or {},
             "status": row["status"],
             "created_at": row["created_at"],
             "published_at": row["published_at"],
