@@ -38,7 +38,12 @@ export function SignInPage() {
     const { data, error } =
       mode === 'sign-in'
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signUp({
+            email,
+            password,
+            // Confirmation links must open the live site, even for accounts made on a local copy.
+            options: { emailRedirectTo: 'https://mothertongue-books.vercel.app/sign-in' },
+          })
     setBusy(false)
     if (error) return setError(friendly(error.message))
     if (mode === 'create' && !data.session) {
