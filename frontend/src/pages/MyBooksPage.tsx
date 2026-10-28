@@ -60,7 +60,7 @@ export function MyBooksPage() {
             const lang = LANGUAGES[book.request.language]
             const published = book.status === 'published'
             return (
-              <li key={book.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 sm:p-5">
+              <li key={book.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-3 p-4 sm:flex sm:gap-x-4 sm:p-5">
                 <span className="weave h-12 w-2 shrink-0 rounded-full" style={{ '--weave-color': lang.color } as React.CSSProperties} />
                 <div className="min-w-0 flex-1">
                   <p lang={main.language} className="truncate text-xl font-semibold" style={{ fontFamily: lang.storyFont, color: lang.color }}>
@@ -77,7 +77,7 @@ export function MyBooksPage() {
                 >
                   {published ? 'Published' : 'Draft'}
                 </span>
-                <div className="flex gap-2">
+                <div className="col-span-3 flex gap-2 sm:col-span-1">
                   <Link to={`/books/${book.id}`} className="inline-flex h-10 items-center rounded-full border-2 border-rule px-4 text-sm font-medium hover:border-ink">
                     Read
                   </Link>

@@ -118,9 +118,11 @@ export function ReviewPage() {
             key={d.language}
             language={d.language}
             value={titles[i]}
+            label={`Title, ${languageDisplay(d.language).name}`}
             onChange={(v) => {
               setTitles((t) => t.map((x, j) => (j === i ? v : x)))
               setDirty(true)
+              setMessage(null)
             }}
             single
           />
@@ -139,6 +141,7 @@ export function ReviewPage() {
                 <StoryField
                   key={d.language}
                   language={d.language}
+                  label={`Page ${planPage.number}, ${languageDisplay(d.language).name}`}
                   value={pages[draftIndex]?.[pageIndex]?.text ?? ''}
                   onChange={(text) => {
                     setPages((all) =>
@@ -147,6 +150,7 @@ export function ReviewPage() {
                       ),
                     )
                     setDirty(true)
+                    setMessage(null)
                   }}
                 />
               ))}
@@ -194,11 +198,13 @@ export function ReviewPage() {
 
 function StoryField({
   language,
+  label,
   value,
   onChange,
   single,
 }: {
   language: AnyLanguage
+  label: string
   value: string
   onChange: (v: string) => void
   single?: boolean
@@ -207,7 +213,7 @@ function StoryField({
   const common = {
     lang: language,
     value,
-    'aria-label': `${display.name} text`,
+    'aria-label': label,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value),
     style: { fontFamily: display.storyFont },
     className:
