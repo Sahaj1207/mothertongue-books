@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://sahaj1207--mothertongue-books-api.modal.run/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://sahaj1207--mothertongue-books-api.us-east.modal.run/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
