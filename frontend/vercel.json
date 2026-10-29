@@ -2,6 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://sahaj1207--mothertongue-books-api.us-east.modal.run/api/:path*" },
+    {
+      "source": "/books/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(whatsapp|facebookexternalhit|facebot|twitterbot|telegrambot|slackbot|discordbot|linkedinbot|skypeuripreview).*"
+        }
+      ],
+      "destination": "https://sahaj1207--mothertongue-books-api.us-east.modal.run/api/share/:id"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

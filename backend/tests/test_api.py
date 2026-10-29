@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app import main
+from app import main, share
 from app.agents.schemas import BookRequest, StoryDraft, StoryPage, StoryPlan
 from app.auth import User, optional_user, require_user
 from app.models import Book
@@ -15,6 +15,7 @@ OTHER = User(id="other-2", email="someone@example.com")
 def store(monkeypatch):
     s = MemoryStore()
     monkeypatch.setattr(main, "store", s)
+    monkeypatch.setattr(share, "store", s)
     return s
 
 
@@ -123,3 +124,15 @@ def test_correction_must_match_text_in_the_book(store):
         "/api/corrections", json={"book_id": book.id, "language": "te", "wrong": "లేదు", "right_text": "ఉంది"}
     )
     assert response.status_code == 422
+
+
+def test_shared_links_preview_published_books_only(store):
+    book = draft_book(store)
+    client = client_as(None)
+
+    assert "పింకీ మామిడి" not in client.get(f"/api/share/{book.id}").text  # drafts stay private
+    book.status = "published"
+    page = client.get(f"/api/share/{book.id}").text
+    assert 'property="og:title" content="పింకీ మామిడి · Mangoes"' in page
+    assert "Telugu picture book for ages 3–5" in page
+    assert f"url=https://mothertongue-books.vercel.app/books/{book.id}" in page

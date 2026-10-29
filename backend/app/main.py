@@ -16,6 +16,7 @@ from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
 from app.models import Book, Correction, Job
 from app.pipeline import redraw_page, run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
+from app.share import router as share_router
 from app.store import store
 from app.usage import UsageMeter, current_meter
 
@@ -31,6 +32,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
 )
+
+app.include_router(share_router)
 
 _tasks: set[asyncio.Task] = set()
 
