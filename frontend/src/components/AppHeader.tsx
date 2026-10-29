@@ -16,7 +16,7 @@ export function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-rule/70 bg-paper/90 backdrop-blur">
+    <header className="site-header sticky top-0 z-20 border-b border-rule/70 bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2 rounded-md sm:gap-2.5">
           <img src="/favicon.svg" alt="" className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" />

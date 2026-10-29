@@ -102,14 +102,14 @@
   --color-marathi-soft: #ffd6e6;
   --radius-cover: 10px;
 }
-[data-theme='pop'] header {
+[data-theme='pop'] .site-header {
   background: #ff5c8a;
   border-bottom: 3px solid #111;
 }
 [data-theme='pop'] .bg-ink {
   box-shadow: 3px 3px 0 #ff5c8a;
 }
-[data-theme='pop'] header .bg-ink {
+[data-theme='pop'] .site-header .bg-ink {
   box-shadow: 3px 3px 0 #ffd23f;
 }
 [data-theme='pop'] .border {
@@ -147,20 +147,20 @@
 [data-theme='kolam'] .bg-ink:hover {
   background-color: #b14a35;
 }
-[data-theme='kolam'] header {
+[data-theme='kolam'] .site-header {
   --color-ink: #fffaf2;
   --color-ink-soft: #f6dcc8;
   background: #9c3d2a;
   border-bottom: 0;
 }
-[data-theme='kolam'] header::after {
+[data-theme='kolam'] .site-header::after {
   content: '';
   position: absolute;
   inset: 100% 0 auto;
   height: 14px;
   background: var(--kolam-strip) repeat-x center, var(--color-paper);
 }
-[data-theme='kolam'] header .bg-ink {
+[data-theme='kolam'] .site-header .bg-ink {
   background-color: #f2b705;
   color: #3a1d12;
 }
@@ -192,7 +192,7 @@
   --color-marathi: #f2a6c9;
   --color-marathi-soft: #45303b;
 }
-[data-theme='slate'] header {
+[data-theme='slate'] .site-header {
   border-bottom: 1px dashed var(--color-ink-faint);
 }
 [data-theme='slate'] .bg-ink {
