@@ -11,7 +11,11 @@ const AGENT_NAME: Record<string, string> = {
   writer: 'Writer agent',
   reading_level: 'Reading-level checker',
   safety: 'Safety reviewer',
+  illustrator: 'Illustrator and picture checker',
 }
+
+// Steps without a language that run after the story is written.
+const PICTURE_STEPS = new Set(['illustrator'])
 
 const POLL_MS = 1000
 
@@ -92,7 +96,12 @@ export function ProgressPage() {
       <div className="notebook mt-8 rounded-3xl border border-rule py-[2.25rem] pr-4 pl-16 sm:pr-6" aria-live="polite">
         <StepGroup title="Getting ready" steps={setup.steps} />
         {rest.map((g) => (
-          <StepGroup key={g.lang} title={g.title} lang={g.lang as AnyLanguage} steps={g.steps} />
+          <StepGroup
+            key={g.lang}
+            title={g.title}
+            lang={g.lang === 'pictures' ? undefined : (g.lang as AnyLanguage)}
+            steps={g.steps}
+          />
         ))}
       </div>
 
@@ -139,6 +148,12 @@ interface Group {
 function groupSteps(steps: Step[]): Group[] {
   const groups: Group[] = [{ lang: 'setup', title: 'Getting ready', steps: [] }]
   for (const step of steps) {
+    if (PICTURE_STEPS.has(step.key)) {
+      let pictures = groups.find((g) => g.lang === 'pictures')
+      if (!pictures) groups.push((pictures = { lang: 'pictures', title: 'Pictures', steps: [] }))
+      pictures.steps.push(step)
+      continue
+    }
     const [, lang] = step.key.split(':')
     if (!lang) {
       groups[0].steps.push(step)
