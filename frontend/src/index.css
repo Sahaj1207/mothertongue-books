@@ -30,6 +30,23 @@
   --radius-cover: 14px;
 }
 
+/* Book covers: a faint ring in the book's language colour; themes restyle it below. */
+.book-cover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cover-color) 18%, transparent);
+}
+[data-theme='clay'] .book-cover {
+  box-shadow: inset 0 -6px 0 color-mix(in srgb, var(--cover-color) 22%, transparent), 0 8px 18px rgb(80 95 180 / 0.16);
+}
+[data-theme='pop'] .book-cover {
+  box-shadow: inset 0 0 0 2.5px #111, 4px 4px 0 #111;
+}
+[data-theme='kolam'] .book-cover {
+  box-shadow: inset 0 0 0 2px #ebcfae, inset 0 0 0 5px #fffaf2, inset 0 0 0 6.5px color-mix(in srgb, var(--cover-color) 45%, transparent);
+}
+[data-theme='slate'] .book-cover {
+  box-shadow: inset 0 0 0 4px #8a5a34;
+}
+
 /* Interface themes. Notebook is the default above; the choice is set on <html> before the app loads.
    Each theme swaps the colour tokens, then restyles a few shared pieces: buttons (bg-ink), cards
    (bg-sheet with a border), the header and the reading surface (.notebook). These rules sit outside

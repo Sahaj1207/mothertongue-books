@@ -19,8 +19,8 @@ export function BookCover({ book }: { book: BookSummary }) {
       aria-label={`${book.title}, ${t(`lang.${book.language}`)}, ${ages}`}
     >
       <div
-        className="relative flex aspect-[3/4] overflow-hidden rounded-[var(--radius-cover)] transition-transform duration-200 group-hover:-translate-y-1 group-active:translate-y-0"
-        style={{ background: lang.softColor, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${lang.color} 18%, transparent)` }}
+        className="book-cover relative flex aspect-[3/4] overflow-hidden rounded-[var(--radius-cover)] transition-transform duration-200 group-hover:-translate-y-1 group-active:translate-y-0"
+        style={{ background: lang.softColor, '--cover-color': lang.color } as React.CSSProperties}
       >
         <div className="weave w-3.5 shrink-0" style={{ '--weave-color': lang.color } as React.CSSProperties} />
         {book.coverUrl ? (
