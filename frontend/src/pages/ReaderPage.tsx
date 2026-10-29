@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BookWords } from '../components/BookWords'
 import { TapLayer } from '../components/TapLayer'
@@ -27,6 +27,27 @@ export function ReaderPage() {
 
   const total = book?.drafts[0].pages.length ?? 0
   const go = useCallback((delta: number) => setPage((p) => Math.min(Math.max(p + delta, 0), total - 1)), [total])
+  const article = useRef<HTMLElement>(null)
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+
+  // A new page starts at its top: on a phone the last page may have been scrolled down to its text.
+  useEffect(() => {
+    const top = article.current?.getBoundingClientRect().top
+    if (top !== undefined && top < 0) window.scrollBy({ top: top - 80, behavior: 'smooth' })
+  }, [page])
+
+  // Swipe left or right on the page to turn it, like a picture-book app.
+  function onTouchStart(e: React.TouchEvent) {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start) return
+    const dx = e.changedTouches[0].clientX - start.x
+    const dy = e.changedTouches[0].clientY - start.y
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1)
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -107,7 +128,11 @@ export function ReaderPage() {
         </div>
       </header>
 
-      <article className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2">
+      <article
+        ref={article}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2">
         <figure
           className={`relative flex items-end overflow-hidden ${
             image
@@ -158,7 +183,11 @@ export function ReaderPage() {
         </div>
       </article>
 
-      <nav className="mt-6 flex items-center justify-between gap-4" aria-label={t('reader.pages')}>
+      {/* On phones the page buttons stay at the bottom of the screen, so a child never scrolls to turn a page. */}
+      <nav
+        className="sticky bottom-0 z-10 -mx-4 mt-4 flex items-center justify-between gap-4 bg-paper/90 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:mt-6 sm:bg-transparent sm:p-0 sm:backdrop-blur-none"
+        aria-label={t('reader.pages')}
+      >
         <button
           type="button"
           onClick={() => go(-1)}
