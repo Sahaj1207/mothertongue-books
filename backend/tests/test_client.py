@@ -27,9 +27,11 @@ class Named(MockModelClient):
         super().__init__(delay=0)
         self.name, self.agents = name, []
 
-    async def structured(self, *, agent, instructions, prompt, schema):
+    async def structured(self, *, agent, instructions, prompt, schema, images=None):
         self.agents.append(agent)
-        return await super().structured(agent=agent, instructions=instructions, prompt=prompt, schema=schema)
+        return await super().structured(
+            agent=agent, instructions=instructions, prompt=prompt, schema=schema, images=images
+        )
 
     def model_name(self, agent: str) -> str:
         return self.name

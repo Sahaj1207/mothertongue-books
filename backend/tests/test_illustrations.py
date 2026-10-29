@@ -66,3 +66,52 @@ def test_a_failed_picture_keeps_the_book():
     assert job.step("illustrator").status == "failed"
     assert 2 not in book.images and 1 in book.images
     assert job.step("illustrator").detail == "1 pictures missing"
+
+
+def check_with(verdicts):
+    """A checker that returns the given verdicts in order: True = usable, a string = that problem."""
+    remaining = list(verdicts)
+
+    async def check(data, page):
+        from app.agents.schemas import PictureCheck
+
+        verdict = remaining.pop(0)
+        if isinstance(verdict, Exception):
+            raise verdict
+        if verdict is True:
+            return PictureCheck(problems=[], usable=True)
+        return PictureCheck(problems=[verdict], usable=False)
+
+    return check
+
+
+async def ignore_progress(*args, **kwargs):
+    pass
+
+
+def draw(painter, check):
+    from app.illustrations import draw_pages
+
+    return asyncio.run(draw_pages(painter, PLAN, "book-1", ignore_progress, check))
+
+
+def test_flawed_picture_is_redrawn_with_the_fix_in_the_prompt():
+    painter = FakePainter()
+    drawn = draw(painter, check_with(["Tata's head floats above his body", True]))
+
+    assert len(painter.prompts) == 2
+    assert "Tata's head floats" in painter.prompts[1]
+    assert drawn[1].unresolved == []
+
+
+def test_problems_left_after_the_last_redraw_go_to_the_reviewer():
+    painter = FakePainter()
+    drawn = draw(painter, check_with(["extra hand"] * 3))
+
+    assert len(painter.prompts) == 3  # first try plus two redraws
+    assert drawn[1].unresolved == ["extra hand"]
+
+
+def test_a_checker_outage_keeps_the_picture():
+    drawn = draw(FakePainter(), check_with([RuntimeError("model down")]))
+    assert drawn[1].data == b"webp"

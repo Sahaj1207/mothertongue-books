@@ -6,14 +6,17 @@ FLUX runs on Cloudflare Workers AI (free plan, no card) or, if a card is on file
 import asyncio
 import base64
 import hashlib
+import logging
 import time
-from typing import Protocol
+from typing import NamedTuple, Protocol
 
 import httpx
 
-from app.agents.schemas import PagePlan, StoryPlan
+from app.agents.schemas import PagePlan, PictureCheck, StoryPlan
 from app.config import settings
 from app.usage import record_cost
+
+log = logging.getLogger("mothertongue")
 
 STYLE = (
     "Children's picture book illustration, soft gouache and watercolour texture, warm natural light, "
@@ -80,13 +83,17 @@ class ModalImageMaker:
         return data
 
 
-def picture_prompt(plan: StoryPlan, page: PagePlan) -> str:
-    """Style, then the fixed look of every character named in this scene, then the scene itself."""
-    looks = [
-        f"{c.name}: {c.look}" for c in plan.characters if c.look and c.name.lower() in page.scene.lower()
-    ]
-    parts = [STYLE, *looks, page.scene]
-    return " ".join(parts)
+def scene_looks(plan: StoryPlan, page: PagePlan) -> list[str]:
+    """The fixed look of every character named in this page's scene."""
+    return [f"{c.name}: {c.look}" for c in plan.characters if c.look and c.name.lower() in page.scene.lower()]
+
+
+def picture_prompt(plan: StoryPlan, page: PagePlan, fixes: list[str] | None = None) -> str:
+    """Style, then the looks of the characters in the scene, the scene, and any fixes from the checker."""
+    parts = [STYLE, *scene_looks(plan, page), page.scene]
+    if fixes:
+        parts += ["Draw every person whole, with the head joined to the body.", "Avoid:", *fixes]
+    return " ".join(parts)[:2048]
 
 
 def book_seed(book_id: str) -> int:
@@ -94,19 +101,57 @@ def book_seed(book_id: str) -> int:
     return int(hashlib.sha256(book_id.encode()).hexdigest()[:8], 16)
 
 
-async def draw_pages(maker: ImageMaker, plan: StoryPlan, book_id: str, on_page_done) -> dict[int, bytes]:
-    """Draws every page, a few at a time. Pages that fail are left out rather than failing the book."""
+class Checker(Protocol):
+    async def __call__(self, data: bytes, page: PagePlan) -> PictureCheck: ...
+
+
+class Drawing(NamedTuple):
+    data: bytes
+    # Problems the checker still saw after the last redraw, for the adult reviewer.
+    unresolved: list[str]
+
+
+async def draw_pages(
+    maker: ImageMaker, plan: StoryPlan, book_id: str, on_progress, check: Checker | None = None
+) -> dict[int, Drawing]:
+    """Draws every page a few at a time; each picture is checked and redrawn if flawed.
+
+    Pages that can't be drawn at all are left out rather than failing the book.
+    """
     limit = asyncio.Semaphore(settings.illustration_concurrency)
     seed = book_seed(book_id)
-    drawn: dict[int, bytes] = {}
+    drawn: dict[int, Drawing] = {}
 
     async def one(page: PagePlan) -> None:
         async with limit:
-            drawn[page.number] = await maker.draw(picture_prompt(plan, page), seed)
-            await on_page_done(len(drawn), len(plan.pages))
+            fixes: list[str] = []
+            for attempt in range(settings.max_picture_redraws + 1):
+                if attempt:
+                    await on_progress(len(drawn), len(plan.pages), redrawing=page.number)
+                data = await maker.draw(picture_prompt(plan, page, fixes), seed + attempt)
+                review = await _safe_check(check, data, page)
+                if review is None or review.usable:
+                    drawn[page.number] = Drawing(data, [])
+                    break
+                fixes = review.problems
+            else:
+                drawn[page.number] = Drawing(data, fixes)
+            await on_progress(len(drawn), len(plan.pages))
 
     results = await asyncio.gather(*(one(p) for p in plan.pages), return_exceptions=True)
     for page, result in zip(plan.pages, results, strict=True):
         if isinstance(result, Exception):
+            log.warning("Page %s picture failed: %s", page.number, result)
             drawn.pop(page.number, None)
     return drawn
+
+
+async def _safe_check(check: Checker | None, data: bytes, page: PagePlan) -> PictureCheck | None:
+    """A checker outage shouldn't lose a picture; the adult still reviews every page before publishing."""
+    if check is None:
+        return None
+    try:
+        return await check(data, page)
+    except Exception:
+        log.exception("Picture check failed for page %s", page.number)
+        return None

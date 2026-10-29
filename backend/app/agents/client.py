@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import re
 from typing import Protocol, TypeVar
@@ -12,14 +13,25 @@ from app.usage import record_usage
 
 T = TypeVar("T", bound=BaseModel)
 
+# An image passed to a vision-capable agent: raw bytes and their MIME type.
+ImageInput = tuple[bytes, str]
+
 
 class ModelError(Exception):
     """A model call finished but didn't return usable output."""
 
 
 class ModelClient(Protocol):
-    async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
-        """Run one agent call and return output validated against `schema`."""
+    async def structured(
+        self,
+        *,
+        agent: str,
+        instructions: str,
+        prompt: str,
+        schema: type[T],
+        images: list[ImageInput] | None = None,
+    ) -> T:
+        """Run one agent call (optionally with images) and return output validated against `schema`."""
         ...
 
     def model_name(self, agent: str) -> str:
@@ -33,7 +45,15 @@ class MockModelClient:
     def __init__(self, delay: float | None = None):
         self.delay = settings.mock_step_delay if delay is None else delay
 
-    async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
+    async def structured(
+        self,
+        *,
+        agent: str,
+        instructions: str,
+        prompt: str,
+        schema: type[T],
+        images: list[ImageInput] | None = None,
+    ) -> T:
         await asyncio.sleep(self.delay)
         return schema.model_validate(mock_responses.respond(agent, prompt))
 
@@ -48,6 +68,7 @@ EFFORT = {
     "writer": "high",
     "reading_level": "low",
     "safety": "low",
+    "picture_check": "low",
 }
 
 # Hard ceiling on tokens per call (reasoning included), so no single call can run up a large bill.
@@ -64,8 +85,16 @@ class MetaModelClient:
         self.model = model
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, max_retries=3, timeout=180)
 
-    async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
-        return await with_correction(self._once, agent, instructions, prompt, schema)
+    async def structured(
+        self,
+        *,
+        agent: str,
+        instructions: str,
+        prompt: str,
+        schema: type[T],
+        images: list[ImageInput] | None = None,
+    ) -> T:
+        return await with_correction(self._once, agent, instructions, prompt, schema, images)
 
     async def _once(self, agent: str, messages: list[dict], schema: type[T]) -> T:
         try:
@@ -95,7 +124,15 @@ class OpenWeightClient:
         self.model = model
         self.client = AsyncOpenAI(api_key=api_key, base_url=base_url, max_retries=3, timeout=180)
 
-    async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
+    async def structured(
+        self,
+        *,
+        agent: str,
+        instructions: str,
+        prompt: str,
+        schema: type[T],
+        images: list[ImageInput] | None = None,
+    ) -> T:
         # The model reasons before answering and doesn't see response_format while it plans, so without
         # the schema in the prompt it plans a different shape and the constrained answer comes out empty.
         schema_text = json.dumps(schema.model_json_schema(), ensure_ascii=False)
@@ -144,11 +181,24 @@ def _first_error(exc: ValidationError) -> str:
     return exc.errors()[0]["msg"]
 
 
+def user_content(prompt: str, images: list[ImageInput] | None) -> str | list[dict]:
+    if not images:
+        return prompt
+    parts: list[dict] = [{"type": "text", "text": prompt}]
+    for data, mime in images:
+        url = f"data:{mime};base64,{base64.b64encode(data).decode()}"
+        parts.append({"type": "image_url", "image_url": {"url": url}})
+    return parts
+
+
 async def with_correction[M: BaseModel](
-    once, agent: str, instructions: str, prompt: str, schema: type[M]
+    once, agent: str, instructions: str, prompt: str, schema: type[M], images: list[ImageInput] | None = None
 ) -> M:
     """One call, plus one retry that tells the model what was wrong with its first reply."""
-    messages = [{"role": "system", "content": instructions}, {"role": "user", "content": prompt}]
+    messages = [
+        {"role": "system", "content": instructions},
+        {"role": "user", "content": user_content(prompt, images)},
+    ]
     try:
         return await once(agent, messages, schema)
     except ModelError as exc:
@@ -165,9 +215,17 @@ class RoutedClient:
     def _for(self, agent: str) -> ModelClient:
         return self.routes.get(agent, self.default)
 
-    async def structured(self, *, agent: str, instructions: str, prompt: str, schema: type[T]) -> T:
+    async def structured(
+        self,
+        *,
+        agent: str,
+        instructions: str,
+        prompt: str,
+        schema: type[T],
+        images: list[ImageInput] | None = None,
+    ) -> T:
         return await self._for(agent).structured(
-            agent=agent, instructions=instructions, prompt=prompt, schema=schema
+            agent=agent, instructions=instructions, prompt=prompt, schema=schema, images=images
         )
 
     def model_name(self, agent: str) -> str:

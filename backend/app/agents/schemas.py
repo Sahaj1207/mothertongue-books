@@ -81,3 +81,18 @@ class Review(BaseModel):
         if self.passed and self.problems:
             raise ValueError("A review that lists problems cannot pass.")
         return self
+
+
+class PictureCheck(BaseModel):
+    problems: list[str] = Field(
+        description="Each visible flaw that a parent would notice, with what to change. Empty only if none."
+    )
+    usable: bool = Field(description="True only when the problems list is empty.")
+
+    @model_validator(mode="after")
+    def verdict_matches_problems(self) -> "PictureCheck":
+        if not self.usable and not self.problems:
+            raise ValueError("An unusable picture must list its problems.")
+        if self.usable and self.problems:
+            raise ValueError("A picture with problems cannot be usable.")
+        return self

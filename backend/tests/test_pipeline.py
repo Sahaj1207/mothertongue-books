@@ -18,12 +18,14 @@ class ScriptedClient(MockModelClient):
         self.review_failures = review_failures
         self.calls: list[str] = []
 
-    async def structured(self, *, agent, instructions, prompt, schema):
+    async def structured(self, *, agent, instructions, prompt, schema, images=None):
         self.calls.append(agent)
         if agent == "safety" and self.review_failures > 0:
             self.review_failures -= 1
             return schema.model_validate({"passed": False, "problems": ["Page 2: the dog is scary."]})
-        return await super().structured(agent=agent, instructions=instructions, prompt=prompt, schema=schema)
+        return await super().structured(
+            agent=agent, instructions=instructions, prompt=prompt, schema=schema, images=images
+        )
 
 
 def make_job(**overrides) -> Job:
@@ -100,7 +102,7 @@ def test_usage_is_recorded_and_costed_per_book():
     from app.usage import record_usage
 
     class Metered(ScriptedClient):
-        async def structured(self, *, agent, instructions, prompt, schema):
+        async def structured(self, *, agent, instructions, prompt, schema, images=None):
             record_usage(
                 "baseten",
                 "meta-models/muse-spark-open-1026",
@@ -108,7 +110,7 @@ def test_usage_is_recorded_and_costed_per_book():
                 SimpleNamespace(prompt_tokens=1_000, completion_tokens=2_000),
             )
             return await super().structured(
-                agent=agent, instructions=instructions, prompt=prompt, schema=schema
+                agent=agent, instructions=instructions, prompt=prompt, schema=schema, images=images
             )
 
     job = make_job()
@@ -124,11 +126,13 @@ def test_usage_is_recorded_and_costed_per_book():
 class StrictReader(ScriptedClient):
     """The reading-level checker never passes; safety always does."""
 
-    async def structured(self, *, agent, instructions, prompt, schema):
+    async def structured(self, *, agent, instructions, prompt, schema, images=None):
         if agent == "reading_level":
             self.calls.append(agent)
             return schema.model_validate({"problems": ["Page 2: one word is hard"], "passed": False})
-        return await super().structured(agent=agent, instructions=instructions, prompt=prompt, schema=schema)
+        return await super().structured(
+            agent=agent, instructions=instructions, prompt=prompt, schema=schema, images=images
+        )
 
 
 def test_safe_book_is_kept_with_notes_when_reading_level_never_passes():
@@ -149,11 +153,11 @@ def test_writer_is_told_about_saved_corrections():
             super().__init__()
             self.writer_prompts: list[str] = []
 
-        async def structured(self, *, agent, instructions, prompt, schema):
+        async def structured(self, *, agent, instructions, prompt, schema, images=None):
             if agent == "writer":
                 self.writer_prompts.append(prompt)
             return await super().structured(
-                agent=agent, instructions=instructions, prompt=prompt, schema=schema
+                agent=agent, instructions=instructions, prompt=prompt, schema=schema, images=images
             )
 
     store = MemoryStore()

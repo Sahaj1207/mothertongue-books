@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     cloudflare_api_token: str | None = None
     illustrator_app: str = "mothertongue-illustrator"
     illustration_concurrency: int = 4
+    # Times the picture checker may send a flawed picture back to be redrawn.
+    max_picture_redraws: int = 2
 
     # Supabase. The service key bypasses row-level security: backend only, never sent to the browser.
     supabase_url: str | None = None

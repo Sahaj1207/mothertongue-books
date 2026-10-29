@@ -1,7 +1,7 @@
 """The story agents. Each one is a single structured model call with its own instructions."""
 
-from app.agents.client import ModelClient
-from app.agents.schemas import BookRequest, Review, StoryDraft, StoryPlan, TopicCheck
+from app.agents.client import ImageInput, ModelClient
+from app.agents.schemas import BookRequest, PictureCheck, Review, StoryDraft, StoryPlan, TopicCheck
 from app.models import Correction
 
 LANGUAGE_NAMES = {"te": "Telugu", "kn": "Kannada", "mr": "Marathi", "en": "English"}
@@ -111,4 +111,23 @@ async def review_safety(client: ModelClient, draft: StoryDraft) -> Review:
         ),
         prompt=f"Story ({LANGUAGE_NAMES[draft.language]}):\n{draft.model_dump_json(indent=2)}",
         schema=Review,
+    )
+
+
+async def check_picture(client: ModelClient, image: ImageInput, scene: str, looks: list[str]) -> PictureCheck:
+    """Looks at one finished illustration before any person sees it."""
+    return await client.structured(
+        agent="picture_check",
+        instructions=(
+            "You check illustrations for a children's picture book. Ask one question: would a parent reject "
+            "this page? Report only serious problems: broken or impossible bodies (a detached or floating "
+            "head, extra or missing limbs, people merged together), a face that looks frightening or monstrous, "
+            "any text or letters, anything unsafe or not child-friendly, or the scene's main action missing "
+            "entirely. Do NOT report small differences from the descriptions (hair, number of braids, jewellery, "
+            "beards, clothing details), hand poses, mild expressions, background objects, kite strings or "
+            "artistic choices. For each serious problem, say what is wrong and how to fix it."
+        ),
+        prompt=f"Scene: {scene}\nCharacters: {'; '.join(looks) or 'none named'}",
+        schema=PictureCheck,
+        images=[image],
     )

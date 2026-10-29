@@ -6,9 +6,9 @@ import logging
 from app.agents import agents
 from app.agents.agents import LANGUAGE_NAMES
 from app.agents.client import ModelClient
-from app.agents.schemas import StoryDraft, StoryPlan
+from app.agents.schemas import PictureCheck, StoryDraft, StoryPlan
 from app.config import settings
-from app.illustrations import ImageMaker, draw_pages
+from app.illustrations import ImageMaker, draw_pages, scene_looks
 from app.models import Book, Job, Step
 from app.store import Store
 from app.usage import UsageMeter, current_meter
@@ -37,7 +37,9 @@ def build_steps(job: Job, illustrate: bool = False) -> list[Step]:
             Step(key=f"safety:{lang}", label="Safety review"),
         ]
     if illustrate:
-        steps.append(Step(key="illustrator", label="Drawing the pictures", model="FLUX.1 schnell"))
+        steps.append(
+            Step(key="illustrator", label="Drawing and checking the pictures", model="FLUX.1 + Muse Spark")
+        )
     return steps
 
 
@@ -71,14 +73,21 @@ class Run:
         step.detail = f"0 of {len(book.plan.pages)}"
         await self.save()
 
-        async def progress(done: int, total: int) -> None:
-            step.detail = f"{done} of {total}"
+        async def progress(done: int, total: int, redrawing: int | None = None) -> None:
+            step.detail = f"Redrawing page {redrawing}" if redrawing else f"{done} of {total}"
             await self.save()
 
+        async def check(data: bytes, page) -> PictureCheck:
+            looks = scene_looks(book.plan, page)
+            return await agents.check_picture(self.client, (data, maker.content_type), page.scene, looks)
+
         try:
-            drawn = await draw_pages(maker, book.plan, book.id, progress)
-            for number, data in sorted(drawn.items()):
-                book.images[number] = await self.store.save_image(book.id, number, data, maker.content_type)
+            drawn = await draw_pages(maker, book.plan, book.id, progress, check)
+            for number, drawing in sorted(drawn.items()):
+                book.images[number] = await self.store.save_image(
+                    book.id, number, drawing.data, maker.content_type
+                )
+                book.review_notes += [f"Page {number} picture: {p}" for p in drawing.unresolved]
             await self.store.save_book(book)
         except Exception:
             log.exception("Illustration failed for book %s", book.id)

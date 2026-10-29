@@ -23,3 +23,6 @@ Thumbs.db
 
 # Local tool settings
 .claude/
+
+# Local test output
+scratch/
