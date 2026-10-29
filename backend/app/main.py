@@ -13,7 +13,7 @@ from app.agents.schemas import BookRequest, FolkOutline, OutlineRequest, StoryPa
 from app.auth import User, optional_user, require_user
 from app.config import settings
 from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
-from app.models import Book, Correction, Job
+from app.models import Book, Correction, Job, LanguageRequest
 from app.pipeline import redraw_page, run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
 from app.share import router as share_router
@@ -221,6 +221,12 @@ async def redraw_book_page(book_id: str, number: int, fix: RedrawRequest, user: 
     _tasks.add(task)
     task.add_done_callback(_finish_task)
     return job
+
+
+@app.post("/api/language-requests", status_code=204)
+async def ask_for_language(request: LanguageRequest, user: MaybeSignedIn) -> None:
+    """Anyone may ask for a language, signed in or not; requests show which languages to add next."""
+    await store.save_language_request(request, user.id if user else None)
 
 
 @app.post("/api/books/{book_id}/publish")

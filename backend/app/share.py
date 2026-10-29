@@ -7,7 +7,7 @@ import httpx
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, Response
 
-from app.agents.agents import LANGUAGE_NAMES
+from app.languages import LANGUAGE_NAMES
 from app.models import Book
 from app.store import store
 

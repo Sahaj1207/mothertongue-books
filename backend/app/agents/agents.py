@@ -11,9 +11,8 @@ from app.agents.schemas import (
     StoryPlan,
     TopicCheck,
 )
+from app.languages import LANGUAGE_NAMES, LANGUAGES
 from app.models import Correction
-
-LANGUAGE_NAMES = {"te": "Telugu", "kn": "Kannada", "mr": "Marathi", "en": "English"}
 
 LEVEL_GUIDE = {
     1: "Ages 3-5. One short sentence per page, 3-6 common words, lots of repetition.",
@@ -47,9 +46,8 @@ async def outline_folk_tale(client: ModelClient, tale: str, language: str) -> Fo
     return await client.structured(
         agent="folk_outline",
         instructions=(
-            "You know the traditional tales of India: Panchatantra, Jataka, Tenali Rama, Birbal, and the "
-            "regional folk tales of Karnataka, Andhra Pradesh, Telangana and Maharashtra. Give the plot of the "
-            "tale the adult names, as it is traditionally told, in 6-8 short steps. Keep its characters, "
+            f"You know the world's traditional tales, especially {LANGUAGES[language].traditions}, as told "
+            f"to children in {LANGUAGES[language].region}. Give the plot of the tale the adult names, as it is traditionally told, in 6-8 short steps. Keep its characters, "
             "setting and ending. Soften anything too frightening for ages 3-9 (no killing, eating or cruelty "
             "shown; a trick or a lucky escape instead) and say what you softened. If you don't know the tale "
             "or it isn't traditional, set known to false and don't invent one."
@@ -63,9 +61,10 @@ async def plan_story(client: ModelClient, request: BookRequest) -> StoryPlan:
     return await client.structured(
         agent="planner",
         instructions=(
-            "You plan short picture books for Indian children. Write the plan in English; it will be written "
-            "natively into each language later, so use characters, food, places and festivals that fit the "
-            "child's region. Plan 6-8 pages, one clear event per page, and a scene description for the picture.\n"
+            f"You plan short picture books for children who speak {LANGUAGE_NAMES[request.language]} in "
+            f"{LANGUAGES[request.language].region}. Write the plan in English; it will be written natively into "
+            "each language later, so use characters, food, places and festivals that fit where they live, and say "
+            "where it is in the setting. Plan 6-8 pages, one clear event per page, and a scene description for the picture.\n"
             + CHILD_SAFE_RULES
         ),
         prompt=(
@@ -73,7 +72,7 @@ async def plan_story(client: ModelClient, request: BookRequest) -> StoryPlan:
             f"Story language: {LANGUAGE_NAMES[request.language]}\n"
             f"Reading level: {LEVEL_GUIDE[request.level]}"
             + (
-                f"\nThis is a retelling of a traditional tale ({request.source or 'Indian folk tale'}). "
+                f"\nThis is a retelling of a traditional tale ({request.source or LANGUAGE_NAMES[request.language] + ' folk tale'}). "
                 "Follow this outline closely, keeping its characters and ending, one step per page:\n"
                 f"{request.outline}"
                 if request.kind == "folk-tale"
@@ -126,7 +125,7 @@ async def check_reading_level(client: ModelClient, draft: StoryDraft, level: int
         instructions=(
             f"You are an early-reading teacher fluent in {LANGUAGE_NAMES[draft.language]}, checking a picture "
             "book that a parent reads aloud with the child. Judge each word by whether a child of this age hears "
-            "it at home, not by its length: Indian-language words are naturally long because they join parts "
+            "it at home, not by its length: in many languages words are naturally long because they join parts "
             "together, and that is fine. Also check the number of sentences per page and grammar such as gender "
             "and number agreement. Report only real problems a parent would notice, each with its page number "
             "and a concrete fix. Minor style preferences are not problems. Pass if no page has a real problem."

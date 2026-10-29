@@ -2,12 +2,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-LanguageCode = Literal["te", "kn", "mr", "en"]
+from app.languages import AnyLanguage, BookLanguage
+
+LanguageCode = AnyLanguage
 BookKind = Literal["original", "two-language", "folk-tale"]
 
 
 class BookRequest(BaseModel):
-    language: Literal["te", "kn", "mr"]
+    language: BookLanguage
     pair_language: LanguageCode | None = None
     level: Literal[1, 2, 3]
     kind: BookKind = "original"
@@ -33,7 +35,7 @@ class BookRequest(BaseModel):
 
 class OutlineRequest(BaseModel):
     tale: str = Field(min_length=3, max_length=120)
-    language: Literal["te", "kn", "mr"]
+    language: BookLanguage
 
 
 class FolkOutline(BaseModel):

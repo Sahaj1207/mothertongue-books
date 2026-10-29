@@ -30,6 +30,12 @@
   --radius-cover: 14px;
 }
 
+/* Language colours are worked out from each language's one colour (src/lib/languages.ts). */
+:root {
+  --lang-lighten: 0%;
+  --lang-tint: 14%;
+}
+
 /* Book covers: a faint ring in the book's language colour; themes restyle it below. */
 .book-cover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cover-color) 18%, transparent);
@@ -100,6 +106,7 @@
   --color-telugu-soft: #cfe0ff;
   --color-kannada-soft: #c9f5dc;
   --color-marathi-soft: #ffd6e6;
+  --lang-tint: 22%;
   --radius-cover: 10px;
 }
 [data-theme='pop'] .site-header {
@@ -196,6 +203,8 @@
   --color-kannada-soft: #26413a;
   --color-marathi: #f2a6c9;
   --color-marathi-soft: #45303b;
+  --lang-lighten: 45%;
+  --lang-tint: 26%;
 }
 [data-theme='slate'] .site-header {
   border-bottom: 1px dashed var(--color-ink-faint);
@@ -329,6 +338,9 @@
   --color-telugu: #2e4a9e;
   --color-kannada: #1e7f5c;
   --color-marathi: #b4246a;
+  --lang-lighten: 0%;
+  --lang-tint: 14%;
+  --color-sheet: #fff;
   color: var(--color-ink);
   background: #fff;
   border-radius: 6px;

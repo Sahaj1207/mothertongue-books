@@ -7,7 +7,7 @@ from typing import Protocol
 import httpx
 
 from app.config import settings
-from app.models import Book, Correction, Job
+from app.models import Book, Correction, Job, LanguageRequest
 from app.usage import UsageEntry
 
 
@@ -24,6 +24,7 @@ class Store(Protocol):
     async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None: ...
     async def list_corrections(self, language: str) -> list[Correction]: ...
     async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str: ...
+    async def save_language_request(self, request: LanguageRequest, user_id: str | None) -> None: ...
 
 
 _EXTENSIONS = {"image/webp": "webp", "image/jpeg": "jpg", "image/png": "png"}
@@ -40,6 +41,10 @@ class MemoryStore:
         self.usage: list[tuple[datetime, UsageEntry]] = []
         self.corrections: dict[tuple[str, str], Correction] = {}
         self.images: dict[str, bytes] = {}
+        self.language_requests: list[LanguageRequest] = []
+
+    async def save_language_request(self, request: LanguageRequest, user_id: str | None) -> None:
+        self.language_requests.append(request)
 
     async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str:
         path = f"{book_id}/page-{page}.{_EXTENSIONS[content_type]}"
@@ -180,6 +185,14 @@ class SupabaseStore:
             params={"on_conflict": "language,wrong"},
             json=c.model_dump() | {"book_id": book_id, "created_by": user_id},
             headers={"Prefer": "resolution=merge-duplicates,return=minimal"},
+        )
+        r.raise_for_status()
+
+    async def save_language_request(self, request: LanguageRequest, user_id: str | None) -> None:
+        r = await self.http.post(
+            "/language_requests",
+            json=request.model_dump() | {"user_id": user_id},
+            headers={"Prefer": "return=minimal"},
         )
         r.raise_for_status()
 

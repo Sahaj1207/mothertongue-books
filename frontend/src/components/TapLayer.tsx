@@ -3,14 +3,13 @@ import type { AnyLanguage, TapWord } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
 
-const SPEECH_LANG: Record<AnyLanguage, string> = { te: 'te-IN', kn: 'kn-IN', mr: 'mr-IN', en: 'en-IN' }
 
 /** A voice for the language on this device, if it has one. Voices load asynchronously in most browsers. */
 export function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
   const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null)
   useEffect(() => {
     if (!('speechSynthesis' in window)) return
-    const prefix = SPEECH_LANG[language].slice(0, 2)
+    const prefix = languageDisplay(language).speech.slice(0, 2)
     const pick = () =>
       setVoice(speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(prefix)) ?? null)
     pick()

@@ -1,6 +1,6 @@
 [
   {
-    "note": "Already made: Punyakoti (aa8018e9) and the rainy-day bus (1428a62d), both Kannada.",
+    "note": "Nine books, three per language. Already made: Punyakoti (aa8018e9) and the rainy-day bus (1428a62d), both Kannada.",
     "skip": true
   },
   {
@@ -13,28 +13,6 @@
     "check": "Made gentle: Softened for ages 3-9: no killing or eating is shown; the lion only demands and frightens. The traditional drowning is softened to a splash into the well and the animals becoming safe, with the lion humbled rather than harmed."
   },
   {
-    "language": "kn",
-    "level": 1,
-    "kind": "original",
-    "topic": "Watching the decorated elephants at Mysuru Dasara with Appa"
-  },
-  {
-    "language": "kn",
-    "pair_language": "en",
-    "level": 2,
-    "kind": "two-language",
-    "topic": "Helping Ajji make holige for Ugadi"
-  },
-  {
-    "language": "te",
-    "level": 3,
-    "kind": "folk-tale",
-    "topic": "Tenali Rama and the thieves",
-    "source": "Tenali Rama folk tales, Telugu tradition of Andhra Pradesh",
-    "outline": "Tenali Rama lives with his wife in a small house in Vijayanagara.\nLate one night he hears quiet whispers and footsteps on the roof.\nHe understands thieves have come to steal, and whispers his plan to his wife.\nLoudly so the thieves can hear, he says to throw all their valuables in a box into the garden well for safety.\nHis wife drops a big heavy box with only stones and old pots into the well with a loud splash.\nThe thieves climb down into the well to find the treasure box.\nTenali Rama calls down kindly and asks them to pass up buckets of water to water his garden plants, and they work all night while he sings.\nAt sunrise the tired thieves climb out to find an empty box, and run away, and Tenali and his wife laugh.",
-    "check": "Made gentle: Softened for ages 3-9: no threat of stealing or violence shown; the box holds only stones, the thieves are not trapped, beaten, or handed to harsh punishment, they just do silly hard work watering the garden and run away."
-  },
-  {
     "language": "te",
     "level": 1,
     "kind": "folk-tale",
@@ -42,12 +20,6 @@
     "source": "Panchatantra",
     "outline": "On a hot summer day, a thirsty crow flies far looking for water.\nHe sees an earthen pitcher in a courtyard garden.\nHe flies down happily, but finds only a little water deep at the bottom.\nHe tries to tip the pitcher and stretches his beak, but cannot reach the water.\nHe looks around and sees small pebbles scattered nearby.\nHe has a clever idea and drops the pebbles one by one into the pitcher.\nThe water slowly rises to the top.\nThe crow drinks the cool water, feels happy, and flies away.",
     "check": "Made gentle: This tale is already gentle with no killing or cruelty. Only softened the crow's suffering from thirst to feeling hot and tired, suitable for ages 3-9."
-  },
-  {
-    "language": "te",
-    "level": 1,
-    "kind": "original",
-    "topic": "Flying a kite on Sankranti"
   },
   {
     "language": "te",
@@ -74,23 +46,8 @@
   {
     "language": "mr",
     "level": 2,
-    "kind": "folk-tale",
-    "topic": "The monkey and the crocodile",
-    "source": "Panchatantra",
-    "outline": "A happy monkey lived alone in a big jamun tree by the river, eating sweet purple fruits every day.\nA crocodile swam by, and the monkey shared fruits with him, and they became close friends.\nThe crocodile carried sweet jamun fruits home every day to his wife on the other bank.\nThe crocodile's wife grew jealous and said she was ill and must have the monkey's heart.\nSad and confused, the crocodile invited his friend the monkey for a visit and carried him on his back across the river.\nMid-river the crocodile confessed his wife's plan, and the monkey quickly thought of a clever trick.\nThe monkey said monkeys keep their hearts safely on the tree, so they must go back to fetch it, and the crocodile turned back.\nThe monkey jumped up safely to his tree and told the crocodile their friendship was over.",
-    "check": "Made gentle: Softened for ages 3-9: the wife's demand for the monkey's heart is kept as in the traditional Panchatantra tale but without any killing, eating, blood, or cruelty shown; it is told as a selfish wish and an unkind trick, and the focus is on the monkey's calm, clever escape to his tree with no harm to anyone."
-  },
-  {
-    "language": "mr",
-    "level": 2,
     "kind": "original",
     "topic": "Making a clay Ganpati with Aaji"
-  },
-  {
-    "language": "mr",
-    "level": 3,
-    "kind": "original",
-    "topic": "A rainy-season walk up to an old hill fort"
   },
   {
     "language": "mr",

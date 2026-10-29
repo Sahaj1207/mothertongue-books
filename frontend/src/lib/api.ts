@@ -121,7 +121,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const detail = typeof body?.detail === 'string' ? body.detail : 'The server rejected the request.'
     throw new ApiError(detail, res.status)
   }
-  return res.json()
+  // 204 No Content has no body to read.
+  return res.status === 204 ? (undefined as T) : res.json()
 }
 
 export const api = {
@@ -138,6 +139,11 @@ export const api = {
     request<FolkOutline>('/folk-outline', { method: 'POST', body: JSON.stringify({ tale, language }) }),
   redrawPage: (id: string, page: number, note: string | null) =>
     request<Job>(`/books/${id}/pages/${page}/redraw`, { method: 'POST', body: JSON.stringify({ note }) }),
+  askForLanguage: (language: string, canHelp: boolean) =>
+    request<void>('/language-requests', {
+      method: 'POST',
+      body: JSON.stringify({ language, can_help: canHelp }),
+    }),
   publishBook: (id: string) => request<Book>(`/books/${id}/publish`, { method: 'POST' }),
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { AnyLanguage, TapWord } from '../lib/api'
 import { useI18n } from '../lib/i18n'
-import { LANGUAGE_ORDER, LANGUAGES, type LanguageCode } from '../lib/languages'
+import { LANGUAGES, REVIEWED_LANGUAGES, type LanguageCode } from '../lib/languages'
 import type { BookSummary } from '../lib/types'
 import { TapLayer } from './TapLayer'
 
@@ -35,10 +35,10 @@ function useHookLanguage(): LanguageCode {
   const fixed = language !== 'en'
   useEffect(() => {
     if (fixed || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const timer = window.setInterval(() => setIndex((i) => (i + 1) % LANGUAGE_ORDER.length), 2600)
+    const timer = window.setInterval(() => setIndex((i) => (i + 1) % REVIEWED_LANGUAGES.length), 2600)
     return () => window.clearInterval(timer)
   }, [fixed])
-  return fixed ? (language as LanguageCode) : LANGUAGE_ORDER[index]
+  return fixed ? (language as LanguageCode) : REVIEWED_LANGUAGES[index]
 }
 
 export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookSummary | null }) {
@@ -58,7 +58,7 @@ export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookS
       {/* Everything sits right of the red margin line, as on a real exercise-book page. */}
       <div className="pl-10 sm:pl-0">
         <p className="text-sm text-ink-soft">
-          {LANGUAGE_ORDER.map((code, i) => (
+          {REVIEWED_LANGUAGES.map((code, i) => (
             <span key={code} lang={code} style={{ fontFamily: LANGUAGES[code].storyFont }}>
               {i > 0 && ' · '}
               {LANGUAGES[code].nativeName}

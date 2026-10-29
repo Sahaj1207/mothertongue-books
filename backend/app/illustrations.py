@@ -22,7 +22,7 @@ log = logging.getLogger("mothertongue")
 
 STYLE = (
     "Children's picture book illustration, soft gouache and watercolour texture, warm natural light, "
-    "gentle rounded shapes, friendly expressions, uncluttered background, Indian setting, "
+    "gentle rounded shapes, friendly expressions, uncluttered background, "
     "every character shown whole and fully inside the frame, "
     # Name no objects here: FLUX draws whatever the style mentions ("buses" put buses in forests).
     "no writing anywhere: no text, letters, words, labels or signature."
@@ -105,7 +105,8 @@ def picture_prompt(plan: StoryPlan, page: PagePlan, fixes: list[str] | None = No
     FLUX tends to write any name it sees into the picture, so names never reach the prompt.
     """
     in_scene = [c for c in plan.characters if c.look and c.name.lower() in page.scene.lower()]
-    parts = [STYLE, without_names(plan, page.scene)]
+    # The setting places the pictures where the language's children live (Karnataka, Nairobi, Kathmandu).
+    parts = [STYLE, f"Setting: {without_names(plan, plan.setting)}.", without_names(plan, page.scene)]
     if in_scene:
         parts.append("Only these people appear, each drawn whole, with no extra people.")
     if fixes:

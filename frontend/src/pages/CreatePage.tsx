@@ -4,7 +4,8 @@ import { LanguageTile } from '../components/LanguageTile'
 import { Tips } from '../components/Tips'
 import { api, type AnyLanguage, type FolkOutline } from '../lib/api'
 import { useT } from '../lib/i18n'
-import { LANGUAGE_ORDER, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
+import type { MessageKey } from '../locales/en'
+import { LANGUAGE_ORDER, LANGUAGES, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
 import type { BookKind } from '../lib/types'
 
 const LEVEL_HINT = { 1: 'create.level1', 2: 'create.level2', 3: 'create.level3' } as const satisfies Record<
@@ -18,7 +19,7 @@ const TALE_IDEAS = {
   kn: ['tale.punyakoti', 'tale.monkeyCrocodile', 'tale.lionRabbit'],
   te: ['tale.tenaliThieves', 'tale.monkeyCrocodile', 'tale.thirstyCrow'],
   mr: ['tale.chiuKau', 'tale.thirstyCrow', 'tale.birbalKhichdi'],
-} as const satisfies Record<LanguageCode, readonly string[]>
+} as const satisfies Partial<Record<LanguageCode, readonly string[]>>
 
 const KINDS = [
   ['original', 'create.kind.original', 'create.kind.original.hint'],
@@ -158,6 +159,9 @@ export function CreatePage() {
             ))}
           </div>
           {errors.language && <FieldError id="language-error">{errors.language}</FieldError>}
+          {language && !LANGUAGES[language].reviewed && (
+            <p className="mt-3 rounded-xl bg-turmeric-soft px-3.5 py-2.5 text-sm">{t('lang.newHint')}</p>
+          )}
         </fieldset>
 
         {(kind === 'two-language' || folk) && (
@@ -321,7 +325,8 @@ interface FolkProps {
 
 function FolkTaleFields(p: FolkProps) {
   const t = useT()
-  const ideas = p.language ? TALE_IDEAS[p.language] : TALE_IDEAS.kn
+  const ideas: readonly MessageKey[] =
+    (p.language ? TALE_IDEAS[p.language as keyof typeof TALE_IDEAS] : TALE_IDEAS.kn) ?? []
   return (
     <div className="space-y-8">
       <div>

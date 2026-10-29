@@ -12,7 +12,7 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 
 ## What it does
 
-- **Original books in Telugu, Kannada and Marathi**, at three reading levels (ages 3–5, 5–7, 7–9).
+- **Original books in Telugu, Kannada and Marathi**, at three reading levels (ages 3–5, 5–7, 7–9), and new in **Swahili, Nepali and isiZulu** (create-only until native speakers have checked them).
 - **Two-language books**: the same story side by side, page by page (any two of Telugu, Kannada, Marathi and English).
 - **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
 - **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.
@@ -103,6 +103,17 @@ Useful scripts (from `backend/`):
 - `uv run python -m scripts.redraw_pictures <book-id>`: redraw a book's pictures and tap words.
 - `uv run python -m scripts.translate_ui`: draft website text for any phrases a language is missing.
 - `uv run python -m scripts.starter_library make`: make the starter library within the day's free pictures.
+
+## Adding a language
+
+A language is one entry in each of two lists; a test fails if they ever disagree.
+
+1. Add it to `backend/app/languages.py`: code, English name, the region its children live in (stories and pictures are set there), folk-tale traditions, and `reviewed=False`.
+2. Add the same code to `frontend/src/lib/languages.ts`: its own-script name, a letter for the cover, one colour (pale and dark-theme versions are worked out from it), a story font, and the phone voice tag. If the script needs a font that isn't loaded, add it to the Google Fonts link in `frontend/index.html`.
+3. Add `'lang.<code>'` to `frontend/src/locales/en.ts`, then run `uv run python -m scripts.translate_ui` from `backend/` to name it in the other website languages.
+4. Run the tests. Set `reviewed` to true once native speakers have checked books in it; until then the site marks it "New".
+
+The database only checks that a language code looks like one, so no migration is needed. Requests from visitors ("Ask for your language") are in the `language_requests` table.
 
 ## Repository layout
 

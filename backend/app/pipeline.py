@@ -5,11 +5,11 @@ import logging
 import secrets
 
 from app.agents import agents
-from app.agents.agents import LANGUAGE_NAMES
 from app.agents.client import ModelClient
 from app.agents.schemas import PictureCheck, StoryDraft, StoryPlan
 from app.config import settings
 from app.illustrations import ImageMaker, PicturesUsedUp, checker_copy, draw_pages, scene_looks, web_copy
+from app.languages import LANGUAGE_NAMES
 from app.models import Book, Job, Step, TapWord
 from app.segmentation import Segmenter, apply_corrections, harmonize, largest
 from app.store import Store

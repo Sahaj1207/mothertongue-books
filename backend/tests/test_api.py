@@ -136,3 +136,9 @@ def test_shared_links_preview_published_books_only(store):
     assert 'property="og:title" content="పింకీ మామిడి · Mangoes"' in page
     assert "Telugu picture book for ages 3–5" in page
     assert f"url=https://mothertongue-books.vercel.app/books/{book.id}" in page
+
+
+def test_anyone_can_ask_for_a_language(store):
+    response = client_as(None).post("/api/language-requests", json={"language": "Konkani", "can_help": True})
+    assert response.status_code == 204
+    assert store.language_requests[0].language == "Konkani" and store.language_requests[0].can_help

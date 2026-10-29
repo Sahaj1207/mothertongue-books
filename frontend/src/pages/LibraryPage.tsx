@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AskForLanguage } from '../components/AskForLanguage'
 import { BookCover, isNew } from '../components/BookCover'
 import { FALLBACK_DEMO, HomeHero, HomeStory, type DemoPage } from '../components/HomeHero'
 import { LanguageTile } from '../components/LanguageTile'
@@ -75,6 +76,7 @@ export function LibraryPage() {
             )
           })}
         </div>
+        <AskForLanguage />
       </section>
 
       <div className="mt-10 mb-6">
