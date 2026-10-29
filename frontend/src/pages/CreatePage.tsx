@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LanguageTile } from '../components/LanguageTile'
+import { Tips } from '../components/Tips'
 import { api, type AnyLanguage, type FolkOutline } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { LANGUAGE_ORDER, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
@@ -106,7 +107,10 @@ export function CreatePage() {
       </h1>
       <p className="mt-2 text-ink-soft">{t('create.subtitle')}</p>
 
-      <form onSubmit={submit} noValidate className="mt-8 space-y-10">
+      <div className="mt-6">
+        <Tips id="create" inline tips={[{ text: 'tip.folk' }]} />
+      </div>
+      <form onSubmit={submit} noValidate className="mt-2 space-y-10">
         <fieldset>
           <legend className="mb-3 text-lg font-semibold">{t('create.kind')}</legend>
           {/* Phones show the three choices in a row and only the chosen one's description. */}

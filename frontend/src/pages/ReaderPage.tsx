@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BookWords } from '../components/BookWords'
 import { TapLayer } from '../components/TapLayer'
+import { Tips } from '../components/Tips'
 import { api, type AnyLanguage, type Book } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay, LANGUAGES } from '../lib/languages'
@@ -80,7 +81,6 @@ export function ReaderPage() {
   const isLast = page === total - 1
   const words = bookWords(book)
 
-
   return (
     <main className="mx-auto max-w-3xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 lg:max-w-6xl">
       {book.status === 'draft' && (
@@ -108,7 +108,11 @@ export function ReaderPage() {
             {main.title}
           </h1>
           {second && (
-            <p lang={second.language} className="text-lg text-ink-soft" style={{ fontFamily: fontFor(second.language) }}>
+            <p
+              lang={second.language}
+              className="text-lg text-ink-soft"
+              style={{ fontFamily: fontFor(second.language) }}
+            >
               {second.title}
             </p>
           )}
@@ -132,7 +136,8 @@ export function ReaderPage() {
         ref={article}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2">
+        className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2"
+      >
         <figure
           className={`relative flex items-end overflow-hidden ${
             image
@@ -153,7 +158,7 @@ export function ReaderPage() {
               />
               {tapWords.length > 0 && (
                 // Keyed by page so a new page starts with nothing selected.
-                <TapLayer key={page} words={tapWords}languages={book.drafts.map((d) => d.language)} />
+                <TapLayer key={page} words={tapWords} languages={book.drafts.map((d) => d.language)} />
               )}
             </>
           ) : (
@@ -227,6 +232,15 @@ export function ReaderPage() {
           </button>
         )}
       </nav>
+
+      <Tips
+        id="reader"
+        tips={[
+          ...(words.length > 0 ? [{ text: 'tip.tap' as const }] : []),
+          { text: 'tip.turn' },
+          { text: 'tip.end', ready: isLast },
+        ]}
+      />
 
       {isLast && words.length > 0 && <BookWords words={words} languages={book.drafts.map((d) => d.language)} />}
     </main>

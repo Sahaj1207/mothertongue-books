@@ -1,57 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useT } from '../lib/i18n'
-
-export type Theme = 'notebook' | 'clay' | 'pop' | 'kolam' | 'slate'
-
-// Background, accent and text colours for each theme's little preview.
-const THEMES: { id: Theme; swatch: [string, string, string] }[] = [
-  { id: 'notebook', swatch: ['#ffffff', '#e0474c', '#1f2a44'] },
-  { id: 'clay', swatch: ['#eef2ff', '#6f79f2', '#2d3266'] },
-  { id: 'pop', swatch: ['#fff6d6', '#ff5c8a', '#111111'] },
-  { id: 'kolam', swatch: ['#fbf1e3', '#9c3d2a', '#3a1d12'] },
-  { id: 'slate', swatch: ['#2e3b36', '#f2d36b', '#ecebe4'] },
-]
-
-// Matches each theme's page colour, for the phone's address bar.
-const BAR_COLOR: Record<Theme, string> = {
-  notebook: '#F7F9FC',
-  clay: '#EEF2FF',
-  pop: '#FF5C8A',
-  kolam: '#9C3D2A',
-  slate: '#232C29',
-}
-
-const isTheme = (value: string | undefined): value is Theme => THEMES.some((t) => t.id === value)
-
-function remember(key: string, value: string | null) {
-  try {
-    if (value === null) localStorage.removeItem(key)
-    else localStorage.setItem(key, value)
-  } catch {
-    // Private browsing: the choice just isn't remembered.
-  }
-}
+import { THEMES, useTheme } from '../lib/theme'
 
 export function ThemeSwitcher() {
-  const root = document.documentElement
-  const [theme, setTheme] = useState<Theme>(() => (isTheme(root.dataset.theme) ? root.dataset.theme : 'notebook'))
-  const [warm, setWarm] = useState(() => root.dataset.warm !== undefined)
+  const { theme, setTheme, warm, setWarm } = useTheme()
   const [open, setOpen] = useState(false)
   const menu = useRef<HTMLDivElement>(null)
   const t = useT()
-
-  useEffect(() => {
-    if (theme === 'notebook') delete root.dataset.theme
-    else root.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', BAR_COLOR[theme])
-    remember('theme', theme)
-  }, [root, theme])
-
-  useEffect(() => {
-    if (warm) root.dataset.warm = ''
-    else delete root.dataset.warm
-    remember('warm-light', warm ? '1' : null)
-  }, [root, warm])
 
   useEffect(() => {
     if (!open) return
@@ -104,26 +59,20 @@ export function ThemeSwitcher() {
                 theme === option.id ? 'bg-paper' : 'hover:bg-paper'
               }`}
             >
-              <span
-                aria-hidden="true"
-                className="relative flex h-10 w-12 shrink-0 items-end overflow-hidden rounded-lg p-1.5"
-                style={{ background: option.swatch[0], boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.12)' }}
-              >
-                <span className="h-2 w-full rounded-full" style={{ background: option.swatch[1] }} />
-                <span
-                  className="absolute top-1.5 left-1.5 text-xs leading-none font-bold"
-                  style={{ color: option.swatch[2] }}
-                >
-                  ಅ
-                </span>
-              </span>
+              <ThemeSwatch swatch={option.swatch} />
               <span className="min-w-0">
                 <span className="block font-medium text-ink">{t(`theme.${option.id}`)}</span>
                 <span className="block text-xs text-ink-faint">{t(`theme.${option.id}.hint`)}</span>
               </span>
               {theme === option.id && (
                 <svg viewBox="0 0 24 24" className="ml-auto h-5 w-5 shrink-0 text-ink" aria-hidden="true">
-                  <path d="M6 12.5l4 4L18 8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                  <path
+                    d="M6 12.5l4 4L18 8"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               )}
             </button>
@@ -133,7 +82,7 @@ export function ThemeSwitcher() {
               type="button"
               role="switch"
               aria-checked={warm}
-              onClick={() => setWarm((w) => !w)}
+              onClick={() => setWarm(!warm)}
               className="flex w-full items-center gap-3 text-left"
             >
               <span className="min-w-0 flex-1">
@@ -155,5 +104,21 @@ export function ThemeSwitcher() {
         </div>
       )}
     </div>
+  )
+}
+
+/** A tiny preview of a theme: its page, accent and text colours. */
+export function ThemeSwatch({ swatch }: { swatch: [string, string, string] }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="relative flex h-10 w-12 shrink-0 items-end overflow-hidden rounded-lg p-1.5"
+      style={{ background: swatch[0], boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.12)' }}
+    >
+      <span className="h-2 w-full rounded-full" style={{ background: swatch[1] }} />
+      <span className="absolute top-1.5 left-1.5 text-xs leading-none font-bold" style={{ color: swatch[2] }}>
+        ಅ
+      </span>
+    </span>
   )
 }
