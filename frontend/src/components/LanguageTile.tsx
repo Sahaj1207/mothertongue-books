@@ -13,8 +13,8 @@ interface Props {
 export function LanguageTile({ code, selected, onSelect, sublabel, role = 'toggle' }: Props) {
   const lang = LANGUAGES[code]
   const t = useT()
-  // Kiswahili and isiZulu are long in Latin letters; keep them inside a phone-width tile.
-  const long = lang.nativeName.length > 7
+  // Kiswahili, Euskara and isiZulu are long in Latin letters; keep them inside a phone-width tile.
+  const long = lang.nativeName.length > 6
   const a11y = role === 'radio' ? { role: 'radio', 'aria-checked': selected } : { 'aria-pressed': selected }
   return (
     <button
