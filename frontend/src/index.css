@@ -5,7 +5,7 @@
   --color-sheet: #ffffff;
   --color-ink: #1f2a44;
   --color-ink-soft: #4b5672;
-  --color-ink-faint: #7a8399;
+  --color-ink-faint: #5f6880;
   --color-rule: #c9d8f0;
   --color-margin: #e0474c;
   --color-turmeric: #f2b705;
@@ -65,7 +65,7 @@
   --color-sheet: #ffffff;
   --color-ink: #2d3266;
   --color-ink-soft: #555b94;
-  --color-ink-faint: #7f86b8;
+  --color-ink-faint: #646a9c;
   --color-rule: #dfe5fb;
   --color-margin: #ff8fa3;
   --color-turmeric: #ffb35c;
@@ -73,11 +73,12 @@
   --radius-cover: 26px;
 }
 [data-theme='clay'] .bg-ink {
-  background-color: #6f79f2;
-  box-shadow: inset 0 -4px 0 #4f58d6;
+  /* Deep enough for white text to pass contrast (4.5:1). */
+  background-color: #4f58d6;
+  box-shadow: inset 0 -4px 0 #3a42b0;
 }
 [data-theme='clay'] .bg-ink:hover {
-  background-color: #7f88f5;
+  background-color: #5b64df;
 }
 [data-theme='clay'] .bg-sheet.border,
 [data-theme='clay'] .bg-sheet.border-2 {
@@ -203,7 +204,7 @@
   --color-kannada-soft: #26413a;
   --color-marathi: #f2a6c9;
   --color-marathi-soft: #45303b;
-  --lang-lighten: 45%;
+  --lang-lighten: 55%;
   --lang-tint: 26%;
 }
 [data-theme='slate'] .site-header {

@@ -5,7 +5,7 @@ export type Theme = 'notebook' | 'clay' | 'pop' | 'kolam' | 'slate'
 // Background, accent and text colours for each theme's little preview.
 export const THEMES: { id: Theme; swatch: [string, string, string] }[] = [
   { id: 'notebook', swatch: ['#ffffff', '#e0474c', '#1f2a44'] },
-  { id: 'clay', swatch: ['#eef2ff', '#6f79f2', '#2d3266'] },
+  { id: 'clay', swatch: ['#eef2ff', '#4f58d6', '#2d3266'] },
   { id: 'pop', swatch: ['#fff6d6', '#ff5c8a', '#111111'] },
   { id: 'kolam', swatch: ['#fbf1e3', '#9c3d2a', '#3a1d12'] },
   { id: 'slate', swatch: ['#2e3b36', '#f2d36b', '#ecebe4'] },
