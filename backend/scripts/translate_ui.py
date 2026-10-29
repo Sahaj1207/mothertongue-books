@@ -31,6 +31,7 @@ where people write them that way. Rules:
 - Keep the names MotherTongue Books, Muse Spark and FLUX in English letters.
 - Language names go in {name} script (for example the {name} word for Kannada).
 - Folk-tale titles use the name the tale is known by in {name}.
+- theme.kolam is the doorstep pattern art: use the word {name} speakers use for it (muggulu, rangoli).
 - In print.howTo keep “Save as PDF” in English, since that is what the browser's print window shows.
 - Keep line breaks (\\n) where the English has them.
 Reply with one JSON object mapping each key to its {name} text, and nothing else."""

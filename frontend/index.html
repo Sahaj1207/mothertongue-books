@@ -11,10 +11,13 @@
     <meta property="og:description" content="Picture books in your child's own language: Telugu, Kannada and Marathi." />
     <meta property="og:type" content="website" />
     <script>
-      // Apply the saved reading theme before the first paint, so Night never flashes white.
+      // Apply the saved theme before the first paint, so Slate never flashes white.
       try {
-        const theme = localStorage.getItem('theme')
-        if (theme === 'warm' || theme === 'night') document.documentElement.dataset.theme = theme
+        let theme = localStorage.getItem('theme')
+        if (theme === 'night') theme = 'slate'
+        if (theme === 'warm') localStorage.setItem('warm-light', '1')
+        if (['clay', 'pop', 'kolam', 'slate'].includes(theme)) document.documentElement.dataset.theme = theme
+        if (localStorage.getItem('warm-light')) document.documentElement.dataset.warm = ''
       } catch {}
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

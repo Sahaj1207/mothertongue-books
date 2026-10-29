@@ -30,45 +30,190 @@
   --radius-cover: 14px;
 }
 
-/* Reading themes. Paper is the default above; the choice is set on <html> before the app loads. */
-:root[data-theme='warm'] {
-  --color-paper: #f5ecdc;
-  --color-sheet: #fcf5e8;
-  --color-ink: #3a2e22;
-  --color-ink-soft: #685644;
-  --color-ink-faint: #8f7c67;
-  --color-rule: #e5d3b5;
-  --color-margin: #c95a4f;
-  --color-turmeric-soft: #f6e2b3;
-  --color-telugu-soft: #e8e1e6;
-  --color-kannada-soft: #e1e8d6;
-  --color-marathi-soft: #f1dfdc;
+/* Interface themes. Notebook is the default above; the choice is set on <html> before the app loads.
+   Each theme swaps the colour tokens, then restyles a few shared pieces: buttons (bg-ink), cards
+   (bg-sheet with a border), the header and the reading surface (.notebook). These rules sit outside
+   Tailwind's layers so they win over utilities; hover states are restated for the same reason.
+   Story text always stays on a plain, matte surface. */
+
+/* Clay toys: puffy pastel shapes that look squeezable. */
+:root[data-theme='clay'] {
+  --color-paper: #eef2ff;
+  --color-sheet: #ffffff;
+  --color-ink: #2d3266;
+  --color-ink-soft: #555b94;
+  --color-ink-faint: #7f86b8;
+  --color-rule: #dfe5fb;
+  --color-margin: #ff8fa3;
+  --color-turmeric: #ffb35c;
+  --color-turmeric-soft: #fff0dc;
+  --radius-cover: 26px;
+}
+[data-theme='clay'] .bg-ink {
+  background-color: #6f79f2;
+  box-shadow: inset 0 -4px 0 #4f58d6;
+}
+[data-theme='clay'] .bg-ink:hover {
+  background-color: #7f88f5;
+}
+[data-theme='clay'] .bg-sheet.border,
+[data-theme='clay'] .bg-sheet.border-2 {
+  border-color: transparent;
+  box-shadow: inset 0 -5px 0 #e3e8fb, 0 8px 18px rgb(80 95 180 / 0.14);
+}
+[data-theme='clay'] .rounded-3xl,
+[data-theme='clay'] .rounded-2xl {
+  border-radius: 1.75rem;
+}
+[data-theme='clay'] .notebook {
+  background-image: none;
 }
 
-:root[data-theme='night'] {
+/* Comic pop: thick black outlines, bright blocks, hard shadows. */
+:root[data-theme='pop'] {
+  --color-paper: #fff6d6;
+  --color-sheet: #ffffff;
+  --color-ink: #111111;
+  --color-ink-soft: #333333;
+  --color-ink-faint: #5a5a5a;
+  --color-rule: #111111;
+  --color-margin: #ff5c8a;
+  --color-turmeric: #ffd23f;
+  --color-turmeric-soft: #fff0a8;
+  --color-telugu-soft: #cfe0ff;
+  --color-kannada-soft: #c9f5dc;
+  --color-marathi-soft: #ffd6e6;
+  --radius-cover: 10px;
+}
+[data-theme='pop'] header {
+  background: #ff5c8a;
+  border-bottom: 3px solid #111;
+}
+[data-theme='pop'] .bg-ink {
+  box-shadow: 3px 3px 0 #ff5c8a;
+}
+[data-theme='pop'] header .bg-ink {
+  box-shadow: 3px 3px 0 #ffd23f;
+}
+[data-theme='pop'] .border {
+  border-width: 2.5px;
+}
+[data-theme='pop'] .bg-sheet.border,
+[data-theme='pop'] .bg-sheet.border-2 {
+  box-shadow: 4px 4px 0 #111;
+}
+[data-theme='pop'] .rounded-3xl,
+[data-theme='pop'] .rounded-2xl {
+  border-radius: 0.875rem;
+}
+[data-theme='pop'] .notebook {
+  background-image: none;
+}
+
+/* Kolam (muggulu, rangoli): doorstep patterns in red ochre and turmeric. */
+:root[data-theme='kolam'] {
+  --color-paper: #fbf1e3;
+  --color-sheet: #fffaf2;
+  --color-ink: #3a1d12;
+  --color-ink-soft: #6b4130;
+  --color-ink-faint: #8f6a58;
+  --color-rule: #ebcfae;
+  --color-margin: #9c3d2a;
+  --color-turmeric: #f2b705;
+  --color-turmeric-soft: #fbe7b5;
+  --color-on-ink: #fffaf2;
+  --kolam-strip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='14'%3E%3Cpath d='M0 7 Q10 0 20 7 T40 7' fill='none' stroke='%239c3d2a' stroke-width='1.4'/%3E%3Ccircle cx='10' cy='7' r='1.6' fill='%239c3d2a'/%3E%3Ccircle cx='30' cy='7' r='1.6' fill='%23f2b705'/%3E%3C/svg%3E");
+}
+[data-theme='kolam'] .bg-ink {
+  background-color: #9c3d2a;
+}
+[data-theme='kolam'] .bg-ink:hover {
+  background-color: #b14a35;
+}
+[data-theme='kolam'] header {
+  --color-ink: #fffaf2;
+  --color-ink-soft: #f6dcc8;
+  background: #9c3d2a;
+  border-bottom: 0;
+}
+[data-theme='kolam'] header::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 14px;
+  background: var(--kolam-strip) repeat-x center, var(--color-paper);
+}
+[data-theme='kolam'] header .bg-ink {
+  background-color: #f2b705;
+  color: #3a1d12;
+}
+[data-theme='kolam'] .notebook {
+  background-image: var(--kolam-strip);
+  background-repeat: repeat-x;
+  background-position: bottom 2px center;
+  background-size: 40px 14px;
+}
+
+/* Slate: chalk on a school slate in a wooden frame, for bedtime. */
+:root[data-theme='slate'] {
   color-scheme: dark;
-  --color-paper: #15161b;
-  --color-sheet: #1e2027;
-  --color-ink: #ebe5d9;
-  --color-ink-soft: #bcb5a7;
-  --color-ink-faint: #8a857b;
-  --color-rule: #353842;
-  --color-margin: #9c4a4c;
-  --color-turmeric: #e0aa1c;
-  --color-turmeric-soft: #3a321f;
-  --color-on-ink: #15161b;
-  --color-on-lang: #15161b;
-  --color-telugu: #a3b5f2;
-  --color-telugu-soft: #232a42;
-  --color-kannada: #72cba6;
-  --color-kannada-soft: #1b3129;
-  --color-marathi: #ee93bf;
-  --color-marathi-soft: #3a202d;
+  --color-paper: #232c29;
+  --color-sheet: #2e3b36;
+  --color-ink: #ecebe4;
+  --color-ink-soft: #c3c8be;
+  --color-ink-faint: #93a69c;
+  --color-rule: #4a5b54;
+  --color-margin: #8a5a34;
+  --color-turmeric: #f2d36b;
+  --color-turmeric-soft: #3d4436;
+  --color-on-ink: #232c29;
+  --color-on-lang: #232c29;
+  --color-telugu: #a9baf4;
+  --color-telugu-soft: #2d3650;
+  --color-kannada: #8fdcb6;
+  --color-kannada-soft: #26413a;
+  --color-marathi: #f2a6c9;
+  --color-marathi-soft: #45303b;
+}
+[data-theme='slate'] header {
+  border-bottom: 1px dashed var(--color-ink-faint);
+}
+[data-theme='slate'] .bg-ink {
+  background-color: transparent;
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 2px var(--color-ink);
+}
+[data-theme='slate'] .bg-ink:hover {
+  background-color: rgb(236 235 228 / 0.1);
+}
+[data-theme='slate'] [aria-pressed='true'].bg-ink,
+[data-theme='slate'] [aria-checked='true'].bg-ink {
+  background-color: var(--color-turmeric);
+  color: var(--color-on-ink);
+  box-shadow: none;
+}
+[data-theme='slate'] article {
+  border: 6px solid #8a5a34;
+}
+/* Pictures are bright; dim them a little at bedtime. */
+[data-theme='slate'] main img {
+  filter: brightness(0.85);
 }
 
-/* Pictures are bright; dim them a little at bedtime. */
-:root[data-theme='night'] main img {
-  filter: brightness(0.82);
+/* Warm light: a soft amber wash over any theme for evening reading, like a phone's night light. */
+:root[data-warm]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background: rgb(255 160 60 / 0.12);
+  mix-blend-mode: multiply;
+}
+@media print {
+  :root[data-warm]::after {
+    display: none;
+  }
 }
 
 @layer base {
