@@ -11,7 +11,7 @@ from app.agents.client import get_client
 from app.agents.schemas import BookRequest, StoryPage
 from app.auth import User, optional_user, require_user
 from app.config import settings
-from app.illustrations import ImageMaker, ModalImageMaker
+from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
 from app.models import Book, Correction, Job
 from app.pipeline import run_pipeline
 from app.store import store
@@ -52,11 +52,17 @@ async def create_book(request: BookRequest, user: SignedIn) -> Job:
 def get_image_maker() -> ImageMaker | None:
     if settings.use_mock_ai or not settings.illustrations_enabled:
         return None
-    return ModalImageMaker(settings.illustrator_app)
+    if settings.illustrator == "modal":
+        return ModalImageMaker(settings.illustrator_app)
+    if settings.cloudflare_account_id and settings.cloudflare_api_token:
+        return CloudflareImageMaker(settings.cloudflare_account_id, settings.cloudflare_api_token)
+    log.warning("Illustrations are on but Cloudflare keys are missing; books will have no pictures.")
+    return None
 
 
 def providers_in_use() -> list[str]:
-    providers = ["modal"] if settings.illustrations_enabled else []
+    # Cloudflare's free plan can't be charged, so only the Modal GPU needs a budget check.
+    providers = ["modal"] if settings.illustrations_enabled and settings.illustrator == "modal" else []
     if settings.story_provider == "open-weight":
         return [*providers, "baseten"]
     return [*providers, "meta", "baseten"] if settings.baseten_api_key else [*providers, "meta"]

@@ -31,6 +31,8 @@ def test_every_page_of_a_book_uses_the_same_seed():
 
 
 class FakePainter:
+    content_type = "image/webp"
+
     def __init__(self, fail_page: int | None = None):
         self.prompts: list[str] = []
         self.fail_page = fail_page

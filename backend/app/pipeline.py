@@ -78,7 +78,7 @@ class Run:
         try:
             drawn = await draw_pages(maker, book.plan, book.id, progress)
             for number, data in sorted(drawn.items()):
-                book.images[number] = await self.store.save_image(book.id, number, data)
+                book.images[number] = await self.store.save_image(book.id, number, data, maker.content_type)
             await self.store.save_book(book)
         except Exception:
             log.exception("Illustration failed for book %s", book.id)

@@ -1,34 +1,66 @@
-"""Draws one test picture on the deployed illustrator and saves it, with timing.
+"""Draws one test picture with the configured illustrator and saves it, with timing.
 
-Run from backend/:  uv run python -m scripts.try_illustration out.webp
+Run from backend/:  uv run python -m scripts.try_illustration out.jpg
 """
 
+import asyncio
 import sys
 import time
 
-import modal
+from app.agents.schemas import Character, PagePlan, StoryPlan
+from app.illustrations import picture_prompt
+from app.main import get_image_maker
+from app.store import store
+from app.usage import UsageMeter, current_meter
 
-STYLE = (
-    "Children's picture book illustration, soft gouache and watercolour, warm natural light, gentle "
-    "rounded shapes, simple uncluttered background, Indian village setting, no text, no letters."
+PLAN = StoryPlan(
+    title_en="Up, Up Goes My Kite",
+    setting="A village rooftop on Sankranti morning",
+    lesson="Joy is better shared",
+    characters=[
+        Character(
+            name="Chinni",
+            description="A cheerful six-year-old girl",
+            look="six-year-old Indian girl with two braids, yellow pavadai skirt and red bangles",
+        ),
+        Character(
+            name="Tata",
+            description="Chinni's grandfather",
+            look="kind elderly Indian man with white hair, white moustache and a cream kurta",
+        ),
+    ],
+    pages=[
+        PagePlan(
+            number=1,
+            event="Chinni flies her red kite",
+            scene="Chinni flies a red kite on the rooftop while Tata claps beside her, blue sky with other kites.",
+        )
+    ],
 )
-SCENE = (
-    "A happy six-year-old Indian girl named Chinni with two braids, a yellow pavadai skirt and red bangles, "
-    "flying a red kite on a rooftop on Sankranti morning, her grandfather clapping beside her, blue sky "
-    "with other colourful kites."
-)
 
 
-def main(out: str) -> None:
-    draw = modal.Cls.from_name("mothertongue-illustrator", "Illustrator")().draw
-    for attempt in ("cold", "warm"):
-        start = time.perf_counter()
-        data = draw.remote(f"{STYLE} {SCENE}", seed=7)
-        print(f"{attempt}: {time.perf_counter() - start:.1f}s, {len(data) // 1024} KB")
-    with open(out, "wb") as f:
-        f.write(data)
-    print(f"saved {out}")
+async def draw() -> bytes:
+    maker = get_image_maker()
+    if maker is None:
+        sys.exit(
+            "No illustrator: set USE_MOCK_AI=false and the illustrator keys, or check ILLUSTRATIONS_ENABLED."
+        )
+    meter = UsageMeter()
+    current_meter.set(meter)
+    prompt = picture_prompt(PLAN, PLAN.pages[0])
+    start = time.perf_counter()
+    try:
+        data = await maker.draw(prompt, seed=7)
+    finally:
+        await store.save_usage(None, meter.entries)
+    print(
+        f"{type(maker).__name__}: {time.perf_counter() - start:.1f}s, {len(data) // 1024} KB, ${meter.cost_usd:.5f}"
+    )
+    return data
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "illustration.webp")
+    out = sys.argv[1] if len(sys.argv) > 1 else "illustration.jpg"
+    with open(out, "wb") as f:
+        f.write(asyncio.run(draw()))
+    print(f"saved {out}")

@@ -31,8 +31,12 @@ class Settings(BaseSettings):
     # so the card on file is never charged. Meta's own "spend limit" only sends an email.
     provider_budget_usd: dict[str, float] = {"meta": 120.0, "baseten": 80.0, "modal": 60.0}
 
-    # Illustrations: FLUX.1 [schnell] on a Modal GPU (illustrator_app.py). Off in practice mode.
+    # Illustrations: FLUX.1 [schnell], off in practice mode. "cloudflare" (free plan, no card) or
+    # "modal" (GPU via illustrator_app.py; needs a card on the Modal account).
     illustrations_enabled: bool = True
+    illustrator: Literal["cloudflare", "modal"] = "cloudflare"
+    cloudflare_account_id: str | None = None
+    cloudflare_api_token: str | None = None
     illustrator_app: str = "mothertongue-illustrator"
     illustration_concurrency: int = 4
 

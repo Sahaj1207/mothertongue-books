@@ -22,7 +22,10 @@ class Store(Protocol):
     async def list_books_by_owner(self, owner_id: str) -> list[Book]: ...
     async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None: ...
     async def list_corrections(self, language: str) -> list[Correction]: ...
-    async def save_image(self, book_id: str, page: int, data: bytes) -> str: ...
+    async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str: ...
+
+
+_EXTENSIONS = {"image/webp": "webp", "image/jpeg": "jpg", "image/png": "png"}
 
 
 def _today_start() -> datetime:
@@ -37,8 +40,8 @@ class MemoryStore:
         self.corrections: dict[tuple[str, str], Correction] = {}
         self.images: dict[str, bytes] = {}
 
-    async def save_image(self, book_id: str, page: int, data: bytes) -> str:
-        path = f"{book_id}/page-{page}.webp"
+    async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str:
+        path = f"{book_id}/page-{page}.{_EXTENSIONS[content_type]}"
         self.images[path] = data
         return f"memory://{path}"
 
@@ -176,12 +179,12 @@ class SupabaseStore:
         )
         r.raise_for_status()
 
-    async def save_image(self, book_id: str, page: int, data: bytes) -> str:
-        path = f"{book_id}/page-{page}.webp"
+    async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str:
+        path = f"{book_id}/page-{page}.{_EXTENSIONS[content_type]}"
         r = await self.http.post(
             f"{self.url}/storage/v1/object/book-assets/{path}",
             content=data,
-            headers={"Content-Type": "image/webp", "x-upsert": "true", "Cache-Control": "max-age=31536000"},
+            headers={"Content-Type": content_type, "x-upsert": "true", "Cache-Control": "max-age=31536000"},
         )
         r.raise_for_status()
         return f"{self.url}/storage/v1/object/public/book-assets/{path}"
