@@ -32,10 +32,15 @@ STYLE = (
 GPU_USD_PER_SECOND = 0.00060
 
 
-# Cloudflare bills FLUX.1 schnell in "neurons": 4.8 per 512x512 tile plus 9.6 per step, at $0.011 per
-# 1,000 above the free 10,000 a day. A 1024x1024 picture in 4 steps is about 58 neurons. The free plan
-# can't be charged, so this cost is only recorded to show usage.
-CLOUDFLARE_USD_PER_PICTURE = (4 * 4.8 + 4 * 9.6) * 0.011 / 1000
+# Cloudflare bills FLUX.1 schnell in "neurons" at $0.011 per 1,000 above the free 10,000 a day. Measured:
+# a 1024x1024 picture in 4 steps uses about 137, so the free plan draws about 70 pictures a day. It can't
+# be charged, so this cost is only recorded to show usage.
+CLOUDFLARE_NEURONS_PER_PICTURE = 137
+CLOUDFLARE_USD_PER_PICTURE = CLOUDFLARE_NEURONS_PER_PICTURE * 0.011 / 1000
+
+
+class PicturesUsedUp(Exception):
+    """The illustrator's free daily allowance is spent; it comes back at 00:00 UTC."""
 
 
 class ImageMaker(Protocol):
@@ -60,6 +65,8 @@ class CloudflareImageMaker:
         r = await self.http.post(
             "/@cf/black-forest-labs/flux-1-schnell", json={"prompt": prompt[:2048], "steps": 4}
         )
+        if r.status_code == 429 and "4006" in r.text:
+            raise PicturesUsedUp()
         r.raise_for_status()
         body = r.json()
         if not body.get("success") or "image" not in body.get("result", {}):
@@ -175,6 +182,8 @@ async def draw_pages(
             await on_progress(len(drawn), len(pages))
 
     results = await asyncio.gather(*(one(p) for p in pages), return_exceptions=True)
+    if not drawn and any(isinstance(r, PicturesUsedUp) for r in results):
+        raise PicturesUsedUp()
     for page, result in zip(pages, results, strict=True):
         if isinstance(result, Exception):
             log.warning("Page %s picture failed: %s", page.number, result)

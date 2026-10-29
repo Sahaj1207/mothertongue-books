@@ -110,3 +110,21 @@ def test_redrawing_one_page_keeps_the_rest_and_follows_the_adults_note():
     assert book.images[1] == page_one
     assert not any(n.startswith("Page 2 picture:") for n in book.review_notes)
     assert [w.english for w in book.words[2]] == ["red kite"]
+
+
+def test_a_used_up_picture_allowance_is_explained():
+    from app.illustrations import PicturesUsedUp
+    from app.pipeline import USED_UP, redraw_page
+    from tests.test_illustrations import FakePainter
+
+    class UsedUp(FakePainter):
+        async def draw(self, prompt, seed):
+            raise PicturesUsedUp()
+
+    store = MemoryStore()
+    job = Job(request=BookRequest(language="te", level=1, topic="kites"))
+    asyncio.run(run_pipeline(WordFinder(), job, store, FakePainter(), FakeSam()))
+    book = store.books[job.book_id]
+    redraw = Job(request=book.request, book_id=book.id)
+    asyncio.run(redraw_page(WordFinder(), redraw, store, book, 2, None, UsedUp(), FakeSam()))
+    assert redraw.status == "failed" and redraw.message == USED_UP

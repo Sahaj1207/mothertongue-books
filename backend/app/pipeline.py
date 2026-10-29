@@ -9,13 +9,16 @@ from app.agents.agents import LANGUAGE_NAMES
 from app.agents.client import ModelClient
 from app.agents.schemas import PictureCheck, StoryDraft, StoryPlan
 from app.config import settings
-from app.illustrations import ImageMaker, checker_copy, draw_pages, scene_looks, web_copy
+from app.illustrations import ImageMaker, PicturesUsedUp, checker_copy, draw_pages, scene_looks, web_copy
 from app.models import Book, Job, Step, TapWord
 from app.segmentation import Segmenter, apply_corrections, harmonize, largest
 from app.store import Store
 from app.usage import UsageMeter, current_meter
 
 log = logging.getLogger("mothertongue")
+
+
+USED_UP = "Today's free pictures are used up. They come back at 5:30 AM India time."
 
 
 class StoryRejected(Exception):
@@ -53,6 +56,7 @@ class Run:
     def __init__(self, client: ModelClient, job: Job, store: Store) -> None:
         self.client, self.job, self.store = client, job, store
         self.notes: list[str] = []
+        self.pictures_used_up = False
 
     async def save(self) -> None:
         await self.store.save_job(self.job)
@@ -111,11 +115,16 @@ class Run:
                 book.review_notes = [n for n in book.review_notes if not n.startswith(prefix)]
                 book.review_notes += [prefix + p for p in drawing.unresolved]
             await self.store.save_book(book)
+        except PicturesUsedUp:
+            self.pictures_used_up = True
+            log.warning("The illustrator's free daily pictures are used up")
         except Exception:
             log.exception("Illustration failed for book %s", book.id)
         missing = len(only) - len(drawn) if only else len(book.plan.pages) - len(book.images)
         step.status = "done" if not missing else "failed"
-        step.detail = None if not missing else f"{missing} pictures missing"
+        step.detail = (
+            None if not missing else USED_UP if self.pictures_used_up else f"{missing} pictures missing"
+        )
         await self.save()
         return {n: d.data for n, d in drawn.items() if n in book.images}
 
@@ -277,7 +286,9 @@ async def redraw_page(
         drawn = await run.illustrate(image_maker, book, only={number}, hint=hint)
         if not drawn:
             job.status = "failed"
-            job.message = "The picture couldn't be drawn. Try again in a minute."
+            job.message = (
+                USED_UP if run.pictures_used_up else "The picture couldn't be drawn. Try again in a minute."
+            )
             return
         if segmenter is not None:
             await run.find_tap_words(segmenter, book, drawn)
