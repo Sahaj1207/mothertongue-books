@@ -4,11 +4,18 @@ import { BookCover } from '../components/BookCover'
 import { LanguageTile } from '../components/LanguageTile'
 import { api, toSummary } from '../lib/api'
 import { LANGUAGE_ORDER, LANGUAGES, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
-import type { BookSummary } from '../lib/types'
+import type { BookKind, BookSummary } from '../lib/types'
+
+const KINDS: [BookKind, string][] = [
+  ['folk-tale', 'Folk tales'],
+  ['original', 'New stories'],
+  ['two-language', 'Two languages'],
+]
 
 export function LibraryPage() {
   const [language, setLanguage] = useState<LanguageCode | null>(null)
   const [level, setLevel] = useState<ReadingLevel | null>(null)
+  const [kind, setKind] = useState<BookKind | null>(null)
   const [books, setBooks] = useState<BookSummary[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -20,8 +27,11 @@ export function LibraryPage() {
   }, [])
 
   const shown = useMemo(
-    () => (books ?? []).filter((b) => (!language || b.language === language) && (!level || b.level === level)),
-    [books, language, level],
+    () =>
+      (books ?? []).filter(
+        (b) => (!language || b.language === language) && (!level || b.level === level) && (!kind || b.kind === kind),
+      ),
+    [books, language, level, kind],
   )
 
   return (
@@ -34,7 +44,11 @@ export function LibraryPage() {
           Every story is written first in the language, then checked by people who speak it.
         </p>
 
-        <div className="mt-8 grid grid-cols-3 gap-2.5 sm:max-w-2xl sm:gap-4" role="group" aria-label="Choose a language">
+        <div
+          className="mt-8 grid grid-cols-3 gap-2.5 sm:max-w-2xl sm:gap-4"
+          role="group"
+          aria-label="Choose a language"
+        >
           {LANGUAGE_ORDER.map((code) => {
             const active = language === code
             const count = (books ?? []).filter((b) => b.language === code).length
@@ -61,15 +75,35 @@ export function LibraryPage() {
         <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
           {language ? `${LANGUAGES[language].name} books` : 'All books'}
         </h2>
-        <div className="flex overflow-x-auto rounded-full border border-rule bg-sheet p-1" role="group" aria-label="Reading level">
-          <LevelButton active={level === null} onClick={() => setLevel(null)}>
-            All ages
-          </LevelButton>
-          {READING_LEVELS.map((l) => (
-            <LevelButton key={l.id} active={level === l.id} onClick={() => setLevel(l.id)}>
-              {l.ages}
+        <div className="flex flex-wrap gap-2">
+          <div
+            className="flex overflow-x-auto rounded-full border border-rule bg-sheet p-1"
+            role="group"
+            aria-label="Kind of book"
+          >
+            <LevelButton active={kind === null} onClick={() => setKind(null)}>
+              All kinds
             </LevelButton>
-          ))}
+            {KINDS.map(([id, name]) => (
+              <LevelButton key={id} active={kind === id} onClick={() => setKind(id)}>
+                {name}
+              </LevelButton>
+            ))}
+          </div>
+          <div
+            className="flex overflow-x-auto rounded-full border border-rule bg-sheet p-1"
+            role="group"
+            aria-label="Reading level"
+          >
+            <LevelButton active={level === null} onClick={() => setLevel(null)}>
+              All ages
+            </LevelButton>
+            {READING_LEVELS.map((l) => (
+              <LevelButton key={l.id} active={level === l.id} onClick={() => setLevel(l.id)}>
+                {l.ages}
+              </LevelButton>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -78,7 +112,10 @@ export function LibraryPage() {
           {error}
         </p>
       ) : books === null ? (
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6" aria-label="Loading books">
+        <ul
+          className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6"
+          aria-label="Loading books"
+        >
           {[0, 1, 2, 3].map((i) => (
             <li key={i} className="aspect-[3/4] animate-pulse rounded-[var(--radius-cover)] bg-rule/40" />
           ))}
@@ -94,7 +131,7 @@ export function LibraryPage() {
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-rule px-6 py-12 text-center">
           <p className="font-medium">No books here yet.</p>
-          <p className="mt-1 text-ink-soft">Try another age, or make the first one.</p>
+          <p className="mt-1 text-ink-soft">Try another filter, or make the first one.</p>
           <Link
             to="/create"
             className="mt-5 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-on-ink hover:bg-ink-soft"
@@ -107,7 +144,15 @@ export function LibraryPage() {
   )
 }
 
-function LevelButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function LevelButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
   return (
     <button
       type="button"
