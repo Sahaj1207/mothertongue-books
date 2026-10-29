@@ -33,7 +33,7 @@ export function Tips({ id, tips, inline = false }: { id: string; tips: Tip[]; in
   return (
     <div
       role="status"
-      className={inline ? 'mb-6' : 'fixed inset-x-4 bottom-24 z-30 sm:inset-x-auto sm:right-8 sm:bottom-8 sm:w-96'}
+      className={inline ? 'mb-6' : 'fixed inset-x-4 top-[4.75rem] z-30 sm:inset-x-auto sm:top-auto sm:right-8 sm:bottom-8 sm:w-96'}
     >
       <div className="tip-card rounded-2xl bg-sheet p-4 shadow-lg ring-2 ring-turmeric">
         <p className="flex gap-2.5 text-sm leading-relaxed">
