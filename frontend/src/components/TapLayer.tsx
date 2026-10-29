@@ -57,7 +57,8 @@ export function TapLayer({ words, languages }: Props) {
             onClick={() => choose(i)}
             aria-label={`${w.words[main] ?? w.english}, ${w.english}`}
             aria-pressed={active}
-            className={`absolute rounded-2xl transition-shadow focus-visible:outline-none ${
+            // The ::before keeps small objects (a handbag, a cup) at least finger-sized to tap.
+            className={`absolute rounded-2xl transition-shadow before:absolute before:top-1/2 before:left-1/2 before:h-full before:min-h-11 before:w-full before:min-w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] focus-visible:outline-none ${
               active
                 ? 'shadow-[0_0_0_4px_var(--color-turmeric),0_0_0_9px_rgb(242_183_5/0.35)]'
                 : 'focus-visible:shadow-[0_0_0_4px_var(--color-turmeric)]'
