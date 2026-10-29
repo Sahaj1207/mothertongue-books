@@ -47,8 +47,25 @@ export const en = {
   'notFound.body': 'This page is being built.',
 
   // Library
-  'library.title': "Picture books in your child's own language",
-  'library.subtitle': 'Every story is written first in the language, then checked by people who speak it.',
+  'home.hook': 'Your child speaks {lang} at home. Their books should too.',
+  'home.sub':
+    'Free picture books written in the language, not translated from English. Read together, tap a picture to learn a word, print it.',
+  'home.read': 'Read a free book',
+  'home.make': 'Make your own',
+  'home.promise1': 'Written in the language',
+  'home.promise2': 'Checked by people who speak it',
+  'home.promise3': 'Free',
+  'home.tryIt': 'Try it: tap something in the picture',
+  'home.readThisBook': 'Read this book',
+  'home.howTitle': 'How it works',
+  'home.step1': 'Pick a language, an age and a story, or a folk tale your family knows.',
+  'home.step2': 'AI agents write it in the language, check it is safe and right for the age, and draw it.',
+  'home.step3': 'Read it together, tap the pictures to learn words, and print it as a PDF.',
+  'home.whyTitle': 'Why it matters:',
+  'home.why': "about 40% of people worldwide don't get an education in a language they understand.",
+  'home.whySource': 'UNESCO',
+  'home.bedtime': "Make tonight's bedtime story",
+  'home.bedtimeHint': "Your child's own book in your language, ready in a few minutes. Free.",
   'library.chooseLanguage': 'Choose a language',
   'library.bookCount.one': '{count} book',
   'library.bookCount.many': '{count} books',
@@ -64,6 +81,8 @@ export const en = {
   'library.loading': 'Loading books',
   'library.empty': 'No books here yet.',
   'library.emptyHint': 'Try another filter, or make the first one.',
+  'library.newThisWeek': '{count} new this week',
+  'cover.new': 'New',
   'cover.withLanguage': '+ {lang}',
 
   // Reader
@@ -130,7 +149,7 @@ export const en = {
 
   // Create
   'create.title': 'Create a book',
-  'create.subtitle': 'Agents plan the story, write it in the language and check it before you see it. It takes about a minute.',
+  'create.subtitle': 'Agents plan the story, write it in the language and check it before you see it. It takes about five minutes.',
   'create.kind': 'What kind of book?',
   'create.kind.original': 'One language',
   'create.kind.original.hint': 'A new story in one language.',

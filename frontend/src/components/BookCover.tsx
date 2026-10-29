@@ -3,6 +3,13 @@ import { useI18n } from '../lib/i18n'
 import { LANGUAGES, READING_LEVELS } from '../lib/languages'
 import type { BookSummary } from '../lib/types'
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+/** Published in the last week: real news, shown as a badge and counted above the library. */
+export function isNew(book: BookSummary): boolean {
+  return book.publishedAt !== undefined && Date.now() - new Date(book.publishedAt).getTime() < WEEK_MS
+}
+
 export function BookCover({ book }: { book: BookSummary }) {
   const lang = LANGUAGES[book.language]
   const level = READING_LEVELS.find((l) => l.id === book.level)!
@@ -23,6 +30,11 @@ export function BookCover({ book }: { book: BookSummary }) {
         style={{ background: lang.softColor, '--cover-color': lang.color } as React.CSSProperties}
       >
         <div className="weave w-3.5 shrink-0" style={{ '--weave-color': lang.color } as React.CSSProperties} />
+        {isNew(book) && (
+          <span className="absolute top-2 right-2 z-10 rounded-full bg-turmeric px-2.5 py-0.5 text-xs font-semibold text-ink shadow-sm">
+            {t('cover.new')}
+          </span>
+        )}
         {book.coverUrl ? (
           <div className="flex min-w-0 flex-1 flex-col">
             <img src={book.coverUrl} alt="" loading="lazy" className="aspect-square w-full object-cover" />

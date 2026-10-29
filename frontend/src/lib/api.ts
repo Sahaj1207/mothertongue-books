@@ -154,5 +154,6 @@ export function toSummary(book: Book): BookSummary {
     source: book.request.source ?? undefined,
     pageCount: main.pages.length,
     coverUrl: book.images?.[String(main.pages[0]?.number)],
+    publishedAt: book.published_at ?? undefined,
   }
 }

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BookCover } from '../components/BookCover'
+import { BookCover, isNew } from '../components/BookCover'
+import { FALLBACK_DEMO, HomeHero, HomeStory, type DemoPage } from '../components/HomeHero'
 import { LanguageTile } from '../components/LanguageTile'
-import { api, toSummary } from '../lib/api'
+import { api, toSummary, type Book } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { LANGUAGE_ORDER, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
 import type { BookKind, BookSummary } from '../lib/types'
@@ -18,13 +19,18 @@ export function LibraryPage() {
   const [level, setLevel] = useState<ReadingLevel | null>(null)
   const [kind, setKind] = useState<BookKind | null>(null)
   const [books, setBooks] = useState<BookSummary[] | null>(null)
+  const [demo, setDemo] = useState<DemoPage>(FALLBACK_DEMO)
   const [error, setError] = useState<string | null>(null)
   const t = useT()
 
   useEffect(() => {
     api
       .listBooks()
-      .then((list) => setBooks(list.map(toSummary)))
+      .then((list) => {
+        setBooks(list.map(toSummary))
+        const page = demoPage(list)
+        if (page) setDemo(page)
+      })
       .catch((e: Error) => setError(e.message))
   }, [])
 
@@ -35,17 +41,17 @@ export function LibraryPage() {
       ),
     [books, language, level, kind],
   )
+  const newThisWeek = (books ?? []).filter(isNew).length
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
-      <section className="notebook -mx-4 mb-10 px-4 pt-10 pb-9 sm:mx-0 sm:mt-6 sm:rounded-3xl sm:px-6 sm:pl-16">
-        <h1 className="max-w-xl pl-10 font-[family-name:var(--font-display)] text-[2.1rem] leading-[1.15] font-semibold text-ink sm:pl-0 sm:text-5xl sm:leading-[1.1]">
-          {t('library.title')}
-        </h1>
-        <p className="mt-3 max-w-lg pl-10 text-ink-soft sm:pl-0">{t('library.subtitle')}</p>
+      <HomeHero demo={demo} firstBook={books?.find((b) => b.coverUrl) ?? books?.[0] ?? null} />
+      <HomeStory />
 
+      <section id="books" className="mt-12 scroll-mt-20">
+        <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">{t('library.chooseLanguage')}</h2>
         <div
-          className="mt-8 grid grid-cols-3 gap-2.5 sm:max-w-2xl sm:gap-4"
+          className="mt-3 grid grid-cols-3 gap-2.5 sm:max-w-2xl sm:gap-4"
           role="group"
           aria-label={t('library.chooseLanguage')}
         >
@@ -71,10 +77,17 @@ export function LibraryPage() {
         </div>
       </section>
 
-      <div className="mb-6">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-          {language ? t('library.languageBooks', { lang: t(`lang.${language}`) }) : t('library.allBooks')}
-        </h2>
+      <div className="mt-10 mb-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
+            {language ? t('library.languageBooks', { lang: t(`lang.${language}`) }) : t('library.allBooks')}
+          </h2>
+          {newThisWeek > 0 && (
+            <p className="rounded-full bg-turmeric-soft px-3 py-1 text-sm font-medium">
+              {t('library.newThisWeek', { count: newThisWeek })}
+            </p>
+          )}
+        </div>
         {/* Chips wrap instead of scrolling sideways, so no choice is hidden off the edge of a phone. */}
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={t('library.kind')}>
           <FilterChip active={kind === null} onClick={() => setKind(null)}>
@@ -158,4 +171,19 @@ function FilterChip({
       {children}
     </button>
   )
+}
+
+/** The newest published page that has words to tap, for the home screen's try-it page. */
+function demoPage(books: Book[]): DemoPage | null {
+  for (const book of books) {
+    const main = book.drafts[0]
+    for (const page of main.pages) {
+      const words = book.words?.[String(page.number)]
+      const image = book.images?.[String(page.number)]
+      if (words?.length && image) {
+        return { bookId: book.id, language: main.language, image, text: page.text, words }
+      }
+    }
+  }
+  return null
 }

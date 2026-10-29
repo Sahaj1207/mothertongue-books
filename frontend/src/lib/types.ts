@@ -17,4 +17,6 @@ export interface BookSummary {
   pageCount: number
   /** Page 1's picture, used as the cover. */
   coverUrl?: string
+  /** When it was published, for the "New" badge. */
+  publishedAt?: string
 }
