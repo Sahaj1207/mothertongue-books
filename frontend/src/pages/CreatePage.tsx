@@ -104,14 +104,13 @@ export function CreatePage() {
       <h1 className="mt-8 font-[family-name:var(--font-display)] text-3xl font-semibold sm:mt-12 sm:text-4xl">
         {t('create.title')}
       </h1>
-      <p className="mt-2 text-ink-soft">
-        {t('create.subtitle')}
-      </p>
+      <p className="mt-2 text-ink-soft">{t('create.subtitle')}</p>
 
       <form onSubmit={submit} noValidate className="mt-8 space-y-10">
         <fieldset>
           <legend className="mb-3 text-lg font-semibold">{t('create.kind')}</legend>
-          <div className="grid gap-3 sm:grid-cols-3" role="radiogroup">
+          {/* Phones show the three choices in a row and only the chosen one's description. */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3" role="radiogroup">
             {KINDS.map(([value, title, hint]) => (
               <button
                 key={value}
@@ -119,17 +118,18 @@ export function CreatePage() {
                 role="radio"
                 aria-checked={kind === value}
                 onClick={() => setKind(value)}
-                className={`rounded-2xl border-2 p-4 text-left transition-colors ${
+                className={`min-h-16 rounded-2xl border-2 p-3 text-left transition-colors sm:p-4 ${
                   kind === value ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                 }`}
               >
-                <span className="block font-semibold">{t(title)}</span>
-                <span className={`mt-1 block text-sm ${kind === value ? 'text-on-ink/80' : 'text-ink-soft'}`}>
+                <span className="block text-sm leading-snug font-semibold sm:text-base">{t(title)}</span>
+                <span className={`mt-1 hidden text-sm sm:block ${kind === value ? 'text-on-ink/80' : 'text-ink-soft'}`}>
                   {t(hint)}
                 </span>
               </button>
             ))}
           </div>
+          <p className="mt-2 text-sm text-ink-soft sm:hidden">{t(KINDS.find(([v]) => v === kind)![2])}</p>
         </fieldset>
 
         <fieldset aria-describedby={errors.language ? 'language-error' : undefined}>
@@ -158,9 +158,7 @@ export function CreatePage() {
 
         {(kind === 'two-language' || folk) && (
           <fieldset>
-            <legend className="mb-3 text-lg font-semibold">
-              {folk ? t('create.addSecond') : t('create.second')}
-            </legend>
+            <legend className="mb-3 text-lg font-semibold">{folk ? t('create.addSecond') : t('create.second')}</legend>
             <div className="flex flex-wrap gap-2" role="radiogroup">
               {[...(folk ? [null] : []), ...pairOptions].map((code) => {
                 const checked = secondLanguage === code
@@ -185,7 +183,7 @@ export function CreatePage() {
 
         <fieldset aria-describedby={errors.level ? 'level-error' : undefined}>
           <legend className="mb-3 text-lg font-semibold">{t('create.age')}</legend>
-          <div className="grid gap-3 sm:grid-cols-3" role="radiogroup">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3" role="radiogroup">
             {READING_LEVELS.map((l) => (
               <button
                 key={l.id}
@@ -196,17 +194,20 @@ export function CreatePage() {
                   setLevel(l.id)
                   clearError('level')
                 }}
-                className={`rounded-2xl border-2 p-4 text-left transition-colors ${
+                className={`min-h-16 rounded-2xl border-2 p-3 text-left transition-colors sm:p-4 ${
                   level === l.id ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                 }`}
               >
-                <span className="block text-xl font-semibold">{t('common.agesTitle', { ages: l.ages })}</span>
-                <span className={`mt-1 block text-sm ${level === l.id ? 'text-on-ink/80' : 'text-ink-soft'}`}>
+                <span className="block text-base font-semibold sm:text-xl">
+                  {t('common.agesTitle', { ages: l.ages })}
+                </span>
+                <span className={`mt-1 hidden text-sm sm:block ${level === l.id ? 'text-on-ink/80' : 'text-ink-soft'}`}>
                   {t(LEVEL_HINT[l.id])}
                 </span>
               </button>
             ))}
           </div>
+          {level && !errors.level && <p className="mt-2 text-sm text-ink-soft sm:hidden">{t(LEVEL_HINT[level])}</p>}
           {errors.level && <FieldError id="level-error">{errors.level}</FieldError>}
         </fieldset>
 
