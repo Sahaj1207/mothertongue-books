@@ -68,13 +68,14 @@ export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookS
           ))}
         </p>
         {/* Room for the longest name, so the page doesn't jump as the language changes. */}
-        <h1 className="mt-2 min-h-[3.45em] font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-semibold text-ink sm:min-h-[2.2em] sm:text-5xl sm:leading-[1.08]">
+        <h1 className="mt-2 min-h-[4.6em] font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-semibold text-ink sm:min-h-[3.3em] sm:text-5xl sm:leading-[1.08]">
           {before}
           <span
             key={hookLanguage}
             lang={ownScript ? hookLanguage : undefined}
             className="hook-word"
-            style={{ color: lang.color, fontFamily: ownScript ? lang.storyFont : undefined }}
+            // The headline's own line height: Indic scripts' taller one would make the headline jump.
+            style={{ color: lang.color, fontFamily: ownScript ? lang.storyFont : undefined, lineHeight: 'inherit' }}
           >
             {ownScript ? lang.nativeName : t(`lang.${hookLanguage}`)}
           </span>
