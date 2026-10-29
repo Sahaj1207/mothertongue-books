@@ -54,14 +54,14 @@ export function BookEnd({
         <button
           type="button"
           onClick={onReadAgain}
-          className="h-14 flex-1 rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
+          className="h-14 rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft sm:flex-1"
         >
           {t('end.again')}
         </button>
         {hasWords && (
           <a
             href="#book-words"
-            className="inline-flex h-14 flex-1 items-center justify-center rounded-full border-2 border-ink px-6 font-semibold"
+            className="inline-flex h-14 items-center justify-center rounded-full border-2 border-ink px-6 font-semibold sm:flex-1"
           >
             {t('words.title')}
           </a>

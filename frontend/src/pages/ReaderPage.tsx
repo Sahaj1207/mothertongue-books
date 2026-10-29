@@ -102,7 +102,8 @@ export function ReaderPage() {
   const words = bookWords(book)
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 lg:max-w-6xl">
+    // overflow-x-clip: a page sliding in mustn't make the phone scroll sideways (clip keeps the nav sticky).
+    <main className="mx-auto max-w-3xl overflow-x-clip px-4 pt-6 pb-16 sm:px-6 sm:pt-10 lg:max-w-6xl">
       {book.status === 'draft' && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-turmeric-soft px-4 py-3">
           <p className="text-sm">{t('reader.draft')}</p>
