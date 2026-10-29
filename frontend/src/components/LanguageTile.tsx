@@ -29,7 +29,7 @@ export function LanguageTile({ code, selected, onSelect, sublabel, role = 'toggl
       }}
     >
       {!lang.reviewed && (
-        <span className="absolute top-2 right-2 rounded-full bg-turmeric px-1.5 py-px text-[0.65rem] font-semibold text-[#1f2a44]">
+        <span className="absolute right-2 bottom-2 rounded-full bg-turmeric px-1.5 py-px text-[0.65rem] font-semibold text-[#1f2a44]">
           {t('lang.new')}
         </span>
       )}
