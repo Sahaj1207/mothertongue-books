@@ -190,7 +190,6 @@ function groupSteps(steps: Step[], t: Translate): Group[] {
 }
 
 function StepGroup({ title, steps, lang }: { title: string; steps: Step[]; lang?: AnyLanguage }) {
-  const t = useT()
   const display = lang ? languageDisplay(lang) : null
   const color = display?.color
   return (
@@ -205,33 +204,48 @@ function StepGroup({ title, steps, lang }: { title: string; steps: Step[]; lang?
       </h2>
       <ol>
         {steps.map((step) => (
-          <li key={step.key} className="flex h-[2.25rem] items-center gap-3">
-            <StepIcon status={step.status} />
-            <span className={`min-w-0 flex-1 truncate ${step.status === 'waiting' ? 'text-ink-faint' : ''}`}>
-              {STEP_KEYS.includes(stepKind(step)) ? t(`step.${stepKind(step)}`) : step.label}
-              <span className="sr-only">: {t(`status.${step.status}`)}</span>
-            </span>
-            {step.detail ? (
-              <span className="rounded-full bg-turmeric-soft px-2.5 py-0.5 text-xs whitespace-nowrap">
-                {translateDetail(step.detail, t)}
-              </span>
-            ) : (
-              <span className="hidden items-center gap-1.5 text-xs text-ink-faint sm:inline-flex">
-                {STEP_KEYS.includes(stepKind(step)) && t(`agent.${stepKind(step)}`)}
-                {step.model && step.model !== 'Practice mode' && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 font-medium ${
-                      step.model.includes('Open') ? 'bg-kannada-soft text-kannada' : 'bg-telugu-soft text-telugu'
-                    }`}
-                  >
-                    {step.model}
-                  </span>
-                )}
-              </span>
-            )}
-          </li>
+          <StepRow key={step.key} step={step} />
         ))}
       </ol>
     </section>
+  )
+}
+
+function StepRow({ step }: { step: Step }) {
+  const t = useT()
+  const kind = stepKind(step)
+  // The reading-level check is advisory: notes for the adult aren't a failure.
+  const notes = step.status === 'failed' && step.detail === 'Notes for your review'
+  return (
+    // Rows wrap rather than cut words off; each line stays on the notebook's ruled lines.
+    <li className="flex flex-wrap items-center gap-x-3">
+      <span className="flex min-h-[2.25rem] min-w-0 flex-[1_1_auto] items-center gap-3">
+        <StepIcon status={notes ? 'notes' : step.status} />
+        <span className={`relative min-w-0 leading-snug ${step.status === 'waiting' ? 'text-ink-faint' : ''}`}>
+          {STEP_KEYS.includes(kind) ? t(`step.${kind}`) : step.label}
+          <span className="sr-only">: {notes ? t('detail.notes') : t(`status.${step.status}`)}</span>
+        </span>
+      </span>
+      {step.detail ? (
+        <span className="flex h-[2.25rem] items-center pl-9 sm:pl-0">
+          <span className="rounded-full bg-turmeric-soft px-2.5 py-0.5 text-xs whitespace-nowrap">
+            {translateDetail(step.detail, t)}
+          </span>
+        </span>
+      ) : (
+        <span className="hidden h-[2.25rem] items-center gap-1.5 text-xs text-ink-faint sm:inline-flex">
+          {STEP_KEYS.includes(kind) && t(`agent.${kind}`)}
+          {step.model && step.model !== 'Practice mode' && (
+            <span
+              className={`rounded-full px-2 py-0.5 font-medium ${
+                step.model.includes('Open') ? 'bg-kannada-soft text-kannada' : 'bg-telugu-soft text-telugu'
+              }`}
+            >
+              {step.model}
+            </span>
+          )}
+        </span>
+      )}
+    </li>
   )
 }
