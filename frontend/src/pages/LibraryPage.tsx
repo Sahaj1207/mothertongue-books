@@ -97,7 +97,7 @@ export function LibraryPage() {
           <p className="mt-1 text-ink-soft">Try another age, or make the first one.</p>
           <Link
             to="/create"
-            className="mt-5 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft"
+            className="mt-5 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-on-ink hover:bg-ink-soft"
           >
             Create a book
           </Link>
@@ -114,7 +114,7 @@ function LevelButton({ active, onClick, children }: { active: boolean; onClick: 
       aria-pressed={active}
       onClick={onClick}
       className={`h-9 shrink-0 rounded-full px-3.5 text-sm whitespace-nowrap transition-colors ${
-        active ? 'bg-ink font-medium text-white' : 'text-ink-soft hover:text-ink'
+        active ? 'bg-ink font-medium text-on-ink' : 'text-ink-soft hover:text-ink'
       }`}
     >
       {children}

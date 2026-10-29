@@ -21,13 +21,13 @@ export function LanguageTile({ code, selected, onSelect, sublabel, role = 'toggl
       style={{
         borderColor: lang.color,
         background: selected ? lang.color : 'var(--color-sheet)',
-        color: selected ? '#fff' : lang.color,
+        color: selected ? 'var(--color-on-lang)' : lang.color,
       }}
     >
       <span lang={code} className="pt-1 text-[1.6rem] leading-[1.3] font-semibold sm:text-4xl" style={{ fontFamily: lang.storyFont }}>
         {lang.nativeName}
       </span>
-      <span className={`text-xs leading-snug sm:text-sm ${selected ? 'text-white/85' : 'text-ink-soft'}`}>{sublabel}</span>
+      <span className={`text-xs leading-snug sm:text-sm ${selected ? 'text-on-lang/85' : 'text-ink-soft'}`}>{sublabel}</span>
     </button>
   )
 }

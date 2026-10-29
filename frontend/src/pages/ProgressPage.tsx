@@ -115,7 +115,7 @@ export function ProgressPage() {
       {job.status === 'done' && job.book_id && (
         <Link
           to={`/books/${job.book_id}/review`}
-          className="mt-8 inline-flex h-14 w-full items-center justify-center rounded-full bg-ink px-10 text-lg font-semibold text-white hover:bg-ink-soft sm:w-auto"
+          className="mt-8 inline-flex h-14 w-full items-center justify-center rounded-full bg-ink px-10 text-lg font-semibold text-on-ink hover:bg-ink-soft sm:w-auto"
         >
           Review the book
         </Link>
@@ -126,7 +126,7 @@ export function ProgressPage() {
           <p className="font-medium">{job.message}</p>
           <Link
             to="/create"
-            className="mt-4 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft"
+            className="mt-4 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-on-ink hover:bg-ink-soft"
           >
             {job.status === 'blocked' ? 'Change the topic' : 'Try again'}
           </Link>

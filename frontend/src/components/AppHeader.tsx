@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { ThemeSwitcher } from './ThemeSwitcher'
 
 export function AppHeader() {
   const { user } = useAuth()
@@ -21,6 +22,7 @@ export function AppHeader() {
           </span>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
+          <ThemeSwitcher />
           {user ? (
             <>
               <NavLink
@@ -48,7 +50,7 @@ export function AppHeader() {
           )}
           <Link
             to="/create"
-            className="inline-flex h-11 shrink-0 items-center rounded-full bg-ink px-4 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-ink-soft sm:px-5"
+            className="inline-flex h-11 shrink-0 items-center rounded-full bg-ink px-4 text-sm font-medium whitespace-nowrap text-on-ink transition-colors hover:bg-ink-soft sm:px-5"
           >
             Create a book
           </Link>

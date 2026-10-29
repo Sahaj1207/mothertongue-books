@@ -7,6 +7,13 @@
     <meta name="theme-color" content="#F7F9FC" />
     <meta name="description" content="Original, illustrated children's books written in a child's own language: Telugu, Kannada and Marathi." />
     <title>MotherTongue Books</title>
+    <script>
+      // Apply the saved reading theme before the first paint, so Night never flashes white.
+      try {
+        const theme = localStorage.getItem('theme')
+        if (theme === 'warm' || theme === 'night') document.documentElement.dataset.theme = theme
+      } catch {}
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

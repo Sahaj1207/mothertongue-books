@@ -65,7 +65,7 @@ export function ReaderPage() {
           <p className="text-sm">This book is a draft. Only you can see it.</p>
           <Link
             to={`/books/${book.id}/review`}
-            className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-white hover:bg-ink-soft"
+            className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-on-ink hover:bg-ink-soft"
           >
             Review and publish
           </Link>
@@ -182,7 +182,7 @@ export function ReaderPage() {
         {isLast ? (
           <Link
             to="/"
-            className="inline-flex h-14 min-w-28 items-center justify-center rounded-full bg-ink px-6 font-semibold text-white hover:bg-ink-soft"
+            className="inline-flex h-14 min-w-28 items-center justify-center rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
           >
             The end
           </Link>
@@ -190,7 +190,7 @@ export function ReaderPage() {
           <button
             type="button"
             onClick={() => go(1)}
-            className="h-14 min-w-28 rounded-full bg-ink px-6 font-semibold text-white hover:bg-ink-soft"
+            className="h-14 min-w-28 rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
           >
             Next
           </button>

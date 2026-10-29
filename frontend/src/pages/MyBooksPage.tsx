@@ -48,7 +48,7 @@ export function MyBooksPage() {
           <p className="font-medium">You haven't made a book yet.</p>
           <Link
             to="/create"
-            className="mt-5 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft"
+            className="mt-5 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-on-ink hover:bg-ink-soft"
           >
             Create a book
           </Link>
@@ -81,7 +81,7 @@ export function MyBooksPage() {
                   <Link to={`/books/${book.id}`} className="inline-flex h-10 items-center rounded-full border-2 border-rule px-4 text-sm font-medium hover:border-ink">
                     Read
                   </Link>
-                  <Link to={`/books/${book.id}/review`} className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-white hover:bg-ink-soft">
+                  <Link to={`/books/${book.id}/review`} className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-on-ink hover:bg-ink-soft">
                     {published ? 'Edit' : 'Review'}
                   </Link>
                 </div>

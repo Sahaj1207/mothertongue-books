@@ -233,7 +233,7 @@ export function ReviewPage() {
               type="button"
               onClick={publish}
               disabled={busy !== null}
-              className="h-12 rounded-full bg-ink px-5 font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
+              className="h-12 rounded-full bg-ink px-5 font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
             >
               {busy === 'publish' ? 'Publishing…' : 'Approve and publish'}
             </button>
@@ -325,7 +325,7 @@ function FixWord({
                 aria-checked={language === l}
                 onClick={() => setLanguage(l)}
                 className={`h-10 rounded-full border-2 px-4 text-sm font-medium ${
-                  language === l ? 'border-ink bg-ink text-white' : 'border-rule'
+                  language === l ? 'border-ink bg-ink text-on-ink' : 'border-rule'
                 }`}
               >
                 {languageDisplay(l).name}
@@ -360,7 +360,7 @@ function FixWord({
         <button
           type="submit"
           disabled={busy}
-          className="h-11 rounded-full bg-ink px-5 text-sm font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
+          className="h-11 rounded-full bg-ink px-5 text-sm font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
         >
           {busy ? 'Fixing…' : 'Fix everywhere'}
         </button>

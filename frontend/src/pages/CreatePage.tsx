@@ -131,11 +131,11 @@ export function CreatePage() {
                 aria-checked={kind === value}
                 onClick={() => setKind(value)}
                 className={`rounded-2xl border-2 p-4 text-left transition-colors ${
-                  kind === value ? 'border-ink bg-ink text-white' : 'border-rule bg-sheet hover:border-ink-faint'
+                  kind === value ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                 }`}
               >
                 <span className="block font-semibold">{title}</span>
-                <span className={`mt-1 block text-sm ${kind === value ? 'text-white/80' : 'text-ink-soft'}`}>
+                <span className={`mt-1 block text-sm ${kind === value ? 'text-on-ink/80' : 'text-ink-soft'}`}>
                   {hint}
                 </span>
               </button>
@@ -183,7 +183,7 @@ export function CreatePage() {
                     aria-checked={checked}
                     onClick={() => (folk ? setFolkPair(code) : setPair(code!))}
                     className={`h-11 rounded-full border-2 px-5 text-sm font-medium transition-colors ${
-                      checked ? 'border-ink bg-ink text-white' : 'border-rule bg-sheet hover:border-ink-faint'
+                      checked ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                     }`}
                   >
                     {code ? PAIR_NAMES[code] : 'No, one language'}
@@ -208,11 +208,11 @@ export function CreatePage() {
                   clearError('level')
                 }}
                 className={`rounded-2xl border-2 p-4 text-left transition-colors ${
-                  level === l.id ? 'border-ink bg-ink text-white' : 'border-rule bg-sheet hover:border-ink-faint'
+                  level === l.id ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                 }`}
               >
                 <span className="block text-xl font-semibold">Ages {l.ages}</span>
-                <span className={`mt-1 block text-sm ${level === l.id ? 'text-white/80' : 'text-ink-soft'}`}>
+                <span className={`mt-1 block text-sm ${level === l.id ? 'text-on-ink/80' : 'text-ink-soft'}`}>
                   {LEVEL_HINT[l.id]}
                 </span>
               </button>
@@ -295,7 +295,7 @@ export function CreatePage() {
         <button
           type="submit"
           disabled={submitting}
-          className="h-14 w-full rounded-full bg-ink text-lg font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-60 sm:w-auto sm:px-10"
+          className="h-14 w-full rounded-full bg-ink text-lg font-semibold text-on-ink transition-colors hover:bg-ink-soft disabled:opacity-60 sm:w-auto sm:px-10"
         >
           {submitting ? 'Starting…' : 'Make the book'}
         </button>
@@ -355,7 +355,7 @@ function FolkTaleFields(p: FolkProps) {
             type="button"
             onClick={p.onLookUp}
             disabled={p.lookingUp}
-            className="h-14 shrink-0 rounded-full border-2 border-ink px-6 font-semibold transition-colors hover:bg-ink hover:text-white disabled:opacity-60"
+            className="h-14 shrink-0 rounded-full border-2 border-ink px-6 font-semibold transition-colors hover:bg-ink hover:text-on-ink disabled:opacity-60"
           >
             {p.lookingUp ? 'Looking it up…' : p.outline ? 'Look up again' : 'Get the story steps'}
           </button>

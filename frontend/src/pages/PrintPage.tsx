@@ -55,7 +55,7 @@ export function PrintPage() {
         <button
           type="button"
           onClick={() => window.print()}
-          className="h-12 rounded-full bg-ink px-6 font-semibold text-white hover:bg-ink-soft"
+          className="h-12 rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
         >
           Save as PDF
         </button>

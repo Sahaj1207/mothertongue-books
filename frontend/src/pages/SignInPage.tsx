@@ -71,7 +71,7 @@ export function SignInPage() {
               setError(null)
             }}
             className={`h-10 rounded-full text-sm font-medium transition-colors ${
-              mode === m ? 'bg-ink text-white' : 'text-ink-soft hover:text-ink'
+              mode === m ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
             }`}
           >
             {m === 'sign-in' ? 'Sign in' : 'New account'}
@@ -129,7 +129,7 @@ export function SignInPage() {
         <button
           type="submit"
           disabled={busy}
-          className="h-12 w-full rounded-full bg-ink font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
+          className="h-12 w-full rounded-full bg-ink font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
         >
           {busy ? 'One moment…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
         </button>

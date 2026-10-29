@@ -10,6 +10,9 @@
   --color-margin: #e0474c;
   --color-turmeric: #f2b705;
   --color-turmeric-soft: #fdf3cf;
+  /* Text on ink-coloured buttons, and on a selected language colour. */
+  --color-on-ink: #ffffff;
+  --color-on-lang: #ffffff;
 
   --color-telugu: #2e4a9e;
   --color-telugu-soft: #e4e9f6;
@@ -25,6 +28,47 @@
   --font-display: 'Baloo 2', 'Noto Sans', sans-serif;
 
   --radius-cover: 14px;
+}
+
+/* Reading themes. Paper is the default above; the choice is set on <html> before the app loads. */
+:root[data-theme='warm'] {
+  --color-paper: #f5ecdc;
+  --color-sheet: #fcf5e8;
+  --color-ink: #3a2e22;
+  --color-ink-soft: #685644;
+  --color-ink-faint: #8f7c67;
+  --color-rule: #e5d3b5;
+  --color-margin: #c95a4f;
+  --color-turmeric-soft: #f6e2b3;
+  --color-telugu-soft: #e8e1e6;
+  --color-kannada-soft: #e1e8d6;
+  --color-marathi-soft: #f1dfdc;
+}
+
+:root[data-theme='night'] {
+  color-scheme: dark;
+  --color-paper: #15161b;
+  --color-sheet: #1e2027;
+  --color-ink: #ebe5d9;
+  --color-ink-soft: #bcb5a7;
+  --color-ink-faint: #8a857b;
+  --color-rule: #353842;
+  --color-margin: #9c4a4c;
+  --color-turmeric: #e0aa1c;
+  --color-turmeric-soft: #3a321f;
+  --color-on-ink: #15161b;
+  --color-on-lang: #15161b;
+  --color-telugu: #a3b5f2;
+  --color-telugu-soft: #232a42;
+  --color-kannada: #72cba6;
+  --color-kannada-soft: #1b3129;
+  --color-marathi: #ee93bf;
+  --color-marathi-soft: #3a202d;
+}
+
+/* Pictures are bright; dim them a little at bedtime. */
+:root[data-theme='night'] main img {
+  filter: brightness(0.82);
 }
 
 @layer base {
@@ -99,6 +143,14 @@
   margin: 0 auto 1.5rem;
   padding: 7%;
   overflow: hidden;
+  /* Printed pages always use the Paper colours, whatever the reading theme. */
+  --color-ink: #1f2a44;
+  --color-ink-soft: #4b5672;
+  --color-ink-faint: #7a8399;
+  --color-telugu: #2e4a9e;
+  --color-kannada: #1e7f5c;
+  --color-marathi: #b4246a;
+  color: var(--color-ink);
   background: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgb(31 42 68 / 0.12);

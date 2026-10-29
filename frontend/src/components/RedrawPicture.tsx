@@ -83,7 +83,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
               type="button"
               onClick={redraw}
               disabled={working}
-              className="h-10 rounded-full bg-ink px-4 text-sm font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
+              className="h-10 rounded-full bg-ink px-4 text-sm font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
             >
               {working ? 'Drawing and checking…' : 'Redraw'}
             </button>
