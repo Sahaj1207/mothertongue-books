@@ -20,9 +20,10 @@ app = modal.App("mothertongue-books")
 @app.function(
     image=image,
     secrets=[modal.Secret.from_name("mothertongue-books")],
-    # Scale to zero when idle; stay up 5 minutes after the last request so a book being made
-    # (the client polls every second) finishes on the same container.
-    min_containers=0,
+    # One container always awake, so the first visitor (or judge) doesn't wait for a cold start;
+    # it costs about $0.20 a day. Extra containers stay up 5 minutes after the last request so a
+    # book being made (the client polls every second) finishes on the same container.
+    min_containers=1,
     scaledown_window=300,
     timeout=600,
 )

@@ -42,9 +42,7 @@ export function LibraryPage() {
         <h1 className="max-w-xl pl-10 font-[family-name:var(--font-display)] text-[2.1rem] leading-[1.15] font-semibold text-ink sm:pl-0 sm:text-5xl sm:leading-[1.1]">
           {t('library.title')}
         </h1>
-        <p className="mt-3 max-w-lg pl-10 text-ink-soft sm:pl-0">
-          {t('library.subtitle')}
-        </p>
+        <p className="mt-3 max-w-lg pl-10 text-ink-soft sm:pl-0">{t('library.subtitle')}</p>
 
         <div
           className="mt-8 grid grid-cols-3 gap-2.5 sm:max-w-2xl sm:gap-4"
@@ -73,39 +71,30 @@ export function LibraryPage() {
         </div>
       </section>
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6">
         <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
           {language ? t('library.languageBooks', { lang: t(`lang.${language}`) }) : t('library.allBooks')}
         </h2>
-        <div className="flex flex-wrap gap-2">
-          <div
-            className="flex overflow-x-auto rounded-full border border-rule bg-sheet p-1"
-            role="group"
-            aria-label={t('library.kind')}
-          >
-            <LevelButton active={kind === null} onClick={() => setKind(null)}>
-              {t('library.allKinds')}
-            </LevelButton>
-            {KINDS.map(([id, name]) => (
-              <LevelButton key={id} active={kind === id} onClick={() => setKind(id)}>
-                {t(name)}
-              </LevelButton>
-            ))}
-          </div>
-          <div
-            className="flex overflow-x-auto rounded-full border border-rule bg-sheet p-1"
-            role="group"
-            aria-label={t('library.level')}
-          >
-            <LevelButton active={level === null} onClick={() => setLevel(null)}>
-              {t('library.allAges')}
-            </LevelButton>
-            {READING_LEVELS.map((l) => (
-              <LevelButton key={l.id} active={level === l.id} onClick={() => setLevel(l.id)}>
-                {l.ages}
-              </LevelButton>
-            ))}
-          </div>
+        {/* Chips wrap instead of scrolling sideways, so no choice is hidden off the edge of a phone. */}
+        <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={t('library.kind')}>
+          <FilterChip active={kind === null} onClick={() => setKind(null)}>
+            {t('library.allKinds')}
+          </FilterChip>
+          {KINDS.map(([id, name]) => (
+            <FilterChip key={id} active={kind === id} onClick={() => setKind(id)}>
+              {t(name)}
+            </FilterChip>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label={t('library.level')}>
+          <FilterChip active={level === null} onClick={() => setLevel(null)}>
+            {t('library.allAges')}
+          </FilterChip>
+          {READING_LEVELS.map((l) => (
+            <FilterChip key={l.id} active={level === l.id} onClick={() => setLevel(l.id)}>
+              {l.ages}
+            </FilterChip>
+          ))}
         </div>
       </div>
 
@@ -146,7 +135,7 @@ export function LibraryPage() {
   )
 }
 
-function LevelButton({
+function FilterChip({
   active,
   onClick,
   children,
@@ -160,8 +149,10 @@ function LevelButton({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`h-9 shrink-0 rounded-full px-3.5 text-sm whitespace-nowrap transition-colors ${
-        active ? 'bg-ink font-medium text-on-ink' : 'text-ink-soft hover:text-ink'
+      className={`h-10 rounded-full border px-4 text-sm whitespace-nowrap transition-colors ${
+        active
+          ? 'border-ink bg-ink font-medium text-on-ink'
+          : 'border-rule bg-sheet text-ink-soft hover:border-ink-faint hover:text-ink'
       }`}
     >
       {children}
