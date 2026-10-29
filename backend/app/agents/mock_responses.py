@@ -34,6 +34,16 @@ def respond(agent: str, prompt: str) -> dict:
             return {"allowed": False, "reason": "This topic isn't suitable for young children."}
         return {"allowed": True, "reason": "Suitable for children."}
 
+    if agent == "folk_outline":
+        tale = _field(prompt, "Tale")
+        return {
+            "notes": "Nothing needed softening.",
+            "known": True,
+            "title_en": tale.title(),
+            "source": "Panchatantra",
+            "beats": [f"Step {n} of {tale}." for n in range(1, 7)],
+        }
+
     if agent == "planner":
         topic = _field(prompt, "Topic") or "a day in the village"
         return {

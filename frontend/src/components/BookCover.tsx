@@ -5,13 +5,13 @@ import type { BookSummary } from '../lib/types'
 const KIND_LABEL = {
   original: 'New story',
   'two-language': 'Two languages',
-  'folk-tale': 'Folk tale',
+  'folk-tale': 'Retold folk tale',
 } as const
 
 export function BookCover({ book }: { book: BookSummary }) {
   const lang = LANGUAGES[book.language]
   const level = READING_LEVELS.find((l) => l.id === book.level)!
-  const kind = book.kind === 'folk-tale' && book.source ? `Retold ${book.source} tale` : KIND_LABEL[book.kind]
+  const kind = KIND_LABEL[book.kind]
 
   return (
     <Link

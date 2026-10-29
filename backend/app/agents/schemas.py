@@ -12,16 +12,40 @@ class BookRequest(BaseModel):
     level: Literal[1, 2, 3]
     kind: BookKind = "original"
     topic: str = Field(min_length=3, max_length=200)
+    # Folk tales only: the tradition it comes from, and the outline the adult checked and edited.
+    source: str | None = Field(default=None, max_length=80)
+    outline: str | None = Field(default=None, max_length=2500)
 
     @model_validator(mode="after")
     def check_pair(self) -> "BookRequest":
-        if self.kind == "two-language" and (
-            self.pair_language is None or self.pair_language == self.language
-        ):
-            raise ValueError("Two-language books need a second, different language.")
-        if self.kind != "two-language" and self.pair_language is not None:
-            raise ValueError("Only two-language books take a second language.")
+        if self.kind == "two-language" and self.pair_language is None:
+            raise ValueError("Two-language books need a second language.")
+        if self.pair_language == self.language:
+            raise ValueError("The second language must be different from the first.")
+        if self.kind == "original" and self.pair_language is not None:
+            raise ValueError("Only two-language books and folk tales take a second language.")
+        if self.kind == "folk-tale" and (not self.outline or len(self.outline.strip()) < 40):
+            raise ValueError("Folk tales need an outline of the story to retell.")
+        if self.kind != "folk-tale" and (self.outline or self.source):
+            raise ValueError("Only folk tales take an outline and a source.")
         return self
+
+
+class OutlineRequest(BaseModel):
+    tale: str = Field(min_length=3, max_length=120)
+    language: Literal["te", "kn", "mr"]
+
+
+class FolkOutline(BaseModel):
+    """A traditional tale's plot, for an adult to check before it becomes a book."""
+
+    notes: str = Field(
+        description="What you changed to make it gentle for young children, or why you don't know the tale."
+    )
+    known: bool = Field(description="True only if this is a real traditional tale you know well.")
+    title_en: str
+    source: str = Field(description='Where the tale comes from, e.g. "Panchatantra" or "Kannada folk tale".')
+    beats: list[str] = Field(description="6-8 short plot steps in English, in order, one per future page.")
 
 
 # Reason fields come before verdicts so the model explains itself before deciding.

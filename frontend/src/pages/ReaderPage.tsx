@@ -86,6 +86,11 @@ export function ReaderPage() {
               {second.title}
             </p>
           )}
+          {book.request.kind === 'folk-tale' && (
+            <p className="mt-1 text-sm text-ink-faint">
+              A traditional tale retold{book.request.source ? `, from ${book.request.source}` : ''}
+            </p>
+          )}
         </div>
         <p className="shrink-0 pb-2 text-sm text-ink-faint" aria-live="polite">
           Page {page + 1} of {total}

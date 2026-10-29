@@ -3,6 +3,7 @@
 from app.agents.client import ImageInput, ModelClient
 from app.agents.schemas import (
     BookRequest,
+    FolkOutline,
     FoundObjects,
     PictureCheck,
     Review,
@@ -35,8 +36,26 @@ async def check_topic(client: ModelClient, request: BookRequest) -> TopicCheck:
             "Block anything violent, sexual, hateful, frightening, political or about self-harm.\n"
             + CHILD_SAFE_RULES
         ),
-        prompt=f"Topic: {request.topic}\nReading level: {request.level}",
+        prompt=f"Topic: {request.topic}\nReading level: {request.level}"
+        + (f"\nRetold folk tale. Outline:\n{request.outline}" if request.outline else ""),
         schema=TopicCheck,
+    )
+
+
+async def outline_folk_tale(client: ModelClient, tale: str, language: str) -> FolkOutline:
+    """The plot of a traditional tale, softened for young children; an adult edits it before writing."""
+    return await client.structured(
+        agent="folk_outline",
+        instructions=(
+            "You know the traditional tales of India: Panchatantra, Jataka, Tenali Rama, Birbal, and the "
+            "regional folk tales of Karnataka, Andhra Pradesh, Telangana and Maharashtra. Give the plot of the "
+            "tale the adult names, as it is traditionally told, in 6-8 short steps. Keep its characters, "
+            "setting and ending. Soften anything too frightening for ages 3-9 (no killing, eating or cruelty "
+            "shown; a trick or a lucky escape instead) and say what you softened. If you don't know the tale "
+            "or it isn't traditional, set known to false and don't invent one."
+        ),
+        prompt=f"Tale: {tale}\nIt will be retold in {LANGUAGE_NAMES[language]}.",
+        schema=FolkOutline,
     )
 
 
@@ -53,6 +72,13 @@ async def plan_story(client: ModelClient, request: BookRequest) -> StoryPlan:
             f"Topic: {request.topic}\n"
             f"Story language: {LANGUAGE_NAMES[request.language]}\n"
             f"Reading level: {LEVEL_GUIDE[request.level]}"
+            + (
+                f"\nThis is a retelling of a traditional tale ({request.source or 'Indian folk tale'}). "
+                "Follow this outline closely, keeping its characters and ending, one step per page:\n"
+                f"{request.outline}"
+                if request.kind == "folk-tale"
+                else ""
+            )
         ),
         schema=StoryPlan,
     )

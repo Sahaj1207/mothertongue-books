@@ -10,6 +10,18 @@ export interface BookRequest {
   level: ReadingLevel
   kind: BookKind
   topic: string
+  /** Folk tales: the tradition it comes from, and the plot the adult approved. */
+  source?: string | null
+  outline?: string | null
+}
+
+export interface FolkOutline {
+  /** What was softened for children, or why the tale isn't known. */
+  notes: string
+  known: boolean
+  title_en: string
+  source: string
+  beats: string[]
 }
 
 export type StepStatus = 'waiting' | 'running' | 'done' | 'failed'
@@ -122,6 +134,8 @@ export const api = {
     request<Book>(`/books/${id}`, { method: 'PUT', body: JSON.stringify(edits) }),
   addCorrection: (fix: Correction & { book_id: string }) =>
     request<Book>('/corrections', { method: 'POST', body: JSON.stringify(fix) }),
+  folkOutline: (tale: string, language: LanguageCode) =>
+    request<FolkOutline>('/folk-outline', { method: 'POST', body: JSON.stringify({ tale, language }) }),
   publishBook: (id: string) => request<Book>(`/books/${id}/publish`, { method: 'POST' }),
 }
 
@@ -135,6 +149,7 @@ export function toSummary(book: Book): BookSummary {
     titleEn: book.plan.title_en,
     level: book.request.level,
     kind: book.request.kind,
+    source: book.request.source ?? undefined,
     pageCount: main.pages.length,
     coverUrl: book.images?.[String(main.pages[0]?.number)],
   }

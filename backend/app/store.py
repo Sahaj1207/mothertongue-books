@@ -155,6 +155,8 @@ class SupabaseStore:
                 "level": req.level,
                 "kind": req.kind,
                 "topic": req.topic,
+                "source": req.source,
+                "outline": req.outline,
                 "plan": book.plan.model_dump(mode="json"),
                 "drafts": [d.model_dump(mode="json") for d in book.drafts],
                 "review_notes": book.review_notes,
@@ -220,7 +222,9 @@ def _book_from_row(row: dict) -> Book:
     # Books planned before characters had a fixed look.
     for character in row["plan"].get("characters", []):
         character.setdefault("look", "")
-    request = {k: row[k] for k in ("language", "pair_language", "level", "kind", "topic")}
+    request = {
+        k: row.get(k) for k in ("language", "pair_language", "level", "kind", "topic", "source", "outline")
+    }
     return Book.model_validate(
         {
             "id": row["id"],

@@ -64,6 +64,7 @@ class MockModelClient:
 # Writing needs the most thought; checks and planning need less, which saves reasoning tokens.
 EFFORT = {
     "topic_check": "low",
+    "folk_outline": "low",
     "planner": "medium",
     "writer": "high",
     "reading_level": "low",

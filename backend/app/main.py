@@ -7,8 +7,9 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app.agents import agents
 from app.agents.client import get_client
-from app.agents.schemas import BookRequest, StoryPage
+from app.agents.schemas import BookRequest, FolkOutline, OutlineRequest, StoryPage
 from app.auth import User, optional_user, require_user
 from app.config import settings
 from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
@@ -16,6 +17,7 @@ from app.models import Book, Correction, Job
 from app.pipeline import run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
 from app.store import store
+from app.usage import UsageMeter, current_meter
 
 log = logging.getLogger("mothertongue")
 
@@ -48,6 +50,20 @@ async def create_book(request: BookRequest, user: SignedIn) -> Job:
     _tasks.add(task)
     task.add_done_callback(_finish_task)
     return job
+
+
+@app.post("/api/folk-outline")
+async def folk_outline(request: OutlineRequest, user: SignedIn) -> FolkOutline:
+    """Draft the plot of a traditional tale for the adult to check and edit before making the book."""
+    if not settings.use_mock_ai:
+        await check_budget()
+    meter = UsageMeter()
+    token = current_meter.set(meter)
+    try:
+        return await agents.outline_folk_tale(get_client(), request.tale, request.language)
+    finally:
+        current_meter.reset(token)
+        await store.save_usage(None, meter.entries)
 
 
 def get_image_maker() -> ImageMaker | None:
