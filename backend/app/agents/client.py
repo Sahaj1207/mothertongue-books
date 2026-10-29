@@ -68,7 +68,7 @@ EFFORT = {
     "writer": "high",
     "reading_level": "low",
     "safety": "low",
-    "picture_check": "low",
+    "picture_check": "minimal",
 }
 
 # Hard ceiling on tokens per call (reasoning included), so no single call can run up a large bill.

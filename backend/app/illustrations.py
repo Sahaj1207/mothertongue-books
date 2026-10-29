@@ -6,7 +6,9 @@ FLUX runs on Cloudflare Workers AI (free plan, no card) or, if a card is on file
 import asyncio
 import base64
 import hashlib
+import io
 import logging
+import re
 import time
 from typing import NamedTuple, Protocol
 
@@ -21,7 +23,7 @@ log = logging.getLogger("mothertongue")
 STYLE = (
     "Children's picture book illustration, soft gouache and watercolour texture, warm natural light, "
     "gentle rounded shapes, friendly expressions, uncluttered background, Indian setting, "
-    "no text, no letters, no words."
+    "plain unlabelled buses, signs and shops, no text, no letters, no words, no signature."
 )
 
 # Modal L40S list price plus a little CPU and memory, per second of drawing.
@@ -89,11 +91,34 @@ def scene_looks(plan: StoryPlan, page: PagePlan) -> list[str]:
 
 
 def picture_prompt(plan: StoryPlan, page: PagePlan, fixes: list[str] | None = None) -> str:
-    """Style, then the looks of the characters in the scene, the scene, and any fixes from the checker."""
-    parts = [STYLE, *scene_looks(plan, page), page.scene]
+    """Style, the scene with each character described instead of named, and any fixes from the checker.
+
+    FLUX tends to write any name it sees into the picture, so names never reach the prompt.
+    """
+    in_scene = [c for c in plan.characters if c.look and c.name.lower() in page.scene.lower()]
+    parts = [STYLE, without_names(plan, page.scene)]
+    if in_scene:
+        parts.append("Only these people appear, each drawn whole, with no extra people.")
     if fixes:
-        parts += ["Draw every person whole, with the head joined to the body.", "Avoid:", *fixes]
+        parts += ["Draw every person whole, with the head joined to the body. Avoid:"]
+        parts += [without_names(plan, fix) for fix in fixes]
     return " ".join(parts)[:2048]
+
+
+def without_names(plan: StoryPlan, text: str) -> str:
+    """Drops quoted words, then replaces character names with their looks, so FLUX has no text to copy."""
+    text = re.sub(r"[\"“”][^\"“”]{0,60}[\"“”]", "", text)
+    text = re.sub(r"(?<![A-Za-z])'[^']{1,60}'(?![A-Za-z])", "", text)
+    for c in plan.characters:
+        if c.look:
+            look = c.look.strip().rstrip(".")
+            text = re.sub(
+                rf"\b{re.escape(c.name)}('s)?\b",
+                lambda m, look=look: f"({look}){m.group(1) or ''}",
+                text,
+                flags=re.IGNORECASE,
+            )
+    return text
 
 
 def book_seed(book_id: str) -> int:
@@ -155,3 +180,15 @@ async def _safe_check(check: Checker | None, data: bytes, page: PagePlan) -> Pic
     except Exception:
         log.exception("Picture check failed for page %s", page.number)
         return None
+
+
+def checker_copy(data: bytes, size: int = 512) -> tuple[bytes, str]:
+    """A small JPEG for the picture checker: flaws are still obvious, and it costs far fewer tokens."""
+    from PIL import Image
+
+    with Image.open(io.BytesIO(data)) as img:
+        img = img.convert("RGB")
+        img.thumbnail((size, size))
+        out = io.BytesIO()
+        img.save(out, format="JPEG", quality=80)
+    return out.getvalue(), "image/jpeg"

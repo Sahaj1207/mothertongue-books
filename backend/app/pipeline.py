@@ -8,7 +8,7 @@ from app.agents.agents import LANGUAGE_NAMES
 from app.agents.client import ModelClient
 from app.agents.schemas import PictureCheck, StoryDraft, StoryPlan
 from app.config import settings
-from app.illustrations import ImageMaker, draw_pages, scene_looks
+from app.illustrations import ImageMaker, checker_copy, draw_pages, scene_looks
 from app.models import Book, Job, Step
 from app.store import Store
 from app.usage import UsageMeter, current_meter
@@ -79,7 +79,7 @@ class Run:
 
         async def check(data: bytes, page) -> PictureCheck:
             looks = scene_looks(book.plan, page)
-            return await agents.check_picture(self.client, (data, maker.content_type), page.scene, looks)
+            return await agents.check_picture(self.client, checker_copy(data), page.scene, looks)
 
         try:
             drawn = await draw_pages(maker, book.plan, book.id, progress, check)
@@ -135,6 +135,7 @@ class Run:
                 f"{settings.max_writer_retries + 1} tries. Try a different topic."
             )
         # Safe but still not quite at the reading level: keep it, and hand the notes to the adult reviewer.
+        writer.detail = "Improved after review"
         reading.detail = "Notes for your review"
         self.notes += [f"{LANGUAGE_NAMES[lang]}: {p}" for p in level_review.problems]
         return draft

@@ -100,7 +100,8 @@ def test_flawed_picture_is_redrawn_with_the_fix_in_the_prompt():
     drawn = draw(painter, check_with(["Tata's head floats above his body", True]))
 
     assert len(painter.prompts) == 2
-    assert "Tata's head floats" in painter.prompts[1]
+    assert "head floats above his body" in painter.prompts[1]
+    assert "Tata" not in painter.prompts[1]
     assert drawn[1].unresolved == []
 
 
@@ -115,3 +116,25 @@ def test_problems_left_after_the_last_redraw_go_to_the_reviewer():
 def test_a_checker_outage_keeps_the_picture():
     drawn = draw(FakePainter(), check_with([RuntimeError("model down")]))
     assert drawn[1].data == b"webp"
+
+
+def test_names_and_quoted_text_never_reach_the_picture_prompt():
+    from app.illustrations import without_names
+
+    text = without_names(PLAN, "Remove the text \"Chinni\" and the sign 'SCHOOL BUS'; Chinni's kite is fine.")
+    assert "Chinni" not in text and "SCHOOL BUS" not in text
+    assert "(six-year-old girl with two braids)'s kite" in text
+
+
+def test_checker_gets_a_small_copy():
+    import io
+
+    from PIL import Image
+
+    from app.illustrations import checker_copy
+
+    buf = io.BytesIO()
+    Image.new("RGB", (1024, 1024), "orange").save(buf, format="PNG")
+    small, mime = checker_copy(buf.getvalue())
+    assert mime == "image/jpeg"
+    assert Image.open(io.BytesIO(small)).size == (512, 512)

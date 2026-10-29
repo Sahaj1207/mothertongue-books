@@ -9,7 +9,7 @@ import modal
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .uv_pip_install(
-        "fastapi>=0.162", "httpx>=0.28.1", "openai>=3.39", "pydantic-settings>=2.16.1", "modal>=1.6"
+        "fastapi>=0.162", "httpx>=0.28.1", "openai>=3.39", "pydantic-settings>=2.16.1", "modal>=1.6", "pillow>=13.0"
     )
     .add_local_python_source("app")
 )
