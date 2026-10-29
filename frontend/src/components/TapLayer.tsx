@@ -11,7 +11,8 @@ export function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
   useEffect(() => {
     if (!('speechSynthesis' in window)) return
     const prefix = SPEECH_LANG[language].slice(0, 2)
-    const pick = () => setVoice(speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(prefix)) ?? null)
+    const pick = () =>
+      setVoice(speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(prefix)) ?? null)
     pick()
     speechSynthesis.addEventListener('voiceschanged', pick)
     return () => speechSynthesis.removeEventListener('voiceschanged', pick)
@@ -50,33 +51,62 @@ export function TapLayer({ words, languages }: Props) {
     say(words[index].words[main] ?? '')
   }
 
+  // Boxes overlap (a tree behind a cow), so a tap goes to the object whose middle is nearest the finger,
+  // not to whichever box happens to be on top. Small objects count as at least finger-sized.
+  function onTap(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.detail === 0) return // a keyboard press on a word button, already handled there
+    const area = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - area.left) / area.width
+    const y = (e.clientY - area.top) / area.height
+    const padX = 22 / area.width
+    const padY = 22 / area.height
+    let best: number | null = null
+    let bestDistance = Infinity
+    words.forEach((w, i) => {
+      const [x1, y1, x2, y2] = w.box
+      const cx = (x1 + x2) / 2
+      const cy = (y1 + y2) / 2
+      const halfW = Math.max((x2 - x1) / 2, padX)
+      const halfH = Math.max((y2 - y1) / 2, padY)
+      if (Math.abs(x - cx) > halfW || Math.abs(y - cy) > halfH) return
+      const distance = Math.hypot(x - cx, y - cy)
+      if (distance < bestDistance) [best, bestDistance] = [i, distance]
+    })
+    if (best !== null) choose(best)
+  }
+
   return (
     <>
-      {words.map((w, i) => {
-        const [x1, y1, x2, y2] = w.box
-        const active = selected === i
-        return (
-          <button
-            key={`${w.english}-${i}`}
-            type="button"
-            onClick={() => choose(i)}
-            aria-label={`${w.words[main] ?? w.english}, ${w.english}`}
-            aria-pressed={active}
-            // The ::before keeps small objects (a handbag, a cup) at least finger-sized to tap.
-            className={`absolute rounded-2xl transition-shadow before:absolute before:top-1/2 before:left-1/2 before:h-full before:min-h-11 before:w-full before:min-w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] focus-visible:outline-none ${
-              active
-                ? 'shadow-[0_0_0_4px_var(--color-turmeric),0_0_0_9px_rgb(242_183_5/0.35)]'
-                : 'focus-visible:shadow-[0_0_0_4px_var(--color-turmeric)]'
-            }`}
-            style={{
-              left: `${x1 * 100}%`,
-              top: `${y1 * 100}%`,
-              width: `${(x2 - x1) * 100}%`,
-              height: `${(y2 - y1) * 100}%`,
-            }}
-          />
-        )
-      })}
+      <div className="absolute inset-0" onClick={onTap}>
+        {words.map((w, i) => {
+          const [x1, y1, x2, y2] = w.box
+          const active = selected === i
+          return (
+            <button
+              key={`${w.english}-${i}`}
+              type="button"
+              // Keyboard and screen-reader users choose each object directly; taps are handled above.
+              onClick={(e) => {
+                if (e.detail === 0) choose(i)
+              }}
+              aria-label={`${w.words[main] ?? w.english}, ${w.english}`}
+              aria-pressed={active}
+              // The ::before keeps small objects (a handbag, a cup) at least finger-sized to tap.
+              className={`absolute rounded-2xl transition-shadow focus-visible:outline-none ${
+                active
+                  ? 'shadow-[0_0_0_4px_var(--color-turmeric),0_0_0_9px_rgb(242_183_5/0.35)]'
+                  : 'focus-visible:shadow-[0_0_0_4px_var(--color-turmeric)]'
+              }`}
+              style={{
+                left: `${x1 * 100}%`,
+                top: `${y1 * 100}%`,
+                width: `${(x2 - x1) * 100}%`,
+                height: `${(y2 - y1) * 100}%`,
+              }}
+            />
+          )
+        })}
+      </div>
 
       {word ? (
         <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-center" aria-live="polite">
@@ -107,7 +137,13 @@ export function TapLayer({ words, languages }: Props) {
               >
                 <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
                   <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" />
-                  <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path
+                    d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             )}
