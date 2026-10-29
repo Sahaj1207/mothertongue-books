@@ -210,8 +210,8 @@ export function ReviewPage() {
       </ol>
 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-rule bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-          <p className="mr-auto min-w-0 text-sm" role="status">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-6">
+          <p className="w-full min-w-0 text-xs sm:mr-auto sm:w-auto sm:text-sm" role="status">
             {message ? (
               <span className={message.kind === 'error' ? 'font-medium text-margin' : 'text-ink-soft'}>{message.text}</span>
             ) : dirty ? (
@@ -226,7 +226,7 @@ export function ReviewPage() {
             type="button"
             onClick={save}
             disabled={!dirty || busy !== null}
-            className="h-12 rounded-full border-2 border-ink px-5 font-semibold disabled:border-rule disabled:text-ink-faint"
+            className="h-12 flex-1 rounded-full border-2 border-ink px-4 font-semibold disabled:border-rule disabled:text-ink-faint sm:flex-none sm:px-5"
           >
             {busy === 'save' ? t('review.saving') : t('review.save')}
           </button>
@@ -235,7 +235,7 @@ export function ReviewPage() {
               type="button"
               onClick={publish}
               disabled={busy !== null}
-              className="h-12 rounded-full bg-ink px-5 font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
+              className="h-12 flex-1 rounded-full bg-ink px-4 font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60 sm:flex-none sm:px-5"
             >
               {busy === 'publish' ? t('review.publishing') : t('review.publish')}
             </button>
@@ -275,7 +275,7 @@ function StoryField({
       <span className="mb-1 block text-xs font-medium" style={{ color: display.color }}>
         {t(`lang.${language}`)}
       </span>
-      {single ? <input {...common} /> : <textarea {...common} rows={2} className={`${common.className} resize-y`} />}
+      {single ? <input {...common} /> : <textarea {...common} rows={3} className={`${common.className} resize-y [field-sizing:content]`} />}
     </label>
   )
 }
