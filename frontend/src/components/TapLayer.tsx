@@ -3,7 +3,6 @@ import type { AnyLanguage, TapWord } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
 
-
 /** A voice for the language on this device, if it has one. Voices load asynchronously in most browsers. */
 export function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
   const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null)
@@ -34,9 +33,11 @@ interface Props {
   words: TapWord[]
   /** Book languages, main first. */
   languages: AnyLanguage[]
+  /** Glow once over everything tappable, so children discover the words (a book's first page). */
+  hint?: boolean
 }
 
-export function TapLayer({ words, languages }: Props) {
+export function TapLayer({ words, languages, hint = false }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const [main, second] = languages
   const voice = useVoice(main)
@@ -91,7 +92,7 @@ export function TapLayer({ words, languages }: Props) {
               aria-label={`${w.words[main] ?? w.english}, ${w.english}`}
               aria-pressed={active}
               // The ::before keeps small objects (a handbag, a cup) at least finger-sized to tap.
-              className={`absolute rounded-2xl transition-shadow focus-visible:outline-none ${
+              className={`absolute rounded-2xl transition-shadow focus-visible:outline-none ${hint && !active ? 'tap-hint' : ''} ${
                 active
                   ? 'shadow-[0_0_0_4px_var(--color-turmeric),0_0_0_9px_rgb(242_183_5/0.35)]'
                   : 'focus-visible:shadow-[0_0_0_4px_var(--color-turmeric)]'

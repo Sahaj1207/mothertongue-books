@@ -159,6 +159,9 @@ export const en = {
   'tap.hint': 'Tap the picture to learn words',
   'tap.hear': 'Hear {word}',
   'words.title': 'Words in this book',
+  'end.title': 'You finished the book!',
+  'end.again': 'Read it again',
+  'end.another': 'Find another book',
   'words.tapToHear': 'Tap a word to hear it again.',
   'words.sayTogether': 'Say each word together.',
 

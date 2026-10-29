@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, type Book } from '../lib/api'
+import { RowsSkeleton } from '../components/Skeleton'
 import { useAuth } from '../lib/auth'
 import { useT } from '../lib/i18n'
 import { LANGUAGES } from '../lib/languages'
@@ -46,7 +47,7 @@ export function MyBooksPage() {
           {error}
         </p>
       ) : books === null ? (
-        <p className="mt-8 text-ink-soft">{t('my.loading')}</p>
+        <RowsSkeleton label={t('my.loading')} />
       ) : books.length === 0 ? (
         <div className="mt-8 rounded-2xl border-2 border-dashed border-rule px-6 py-12 text-center">
           <p className="font-medium">{t('my.empty')}</p>
@@ -64,14 +65,27 @@ export function MyBooksPage() {
             const lang = LANGUAGES[book.request.language]
             const published = book.status === 'published'
             return (
-              <li key={book.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-3 p-4 sm:flex sm:gap-x-4 sm:p-5">
-                <span className="weave h-12 w-2 shrink-0 rounded-full" style={{ '--weave-color': lang.color } as React.CSSProperties} />
+              <li
+                key={book.id}
+                className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-3 p-4 sm:flex sm:gap-x-4 sm:p-5"
+              >
+                <span
+                  className="weave h-12 w-2 shrink-0 rounded-full"
+                  style={{ '--weave-color': lang.color } as React.CSSProperties}
+                />
                 <div className="min-w-0 flex-1">
-                  <p lang={main.language} className="truncate text-xl font-semibold" style={{ fontFamily: lang.storyFont, color: lang.color }}>
+                  <p
+                    lang={main.language}
+                    className="truncate text-xl font-semibold"
+                    style={{ fontFamily: lang.storyFont, color: lang.color }}
+                  >
                     {main.title}
                   </p>
                   <p className="truncate text-sm text-ink-faint">
-                    {[book.plan.title_en, book.drafts.map((d) => t(`lang.${d.language}`)).reduce((a, b) => t('common.pair', { a, b }))].join(', ')}
+                    {[
+                      book.plan.title_en,
+                      book.drafts.map((d) => t(`lang.${d.language}`)).reduce((a, b) => t('common.pair', { a, b })),
+                    ].join(', ')}
                   </p>
                 </div>
                 <span
@@ -82,10 +96,16 @@ export function MyBooksPage() {
                   {published ? t('my.published') : t('my.draft')}
                 </span>
                 <div className="col-span-3 flex gap-2 sm:col-span-1">
-                  <Link to={`/books/${book.id}`} className="inline-flex h-10 items-center rounded-full border-2 border-rule px-4 text-sm font-medium hover:border-ink">
+                  <Link
+                    to={`/books/${book.id}`}
+                    className="inline-flex h-10 items-center rounded-full border-2 border-rule px-4 text-sm font-medium hover:border-ink"
+                  >
                     {t('my.read')}
                   </Link>
-                  <Link to={`/books/${book.id}/review`} className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-on-ink hover:bg-ink-soft">
+                  <Link
+                    to={`/books/${book.id}/review`}
+                    className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-on-ink hover:bg-ink-soft"
+                  >
                     {published ? t('my.edit') : t('my.review')}
                   </Link>
                 </div>
