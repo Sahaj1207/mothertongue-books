@@ -20,6 +20,8 @@ export const te: Partial<Record<MessageKey, string>> = {
   "lang.sw": "స్వాహిలి",
   "lang.ne": "నేపాలీ",
   "lang.zu": "జులు",
+  "lang.ht": "హైతీయన్ క్రియోల్",
+  "lang.eu": "బాస్క్",
   "lang.en": "ఇంగ్లీష్",
   "lang.new": "కొత్త",
   "lang.newHint": "కొత్త: ఈ భాషలో పుస్తకాలు సరిగ్గా ఉన్నాయో చూసి చెప్పేవాళ్లు కావాలి.",

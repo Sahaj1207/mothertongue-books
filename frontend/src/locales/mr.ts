@@ -20,6 +20,8 @@ export const mr: Partial<Record<MessageKey, string>> = {
   "lang.sw": "स्वाहिली",
   "lang.ne": "नेपाळी",
   "lang.zu": "झुलू",
+  "lang.ht": "हैतियन क्रियोल",
+  "lang.eu": "बास्क",
   "lang.en": "इंग्रजी",
   "lang.new": "नवीन",
   "lang.newHint": "नवीन: यातली पुस्तकं तपासायला मदत करणारे हवेत.",

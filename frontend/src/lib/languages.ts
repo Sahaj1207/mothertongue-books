@@ -3,7 +3,7 @@
  * (a backend test checks the two lists match); see "Adding a language" in the README.
  */
 
-export type LanguageCode = 'te' | 'kn' | 'mr' | 'sw' | 'ne' | 'zu'
+export type LanguageCode = 'te' | 'kn' | 'mr' | 'sw' | 'ne' | 'zu' | 'ht' | 'eu'
 
 export interface Language {
   code: LanguageCode
@@ -107,6 +107,28 @@ const ENTRIES: Entry[] = [
     hex: '#6b3fa0',
     storyFont: LATIN,
     speech: 'zu-ZA',
+    reviewed: false,
+  },
+  {
+    code: 'ht',
+    name: 'Haitian Creole',
+    nativeName: 'Kreyòl',
+    letter: 'A',
+    weave: 'Caribbean ochre',
+    hex: '#a16207',
+    storyFont: LATIN,
+    speech: 'ht-HT',
+    reviewed: false,
+  },
+  {
+    code: 'eu',
+    name: 'Basque',
+    nativeName: 'Euskara',
+    letter: 'A',
+    weave: 'Txapela red',
+    hex: '#b91c1c',
+    storyFont: LATIN,
+    speech: 'eu-ES',
     reviewed: false,
   },
 ]

@@ -20,6 +20,8 @@ export const kn: Partial<Record<MessageKey, string>> = {
   "lang.sw": "ಸ್ವಾಹಿಲಿ",
   "lang.ne": "ನೇಪಾಳಿ",
   "lang.zu": "ಇಸಿಜುಲು",
+  "lang.ht": "ಹೈಟಿಯನ್ ಕ್ರಿಯೋಲ್",
+  "lang.eu": "ಬಾಸ್ಕ್",
   "lang.en": "ಇಂಗ್ಲಿಷ್",
   "lang.new": "ಹೊಸದು",
   "lang.newHint": "ಹೊಸದು: ಇದರಲ್ಲಿ ಪುಸ್ತಕಗಳನ್ನು ನೋಡಿ, ಸರಿಯಾಗಿದೆಯೇ ಎಂದು ಹೇಳಲು ಈ ಭಾಷೆ ಬರುವವರನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇವೆ.",

@@ -56,6 +56,20 @@ LANGUAGES: dict[str, Language] = {
             "isiZulu and Southern African folk tales, such as the uChakijana stories",
             reviewed=False,
         ),
+        Language(
+            "ht",
+            "Haitian Creole",
+            "Haiti",
+            "Haitian folk tales, such as the Bouki and Ti Malice stories",
+            reviewed=False,
+        ),
+        Language(
+            "eu",
+            "Basque",
+            "the Basque Country, in Spain and France",
+            "Basque folk tales and legends, such as those of Olentzero",
+            reviewed=False,
+        ),
     ]
 }
 

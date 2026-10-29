@@ -23,6 +23,8 @@ export const en = {
   'lang.sw': 'Swahili',
   'lang.ne': 'Nepali',
   'lang.zu': 'isiZulu',
+  'lang.ht': 'Haitian Creole',
+  'lang.eu': 'Basque',
   'lang.en': 'English',
   'lang.new': 'New',
   'lang.newHint': 'New: looking for native speakers to check books in it.',
