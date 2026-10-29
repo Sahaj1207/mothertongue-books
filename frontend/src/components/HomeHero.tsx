@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { AnyLanguage, TapWord } from '../lib/api'
 import { useI18n } from '../lib/i18n'
-import { LANGUAGES, REVIEWED_LANGUAGES, type LanguageCode } from '../lib/languages'
+import { LANGUAGE_ORDER, LANGUAGES, type LanguageCode } from '../lib/languages'
 import type { BookSummary } from '../lib/types'
 import { TapLayer } from './TapLayer'
 
@@ -28,23 +28,25 @@ export const FALLBACK_DEMO: DemoPage = {
   ],
 }
 
-/** In English the hook cycles through the three languages; in Telugu, Kannada or Marathi it names that one. */
+/** On the English site the hook cycles through every language; on a Telugu, Kannada or Marathi site it names that one. */
 function useHookLanguage(): LanguageCode {
   const { language } = useI18n()
   const [index, setIndex] = useState(0)
   const fixed = language !== 'en'
   useEffect(() => {
     if (fixed || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const timer = window.setInterval(() => setIndex((i) => (i + 1) % REVIEWED_LANGUAGES.length), 2600)
+    const timer = window.setInterval(() => setIndex((i) => (i + 1) % LANGUAGE_ORDER.length), 2600)
     return () => window.clearInterval(timer)
   }, [fixed])
-  return fixed ? (language as LanguageCode) : REVIEWED_LANGUAGES[index]
+  return fixed ? (language as LanguageCode) : LANGUAGE_ORDER[index]
 }
 
 export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookSummary | null }) {
-  const { t } = useI18n()
+  const { t, language } = useI18n()
   const navigate = useNavigate()
   const hookLanguage = useHookLanguage()
+  // In English the language shows in its own script (ಕನ್ನಡ, Kiswahili, नेपाली); elsewhere by its local name.
+  const ownScript = language === 'en'
   const [before, after = ''] = t('home.hook').split('{lang}')
   const lang = LANGUAGES[hookLanguage]
 
@@ -58,17 +60,23 @@ export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookS
       {/* Everything sits right of the red margin line, as on a real exercise-book page. */}
       <div className="pl-10 sm:pl-0">
         <p className="text-sm text-ink-soft">
-          {REVIEWED_LANGUAGES.map((code, i) => (
+          {LANGUAGE_ORDER.map((code, i) => (
             <span key={code} lang={code} style={{ fontFamily: LANGUAGES[code].storyFont }}>
               {i > 0 && ' · '}
               {LANGUAGES[code].nativeName}
             </span>
           ))}
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-semibold text-ink sm:text-5xl sm:leading-[1.08]">
+        {/* Room for the longest name, so the page doesn't jump as the language changes. */}
+        <h1 className="mt-2 min-h-[3.45em] font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-semibold text-ink sm:min-h-[2.2em] sm:text-5xl sm:leading-[1.08]">
           {before}
-          <span key={hookLanguage} className="hook-word" style={{ color: lang.color }}>
-            {t(`lang.${hookLanguage}`)}
+          <span
+            key={hookLanguage}
+            lang={ownScript ? hookLanguage : undefined}
+            className="hook-word"
+            style={{ color: lang.color, fontFamily: ownScript ? lang.storyFont : undefined }}
+          >
+            {ownScript ? lang.nativeName : t(`lang.${hookLanguage}`)}
           </span>
           {after}
         </h1>
