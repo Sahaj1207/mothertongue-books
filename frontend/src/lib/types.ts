@@ -15,4 +15,6 @@ export interface BookSummary {
   /** Tradition a folk tale is retold from, e.g. "Panchatantra". */
   source?: string
   pageCount: number
+  /** Page 1's picture, used as the cover. */
+  coverUrl?: string
 }

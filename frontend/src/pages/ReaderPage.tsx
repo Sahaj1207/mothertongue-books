@@ -92,15 +92,20 @@ export function ReaderPage() {
 
       <article className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2">
         <figure
-          className="relative flex aspect-[4/3] items-end overflow-hidden sm:aspect-[16/9] lg:aspect-auto lg:min-h-[28rem]"
+          className={`relative flex items-end overflow-hidden ${
+            image
+              ? 'mx-auto aspect-square w-full sm:max-w-[34rem] lg:max-w-none'
+              : 'aspect-[4/3] sm:aspect-[16/9] lg:aspect-auto lg:min-h-[28rem]'
+          }`}
           style={{ background: lang.softColor }}
         >
           {image ? (
+            // Pictures are square; showing them whole keeps heads and feet in the frame.
             <img
               key={image}
               src={image}
               alt={scene ?? ''}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-contain"
               loading={page === 0 ? 'eager' : 'lazy'}
             />
           ) : (

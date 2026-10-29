@@ -23,6 +23,7 @@ log = logging.getLogger("mothertongue")
 STYLE = (
     "Children's picture book illustration, soft gouache and watercolour texture, warm natural light, "
     "gentle rounded shapes, friendly expressions, uncluttered background, Indian setting, "
+    "every person shown whole and fully inside the frame, "
     "plain unlabelled buses, signs and shops, no text, no letters, no words, no signature."
 )
 

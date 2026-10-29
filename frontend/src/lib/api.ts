@@ -127,5 +127,6 @@ export function toSummary(book: Book): BookSummary {
     level: book.request.level,
     kind: book.request.kind,
     pageCount: main.pages.length,
+    coverUrl: book.images?.[String(main.pages[0]?.number)],
   }
 }
