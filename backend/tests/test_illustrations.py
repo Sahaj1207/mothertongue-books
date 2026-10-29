@@ -1,6 +1,7 @@
 import asyncio
 
 from app.agents.schemas import BookRequest, Character, PagePlan, StoryPlan
+from app.config import settings
 from app.illustrations import STYLE, book_seed, picture_prompt
 from app.models import Job
 from app.pipeline import run_pipeline
@@ -122,7 +123,7 @@ def test_problems_left_after_the_last_redraw_go_to_the_reviewer():
     painter = FakePainter()
     drawn = draw(painter, check_with(["extra hand"] * 3))
 
-    assert len(painter.prompts) == 3  # first try plus two redraws
+    assert len(painter.prompts) == settings.max_picture_redraws + 1  # first try plus the redraws
     assert drawn[1].unresolved == ["extra hand"]
 
 
