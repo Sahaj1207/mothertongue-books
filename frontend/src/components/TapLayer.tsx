@@ -5,7 +5,7 @@ import { languageDisplay } from '../lib/languages'
 const SPEECH_LANG: Record<AnyLanguage, string> = { te: 'te-IN', kn: 'kn-IN', mr: 'mr-IN', en: 'en-IN' }
 
 /** A voice for the language on this device, if it has one. Voices load asynchronously in most browsers. */
-function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
+export function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
   const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null)
   useEffect(() => {
     if (!('speechSynthesis' in window)) return
@@ -16,6 +16,17 @@ function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
     return () => speechSynthesis.removeEventListener('voiceschanged', pick)
   }, [language])
   return voice
+}
+
+/** Says a word slowly in the device's voice for its language; does nothing without one. */
+export function speak(voice: SpeechSynthesisVoice | null, text: string) {
+  if (!voice || !text) return
+  speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.voice = voice
+  utterance.lang = voice.lang
+  utterance.rate = 0.8
+  speechSynthesis.speak(utterance)
 }
 
 interface Props {
@@ -30,15 +41,7 @@ export function TapLayer({ words, languages }: Props) {
   const voice = useVoice(main)
   const word = selected === null ? null : words[selected]
 
-  function say(text: string) {
-    if (!voice) return
-    speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.voice = voice
-    utterance.lang = voice.lang
-    utterance.rate = 0.8
-    speechSynthesis.speak(utterance)
-  }
+  const say = (text: string) => speak(voice, text)
 
   function choose(index: number) {
     setSelected(index)

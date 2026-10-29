@@ -9,6 +9,7 @@ import { ComingSoonPage } from './pages/ComingSoonPage'
 import { CreatePage } from './pages/CreatePage'
 import { LibraryPage } from './pages/LibraryPage'
 import { MyBooksPage } from './pages/MyBooksPage'
+import { PrintPage } from './pages/PrintPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { ReaderPage } from './pages/ReaderPage'
 import { ReviewPage } from './pages/ReviewPage'
@@ -34,6 +35,8 @@ createRoot(document.getElementById('root')!).render(
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* No site header: this page is the PDF. */}
+          <Route path="books/:id/print" element={<PrintPage />} />
           <Route element={<Layout />}>
             <Route index element={<LibraryPage />} />
             <Route path="books/:id" element={<ReaderPage />} />

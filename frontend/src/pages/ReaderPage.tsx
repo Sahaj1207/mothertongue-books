@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { BookWords } from '../components/BookWords'
 import { TapLayer } from '../components/TapLayer'
 import { api, type AnyLanguage, type Book } from '../lib/api'
 import { languageDisplay, LANGUAGES } from '../lib/languages'
+import { bookWords } from '../lib/words'
 
 function fontFor(lang: AnyLanguage) {
   return languageDisplay(lang).storyFont
@@ -53,6 +55,7 @@ export function ReaderPage() {
   const image = book.images?.[String(main.pages[page].number)]
   const tapWords = book.words?.[String(main.pages[page].number)] ?? []
   const isLast = page === total - 1
+  const words = bookWords(book)
 
 
   return (
@@ -92,9 +95,14 @@ export function ReaderPage() {
             </p>
           )}
         </div>
-        <p className="shrink-0 pb-2 text-sm text-ink-faint" aria-live="polite">
-          Page {page + 1} of {total}
-        </p>
+        <div className="shrink-0 pb-2 text-right text-sm">
+          <Link to={`/books/${book.id}/print`} className="text-ink-soft underline underline-offset-4 hover:text-ink">
+            Save as PDF
+          </Link>
+          <p className="mt-1 text-ink-faint" aria-live="polite">
+            Page {page + 1} of {total}
+          </p>
+        </div>
       </header>
 
       <article className="mt-6 overflow-hidden rounded-3xl border border-rule bg-sheet lg:grid lg:grid-cols-2">
@@ -188,6 +196,8 @@ export function ReaderPage() {
           </button>
         )}
       </nav>
+
+      {isLast && words.length > 0 && <BookWords words={words} languages={book.drafts.map((d) => d.language)} />}
     </main>
   )
 }

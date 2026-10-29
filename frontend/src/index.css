@@ -86,3 +86,45 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Book sheets for printing and "Save as PDF": A4 on paper, the same shape scaled to fit on screen.
+   Sizes inside use cqw so text keeps its place on the page at any width. */
+.sheet {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 2rem);
+  max-width: 210mm;
+  aspect-ratio: 210 / 297;
+  margin: 0 auto 1.5rem;
+  padding: 7%;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgb(31 42 68 / 0.12);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  .sheet {
+    width: 210mm;
+    height: 297mm;
+    max-width: none;
+    aspect-ratio: auto;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    break-after: page;
+  }
+}
+
+@media print {
+  .sheet:last-child {
+    break-after: auto;
+  }
+}
