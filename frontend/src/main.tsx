@@ -5,6 +5,7 @@ import { AppHeader } from './components/AppHeader'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 import { AuthProvider, RequireSignIn } from './lib/auth'
+import { I18nProvider } from './lib/i18n'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { CreatePage } from './pages/CreatePage'
 import { LibraryPage } from './pages/LibraryPage'
@@ -32,6 +33,7 @@ const signedIn = (page: React.ReactNode) => <RequireSignIn>{page}</RequireSignIn
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <I18nProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -45,10 +47,11 @@ createRoot(document.getElementById('root')!).render(
             <Route path="making/:jobId" element={signedIn(<ProgressPage />)} />
             <Route path="my-books" element={signedIn(<MyBooksPage />)} />
             <Route path="sign-in" element={<SignInPage />} />
-            <Route path="*" element={<ComingSoonPage title="Page not found" />} />
+            <Route path="*" element={<ComingSoonPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </I18nProvider>
   </StrictMode>,
 )

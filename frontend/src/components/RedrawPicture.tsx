@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type Book } from '../lib/api'
+import { useT } from '../lib/i18n'
 
 interface Props {
   book: Book
@@ -15,6 +16,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
   const [note, setNote] = useState('')
   const [jobId, setJobId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const t = useT()
 
   useEffect(() => {
     if (!jobId) return
@@ -29,7 +31,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
           setOpen(false)
           setNote('')
         } else {
-          setError(job.message ?? 'The picture couldn’t be redrawn.')
+          setError(job.message ?? t('redraw.failed'))
         }
       } catch (e) {
         clearInterval(timer)
@@ -38,7 +40,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
       }
     }, 2500)
     return () => clearInterval(timer)
-  }, [jobId, book.id, onRedrawn])
+  }, [jobId, book.id, onRedrawn, t])
 
   async function redraw() {
     setError(null)
@@ -56,7 +58,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
     <div className="border-b border-rule px-5 py-3">
       {notes.length > 0 && (
         <div className="mb-3 rounded-xl bg-turmeric-soft px-3.5 py-2.5 text-sm">
-          <p className="font-semibold">The picture checker still sees:</p>
+          <p className="font-semibold">{t('redraw.checkerSees')}</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5">
             {notes.map((n) => (
               <li key={n}>{n}</li>
@@ -67,7 +69,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
       {open ? (
         <div className="space-y-2">
           <label htmlFor={`redraw-${page}`} className="block text-sm font-medium">
-            What should change? <span className="font-normal text-ink-faint">(optional)</span>
+            {t('redraw.whatChange')} <span className="font-normal text-ink-faint">{t('common.optional')}</span>
           </label>
           <input
             id={`redraw-${page}`}
@@ -75,7 +77,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
             maxLength={300}
             disabled={working}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="The calf drinks milk from its mother"
+            placeholder={t('redraw.placeholder')}
             className="h-11 w-full rounded-xl border-2 border-rule bg-sheet px-3 focus:border-ink focus:outline-none"
           />
           <div className="flex flex-wrap items-center gap-2">
@@ -85,14 +87,14 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
               disabled={working}
               className="h-10 rounded-full bg-ink px-4 text-sm font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
             >
-              {working ? 'Drawing and checking…' : 'Redraw'}
+              {working ? t('redraw.drawing') : t('redraw.redraw')}
             </button>
             {!working && (
               <button type="button" onClick={() => setOpen(false)} className="h-10 px-3 text-sm text-ink-soft hover:text-ink">
-                Cancel
+                {t('common.cancel')}
               </button>
             )}
-            {working && <span className="text-sm text-ink-faint">About a minute.</span>}
+            {working && <span className="text-sm text-ink-faint">{t('redraw.aboutAMinute')}</span>}
           </div>
         </div>
       ) : (
@@ -101,7 +103,7 @@ export function RedrawPicture({ book, page, notes, onRedrawn }: Props) {
           onClick={() => setOpen(true)}
           className="h-10 rounded-full border-2 border-rule px-4 text-sm font-medium hover:border-ink"
         >
-          Redraw picture
+          {t('redraw.open')}
         </button>
       )}
       {error && (

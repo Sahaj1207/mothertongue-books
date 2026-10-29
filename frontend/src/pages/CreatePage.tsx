@@ -2,43 +2,32 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LanguageTile } from '../components/LanguageTile'
 import { api, type AnyLanguage, type FolkOutline } from '../lib/api'
-import { LANGUAGE_ORDER, LANGUAGES, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
+import { useT } from '../lib/i18n'
+import { LANGUAGE_ORDER, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
 import type { BookKind } from '../lib/types'
 
-const LEVEL_HINT: Record<ReadingLevel, string> = {
-  1: 'One short sentence on each page, lots of repeating words.',
-  2: 'One or two short sentences on each page, everyday words.',
-  3: 'Two or three sentences on each page, a little talking.',
-}
+const LEVEL_HINT = { 1: 'create.level1', 2: 'create.level2', 3: 'create.level3' } as const satisfies Record<
+  ReadingLevel,
+  string
+>
 
-const TOPIC_IDEAS = [
-  'Helping grandmother at the vegetable market',
-  'A rainy day when the school bus is late',
-  'Sharing mangoes with a new friend',
-  'Flying a kite on Sankranti',
-]
+const TOPIC_IDEAS = ['create.idea1', 'create.idea2', 'create.idea3', 'create.idea4'] as const
 
-const PAIR_NAMES: Record<AnyLanguage, string> = {
-  te: 'Telugu',
-  kn: 'Kannada',
-  mr: 'Marathi',
-  en: 'English',
-}
-
-const TALE_IDEAS: Record<LanguageCode, string[]> = {
-  kn: ['Punyakoti, the truthful cow', 'The monkey and the crocodile', 'The lion and the clever rabbit'],
-  te: ['Tenali Rama and the thieves', 'The monkey and the crocodile', 'The thirsty crow'],
-  mr: ['Chiu and Kau, the sparrow and the crow', 'The thirsty crow', 'Birbal and the khichdi'],
-}
+const TALE_IDEAS = {
+  kn: ['tale.punyakoti', 'tale.monkeyCrocodile', 'tale.lionRabbit'],
+  te: ['tale.tenaliThieves', 'tale.monkeyCrocodile', 'tale.thirstyCrow'],
+  mr: ['tale.chiuKau', 'tale.thirstyCrow', 'tale.birbalKhichdi'],
+} as const satisfies Record<LanguageCode, readonly string[]>
 
 const KINDS = [
-  ['original', 'One language', 'A new story in one language.'],
-  ['two-language', 'Two languages', 'The same story side by side, page by page.'],
-  ['folk-tale', 'Folk tale', 'A traditional tale, retold for young children.'],
+  ['original', 'create.kind.original', 'create.kind.original.hint'],
+  ['two-language', 'create.kind.two', 'create.kind.two.hint'],
+  ['folk-tale', 'create.kind.folk', 'create.kind.folk.hint'],
 ] as const
 
 export function CreatePage() {
   const navigate = useNavigate()
+  const t = useT()
   const [kind, setKind] = useState<BookKind>('original')
   const [language, setLanguage] = useState<LanguageCode | null>(null)
   const [pair, setPair] = useState<AnyLanguage>('en')
@@ -64,8 +53,8 @@ export function CreatePage() {
 
   async function lookUp() {
     const found: Record<string, string> = {}
-    if (!language) found.language = 'Choose the language first, so the tale fits it.'
-    if (tale.trim().length < 3) found.tale = 'Write the name of the tale.'
+    if (!language) found.language = t('create.error.languageFirst')
+    if (tale.trim().length < 3) found.tale = t('create.error.tale')
     setErrors(found)
     if (Object.keys(found).length > 0) return
     setLookingUp(true)
@@ -84,12 +73,12 @@ export function CreatePage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const found: Record<string, string> = {}
-    if (!language) found.language = 'Choose the language the book is written in.'
-    if (!level) found.level = "Choose the reader's age."
+    if (!language) found.language = t('create.error.language')
+    if (!level) found.level = t('create.error.level')
     if (folk) {
-      if (tale.trim().length < 3) found.tale = 'Write the name of the tale.'
-      else if ((steps ?? '').trim().length < 40) found.steps = 'Write the steps of the tale, one per line.'
-    } else if (topic.trim().length < 3) found.topic = 'Write a few words about the story.'
+      if (tale.trim().length < 3) found.tale = t('create.error.tale')
+      else if ((steps ?? '').trim().length < 40) found.steps = t('create.error.steps')
+    } else if (topic.trim().length < 3) found.topic = t('create.error.topic')
     setErrors(found)
     if (Object.keys(found).length > 0) return
 
@@ -113,15 +102,15 @@ export function CreatePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 pb-24 sm:px-6">
       <h1 className="mt-8 font-[family-name:var(--font-display)] text-3xl font-semibold sm:mt-12 sm:text-4xl">
-        Create a book
+        {t('create.title')}
       </h1>
       <p className="mt-2 text-ink-soft">
-        Agents plan the story, write it in the language and check it before you see it. It takes about a minute.
+        {t('create.subtitle')}
       </p>
 
       <form onSubmit={submit} noValidate className="mt-8 space-y-10">
         <fieldset>
-          <legend className="mb-3 text-lg font-semibold">What kind of book?</legend>
+          <legend className="mb-3 text-lg font-semibold">{t('create.kind')}</legend>
           <div className="grid gap-3 sm:grid-cols-3" role="radiogroup">
             {KINDS.map(([value, title, hint]) => (
               <button
@@ -134,9 +123,9 @@ export function CreatePage() {
                   kind === value ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                 }`}
               >
-                <span className="block font-semibold">{title}</span>
+                <span className="block font-semibold">{t(title)}</span>
                 <span className={`mt-1 block text-sm ${kind === value ? 'text-on-ink/80' : 'text-ink-soft'}`}>
-                  {hint}
+                  {t(hint)}
                 </span>
               </button>
             ))}
@@ -145,7 +134,7 @@ export function CreatePage() {
 
         <fieldset aria-describedby={errors.language ? 'language-error' : undefined}>
           <legend className="mb-3 text-lg font-semibold">
-            {kind === 'two-language' ? 'Main language' : 'Which language?'}
+            {kind === 'two-language' ? t('create.mainLanguage') : t('create.whichLanguage')}
           </legend>
           <div className="grid grid-cols-3 gap-2.5 sm:gap-4" role="radiogroup">
             {LANGUAGE_ORDER.map((code) => (
@@ -160,7 +149,7 @@ export function CreatePage() {
                   if (folkPair === code) setFolkPair(null)
                   clearError('language')
                 }}
-                sublabel={LANGUAGES[code].name}
+                sublabel={t(`lang.${code}`)}
               />
             ))}
           </div>
@@ -170,7 +159,7 @@ export function CreatePage() {
         {(kind === 'two-language' || folk) && (
           <fieldset>
             <legend className="mb-3 text-lg font-semibold">
-              {folk ? 'Add a second language?' : 'Second language'}
+              {folk ? t('create.addSecond') : t('create.second')}
             </legend>
             <div className="flex flex-wrap gap-2" role="radiogroup">
               {[...(folk ? [null] : []), ...pairOptions].map((code) => {
@@ -186,7 +175,7 @@ export function CreatePage() {
                       checked ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                     }`}
                   >
-                    {code ? PAIR_NAMES[code] : 'No, one language'}
+                    {code ? t(`lang.${code}`) : t('create.oneLanguage')}
                   </button>
                 )
               })}
@@ -195,7 +184,7 @@ export function CreatePage() {
         )}
 
         <fieldset aria-describedby={errors.level ? 'level-error' : undefined}>
-          <legend className="mb-3 text-lg font-semibold">How old is the reader?</legend>
+          <legend className="mb-3 text-lg font-semibold">{t('create.age')}</legend>
           <div className="grid gap-3 sm:grid-cols-3" role="radiogroup">
             {READING_LEVELS.map((l) => (
               <button
@@ -211,9 +200,9 @@ export function CreatePage() {
                   level === l.id ? 'border-ink bg-ink text-on-ink' : 'border-rule bg-sheet hover:border-ink-faint'
                 }`}
               >
-                <span className="block text-xl font-semibold">Ages {l.ages}</span>
+                <span className="block text-xl font-semibold">{t('common.agesTitle', { ages: l.ages })}</span>
                 <span className={`mt-1 block text-sm ${level === l.id ? 'text-on-ink/80' : 'text-ink-soft'}`}>
-                  {LEVEL_HINT[l.id]}
+                  {t(LEVEL_HINT[l.id])}
                 </span>
               </button>
             ))}
@@ -225,14 +214,14 @@ export function CreatePage() {
           <FolkTaleFields
             language={language}
             tale={tale}
-            onTale={(t) => {
-              setTale(t)
+            onTale={(value) => {
+              setTale(value)
               clearError('tale')
             }}
             outline={outline}
             steps={steps}
-            onSteps={(t) => {
-              setSteps(t)
+            onSteps={(value) => {
+              setSteps(value)
               clearError('steps')
             }}
             source={source}
@@ -244,7 +233,7 @@ export function CreatePage() {
         ) : (
           <div>
             <label htmlFor="topic" className="mb-3 block text-lg font-semibold">
-              What is the story about?
+              {t('create.topic')}
             </label>
             <textarea
               id="topic"
@@ -257,15 +246,14 @@ export function CreatePage() {
               }}
               aria-invalid={Boolean(errors.topic)}
               aria-describedby={errors.topic ? 'topic-error' : 'topic-hint'}
-              placeholder="A girl who helps her grandmother sell flowers"
+              placeholder={t('create.topicPlaceholder')}
               className="notebook w-full resize-none rounded-2xl border-2 border-rule py-[0.55rem] pr-4 pl-14 text-lg leading-[2.25rem] placeholder:text-ink-faint focus:border-ink focus:outline-none"
             />
             {errors.topic ? (
               <FieldError id="topic-error">{errors.topic}</FieldError>
             ) : (
               <p id="topic-hint" className="mt-2 text-sm text-ink-faint">
-                Write in English or any language. Places and festivals are welcome; please don't include a real child's
-                name or personal details.
+                {t('create.topicHint')}
               </p>
             )}
             <div className="mt-4 flex flex-wrap gap-2">
@@ -274,12 +262,12 @@ export function CreatePage() {
                   key={idea}
                   type="button"
                   onClick={() => {
-                    setTopic(idea)
+                    setTopic(t(idea))
                     clearError('topic')
                   }}
                   className="rounded-full bg-turmeric-soft px-3.5 py-2 text-left text-sm text-ink transition-colors hover:bg-turmeric/40"
                 >
-                  {idea}
+                  {t(idea)}
                 </button>
               ))}
             </div>
@@ -297,7 +285,7 @@ export function CreatePage() {
           disabled={submitting}
           className="h-14 w-full rounded-full bg-ink text-lg font-semibold text-on-ink transition-colors hover:bg-ink-soft disabled:opacity-60 sm:w-auto sm:px-10"
         >
-          {submitting ? 'Starting…' : 'Make the book'}
+          {submitting ? t('create.starting') : t('create.make')}
         </button>
       </form>
     </main>
@@ -327,12 +315,13 @@ interface FolkProps {
 }
 
 function FolkTaleFields(p: FolkProps) {
+  const t = useT()
   const ideas = p.language ? TALE_IDEAS[p.language] : TALE_IDEAS.kn
   return (
     <div className="space-y-8">
       <div>
         <label htmlFor="tale" className="mb-3 block text-lg font-semibold">
-          Which tale?
+          {t('folk.which')}
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
@@ -348,7 +337,7 @@ function FolkTaleFields(p: FolkProps) {
             }}
             aria-invalid={Boolean(p.errors.tale)}
             aria-describedby={p.errors.tale ? 'tale-error' : 'tale-hint'}
-            placeholder="Punyakoti, the truthful cow"
+            placeholder={t('folk.placeholder')}
             className="h-14 min-w-0 flex-1 rounded-2xl border-2 border-rule bg-sheet px-4 text-lg placeholder:text-ink-faint focus:border-ink focus:outline-none"
           />
           <button
@@ -357,14 +346,14 @@ function FolkTaleFields(p: FolkProps) {
             disabled={p.lookingUp}
             className="h-14 shrink-0 rounded-full border-2 border-ink px-6 font-semibold transition-colors hover:bg-ink hover:text-on-ink disabled:opacity-60"
           >
-            {p.lookingUp ? 'Looking it up…' : p.outline ? 'Look up again' : 'Get the story steps'}
+            {p.lookingUp ? t('folk.lookingUp') : p.outline ? t('folk.lookAgain') : t('folk.getSteps')}
           </button>
         </div>
         {p.errors.tale ? (
           <FieldError id="tale-error">{p.errors.tale}</FieldError>
         ) : (
           <p id="tale-hint" className="mt-2 text-sm text-ink-faint">
-            Muse Spark writes down how the tale goes. You check it against the tale you know before the book is made.
+            {t('folk.hint')}
           </p>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
@@ -372,10 +361,10 @@ function FolkTaleFields(p: FolkProps) {
             <button
               key={idea}
               type="button"
-              onClick={() => p.onTale(idea)}
+              onClick={() => p.onTale(t(idea))}
               className="rounded-full bg-turmeric-soft px-3.5 py-2 text-left text-sm text-ink transition-colors hover:bg-turmeric/40"
             >
-              {idea}
+              {t(idea)}
             </button>
           ))}
         </div>
@@ -387,7 +376,7 @@ function FolkTaleFields(p: FolkProps) {
           onClick={() => p.onSteps('')}
           className="text-sm font-medium text-ink-soft underline underline-offset-4 hover:text-ink"
         >
-          I'll write the steps myself
+          {t('folk.writeMyself')}
         </button>
       ) : (
         <div className="space-y-5">
@@ -398,25 +387,23 @@ function FolkTaleFields(p: FolkProps) {
             >
               {p.outline.known ? (
                 <>
-                  <span className="font-semibold">Made gentle for children: </span>
+                  <span className="font-semibold">{t('folk.gentle')} </span>
                   {p.outline.notes}
                 </>
               ) : (
                 <>
-                  <span className="font-semibold">
-                    Muse Spark doesn't know this tale well enough, so it didn't guess.{' '}
-                  </span>
-                  Write the steps below as you know them.
+                  <span className="font-semibold">{t('folk.unknown')} </span>
+                  {t('folk.unknownHint')}
                 </>
               )}
             </p>
           )}
           <div>
             <label htmlFor="steps" className="mb-1 block text-lg font-semibold">
-              How the tale goes
+              {t('folk.steps')}
             </label>
             <p id="steps-hint" className="mb-3 text-sm text-ink-faint">
-              One step per line; each becomes a page. Change anything that isn't how your family tells it.
+              {t('folk.stepsHint')}
             </p>
             <textarea
               id="steps"
@@ -426,21 +413,21 @@ function FolkTaleFields(p: FolkProps) {
               onChange={(e) => p.onSteps(e.target.value)}
               aria-invalid={Boolean(p.errors.steps)}
               aria-describedby={p.errors.steps ? 'steps-error steps-hint' : 'steps-hint'}
-              placeholder={'A cow named Punyakoti goes to graze.\nA hungry tiger stops her on the way.'}
+              placeholder={t('folk.stepsPlaceholder')}
               className="notebook w-full rounded-2xl border-2 border-rule py-[0.55rem] pr-4 pl-14 text-base leading-[2.25rem] placeholder:text-ink-faint focus:border-ink focus:outline-none"
             />
             {p.errors.steps && <FieldError id="steps-error">{p.errors.steps}</FieldError>}
           </div>
           <div>
             <label htmlFor="source" className="mb-3 block text-lg font-semibold">
-              Where does it come from? <span className="font-normal text-ink-faint">(optional)</span>
+              {t('folk.source')} <span className="font-normal text-ink-faint">{t('common.optional')}</span>
             </label>
             <input
               id="source"
               value={p.source}
               maxLength={80}
               onChange={(e) => p.onSource(e.target.value)}
-              placeholder="Kannada folk song, Panchatantra…"
+              placeholder={t('folk.sourcePlaceholder')}
               className="h-12 w-full rounded-2xl border-2 border-rule bg-sheet px-4 placeholder:text-ink-faint focus:border-ink focus:outline-none"
             />
           </div>

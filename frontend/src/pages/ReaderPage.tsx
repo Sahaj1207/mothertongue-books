@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { BookWords } from '../components/BookWords'
 import { TapLayer } from '../components/TapLayer'
 import { api, type AnyLanguage, type Book } from '../lib/api'
+import { useT } from '../lib/i18n'
 import { languageDisplay, LANGUAGES } from '../lib/languages'
 import { bookWords } from '../lib/words'
 
@@ -15,6 +16,7 @@ export function ReaderPage() {
   const [book, setBook] = useState<Book | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(0)
+  const t = useT()
 
   useEffect(() => {
     api
@@ -40,13 +42,13 @@ export function ReaderPage() {
       <main className="mx-auto max-w-xl px-4 py-20 text-center">
         <p className="font-medium">{error}</p>
         <Link to="/" className="mt-4 inline-block underline underline-offset-4">
-          Back to the library
+          {t('common.backToLibrary')}
         </Link>
       </main>
     )
   }
   if (!book) {
-    return <main className="mx-auto max-w-3xl px-4 py-12 text-ink-soft">Opening the book…</main>
+    return <main className="mx-auto max-w-3xl px-4 py-12 text-ink-soft">{t('reader.opening')}</main>
   }
 
   const [main, second] = book.drafts
@@ -62,12 +64,12 @@ export function ReaderPage() {
     <main className="mx-auto max-w-3xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 lg:max-w-6xl">
       {book.status === 'draft' && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-turmeric-soft px-4 py-3">
-          <p className="text-sm">This book is a draft. Only you can see it.</p>
+          <p className="text-sm">{t('reader.draft')}</p>
           <Link
             to={`/books/${book.id}/review`}
             className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-sm font-medium text-on-ink hover:bg-ink-soft"
           >
-            Review and publish
+            {t('reader.reviewAndPublish')}
           </Link>
         </div>
       )}
@@ -75,7 +77,7 @@ export function ReaderPage() {
       <header className="flex items-end justify-between gap-4">
         <div>
           <Link to="/" className="text-sm text-ink-soft underline-offset-4 hover:underline">
-            Library
+            {t('reader.library')}
           </Link>
           <h1
             lang={main.language}
@@ -91,16 +93,16 @@ export function ReaderPage() {
           )}
           {book.request.kind === 'folk-tale' && (
             <p className="mt-1 text-sm text-ink-faint">
-              A traditional tale retold{book.request.source ? `, from ${book.request.source}` : ''}
+              {book.request.source ? t('reader.retoldFrom', { source: book.request.source }) : t('reader.retold')}
             </p>
           )}
         </div>
         <div className="shrink-0 pb-2 text-right text-sm">
           <Link to={`/books/${book.id}/print`} className="text-ink-soft underline underline-offset-4 hover:text-ink">
-            Save as PDF
+            {t('reader.savePdf')}
           </Link>
           <p className="mt-1 text-ink-faint" aria-live="polite">
-            Page {page + 1} of {total}
+            {t('reader.pageOf', { page: page + 1, total })}
           </p>
         </div>
       </header>
@@ -131,7 +133,7 @@ export function ReaderPage() {
             </>
           ) : (
             <figcaption className="max-w-md p-5 text-sm text-ink-soft">
-              <span className="font-medium text-ink">Picture: </span>
+              <span className="font-medium text-ink">{t('reader.picture')} </span>
               {scene}
             </figcaption>
           )}
@@ -156,14 +158,14 @@ export function ReaderPage() {
         </div>
       </article>
 
-      <nav className="mt-6 flex items-center justify-between gap-4" aria-label="Pages">
+      <nav className="mt-6 flex items-center justify-between gap-4" aria-label={t('reader.pages')}>
         <button
           type="button"
           onClick={() => go(-1)}
           disabled={page === 0}
           className="h-14 min-w-28 rounded-full border-2 border-ink px-6 font-semibold disabled:border-rule disabled:text-ink-faint"
         >
-          Back
+          {t('reader.back')}
         </button>
         <ol className="hidden items-center gap-2 sm:flex">
           {main.pages.map((p, i) => (
@@ -171,7 +173,7 @@ export function ReaderPage() {
               <button
                 type="button"
                 onClick={() => setPage(i)}
-                aria-label={`Page ${i + 1}`}
+                aria-label={t('reader.pageN', { n: i + 1 })}
                 aria-current={i === page ? 'page' : undefined}
                 className="block h-3 w-3 rounded-full transition-colors"
                 style={{ background: i === page ? lang.color : 'var(--color-rule)' }}
@@ -184,7 +186,7 @@ export function ReaderPage() {
             to="/"
             className="inline-flex h-14 min-w-28 items-center justify-center rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
           >
-            The end
+            {t('reader.theEnd')}
           </Link>
         ) : (
           <button
@@ -192,7 +194,7 @@ export function ReaderPage() {
             onClick={() => go(1)}
             className="h-14 min-w-28 rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
           >
-            Next
+            {t('reader.next')}
           </button>
         )}
       </nav>

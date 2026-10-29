@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { AnyLanguage, TapWord } from '../lib/api'
+import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
 
 const SPEECH_LANG: Record<AnyLanguage, string> = { te: 'te-IN', kn: 'kn-IN', mr: 'mr-IN', en: 'en-IN' }
@@ -39,6 +40,7 @@ export function TapLayer({ words, languages }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const [main, second] = languages
   const voice = useVoice(main)
+  const t = useT()
   const word = selected === null ? null : words[selected]
 
   const say = (text: string) => speak(voice, text)
@@ -100,7 +102,7 @@ export function TapLayer({ words, languages }: Props) {
               <button
                 type="button"
                 onClick={() => say(word.words[main] ?? '')}
-                aria-label={`Hear ${word.words[main]}`}
+                aria-label={t('tap.hear', { word: word.words[main] ?? '' })}
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-turmeric text-ink hover:bg-turmeric/80"
               >
                 <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true">
@@ -112,7 +114,7 @@ export function TapLayer({ words, languages }: Props) {
             <button
               type="button"
               onClick={() => setSelected(null)}
-              aria-label="Close"
+              aria-label={t('common.close')}
               className="flex h-12 w-10 shrink-0 items-center justify-center rounded-full text-ink-faint hover:text-ink"
             >
               ×
@@ -121,7 +123,7 @@ export function TapLayer({ words, languages }: Props) {
         </div>
       ) : (
         <p className="pointer-events-none absolute top-3 left-3 rounded-full bg-sheet/90 px-3 py-1.5 text-xs font-medium text-ink shadow-sm">
-          Tap the picture to learn words
+          {t('tap.hint')}
         </p>
       )}
     </>

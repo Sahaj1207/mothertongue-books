@@ -1,22 +1,24 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
+import { useT, type Translate } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
 
 type Mode = 'sign-in' | 'create'
 
-function friendly(message: string): string {
-  if (/invalid login credentials/i.test(message)) return "That email and password don't match. Try again."
-  if (/already registered|already exists/i.test(message)) return 'An account with this email already exists. Sign in instead.'
-  if (/email not confirmed/i.test(message)) return 'This account is waiting for email confirmation.'
-  if (/password should be/i.test(message)) return 'Use a password with at least 8 characters.'
-  if (/rate limit/i.test(message)) return 'Too many attempts. Wait a minute and try again.'
+function friendly(message: string, t: Translate): string {
+  if (/invalid login credentials/i.test(message)) return t('signIn.error.mismatch')
+  if (/already registered|already exists/i.test(message)) return t('signIn.error.exists')
+  if (/email not confirmed/i.test(message)) return t('signIn.error.unconfirmed')
+  if (/password should be/i.test(message)) return t('signIn.error.password')
+  if (/rate limit/i.test(message)) return t('signIn.error.rateLimit')
   return message
 }
 
 export function SignInPage() {
   const { user, ready } = useAuth()
   const navigate = useNavigate()
+  const t = useT()
   const [params] = useSearchParams()
   const next = params.get('next')?.startsWith('/') ? params.get('next')! : '/my-books'
 
@@ -31,8 +33,8 @@ export function SignInPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setError('Enter your email address.')
-    if (password.length < 8) return setError('Use a password with at least 8 characters.')
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setError(t('signIn.error.email'))
+    if (password.length < 8) return setError(t('signIn.error.password'))
     setBusy(true)
     setError(null)
     const { data, error } =
@@ -45,9 +47,9 @@ export function SignInPage() {
             options: { emailRedirectTo: 'https://mothertongue-books.vercel.app/sign-in' },
           })
     setBusy(false)
-    if (error) return setError(friendly(error.message))
+    if (error) return setError(friendly(error.message, t))
     if (mode === 'create' && !data.session) {
-      return setError('Account created, but it needs email confirmation before you can sign in.')
+      return setError(t('signIn.error.needsConfirm'))
     }
     navigate(next, { replace: true })
   }
@@ -55,9 +57,9 @@ export function SignInPage() {
   return (
     <main className="mx-auto max-w-md px-4 pt-10 pb-24 sm:pt-16">
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold">
-        {mode === 'sign-in' ? 'Sign in' : 'Create an account'}
+        {mode === 'sign-in' ? t('signIn.title') : t('signIn.createTitle')}
       </h1>
-      <p className="mt-2 text-ink-soft">For parents and teachers who make, check and publish books.</p>
+      <p className="mt-2 text-ink-soft">{t('signIn.subtitle')}</p>
 
       <div className="mt-6 grid grid-cols-2 rounded-full border border-rule bg-sheet p-1" role="tablist">
         {(['sign-in', 'create'] as const).map((m) => (
@@ -74,7 +76,7 @@ export function SignInPage() {
               mode === m ? 'bg-ink text-on-ink' : 'text-ink-soft hover:text-ink'
             }`}
           >
-            {m === 'sign-in' ? 'Sign in' : 'New account'}
+            {m === 'sign-in' ? t('signIn.tab') : t('signIn.newAccount')}
           </button>
         ))}
       </div>
@@ -82,7 +84,7 @@ export function SignInPage() {
       <form onSubmit={submit} noValidate className="notebook mt-6 space-y-5 rounded-3xl border border-rule py-6 pr-5 pl-16">
         <div>
           <label htmlFor="email" className="block text-sm font-medium">
-            Email
+            {t('signIn.email')}
           </label>
           <input
             id="email"
@@ -95,7 +97,7 @@ export function SignInPage() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium">
-            Password
+            {t('signIn.password')}
           </label>
           <div className="relative mt-1.5">
             <input
@@ -112,11 +114,11 @@ export function SignInPage() {
               onClick={() => setShowPassword((s) => !s)}
               className="absolute top-1/2 right-2 h-9 -translate-y-1/2 rounded-lg px-2.5 text-sm text-ink-soft hover:text-ink"
             >
-              {showPassword ? 'Hide' : 'Show'}
+              {showPassword ? t('signIn.hide') : t('signIn.show')}
             </button>
           </div>
           <p id="password-hint" className="mt-1.5 text-xs text-ink-faint">
-            At least 8 characters.
+            {t('signIn.passwordHint')}
           </p>
         </div>
 
@@ -131,7 +133,7 @@ export function SignInPage() {
           disabled={busy}
           className="h-12 w-full rounded-full bg-ink font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
         >
-          {busy ? 'One moment…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
+          {busy ? t('signIn.oneMoment') : mode === 'sign-in' ? t('signIn.submit') : t('signIn.create')}
         </button>
       </form>
     </main>

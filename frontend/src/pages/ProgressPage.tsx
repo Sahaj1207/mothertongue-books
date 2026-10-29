@@ -2,17 +2,34 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { StepIcon } from '../components/StepIcon'
 import { api, type Job, type Step } from '../lib/api'
-import { languageDisplay, LANGUAGES } from '../lib/languages'
+import { useT, type Translate } from '../lib/i18n'
+import type { MessageKey } from '../locales/en'
+import { languageDisplay } from '../lib/languages'
 import type { AnyLanguage } from '../lib/api'
 
-const AGENT_NAME: Record<string, string> = {
-  topic_check: 'Topic check',
-  planner: 'Planner agent',
-  writer: 'Writer agent',
-  reading_level: 'Reading-level checker',
-  safety: 'Safety reviewer',
-  illustrator: 'Illustrator and picture checker',
-  tap_words: 'Word finder',
+const STEP_KEYS = ['topic_check', 'planner', 'writer', 'reading_level', 'safety', 'illustrator', 'tap_words'] as const
+type StepKind = (typeof STEP_KEYS)[number]
+const stepKind = (step: Step) => step.key.split(':')[0] as StepKind
+
+/** The server reports step details in English; these are the ones it can send. */
+const DETAILS: [RegExp, MessageKey][] = [
+  [/^Improved after review$/, 'detail.improved'],
+  [/^Notes for your review$/, 'detail.notes'],
+  [/^Rewriting with reviewer notes \(try (?<n>\d+)\)$/, 'detail.rewriting'],
+  [/^Redrawing page (?<n>\d+)$/, 'detail.redrawing'],
+  [/^(?<done>\d+) of (?<total>\d+)$/, 'detail.progress'],
+  [/^(?<n>\d+) words$/, 'detail.words'],
+  [/^No words found$/, 'detail.noWords'],
+  [/^(?<n>\d+) pictures missing$/, 'detail.missing'],
+  [/^Today's free pictures are used up/, 'detail.usedUp'],
+]
+
+function translateDetail(detail: string, t: Translate): string {
+  for (const [pattern, key] of DETAILS) {
+    const match = pattern.exec(detail)
+    if (match) return t(key, match.groups)
+  }
+  return detail
 }
 
 // Steps without a language that run after the story is written.
@@ -27,6 +44,7 @@ export function ProgressPage() {
   const [mock, setMock] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [started] = useState(() => Date.now())
+  const t = useT()
 
   useEffect(() => {
     fetch('/api/health')
@@ -68,34 +86,35 @@ export function ProgressPage() {
   if (!job) {
     return (
       <Shell>
-        <p className="text-ink-soft">{error ?? 'Starting…'}</p>
+        <p className="text-ink-soft">{error ?? t('progress.starting')}</p>
       </Shell>
     )
   }
 
-  const [setup, ...rest] = groupSteps(job.steps)
-  const lang = LANGUAGES[job.request.language]
+  const [setup, ...rest] = groupSteps(job.steps, t)
+  const languages = [job.request.language, job.request.pair_language]
+    .filter((l) => l != null)
+    .map((l) => t(`lang.${l}`))
+    .reduce((a, b) => t('common.pair', { a, b }))
 
   return (
     <Shell>
       <p className="text-sm text-ink-faint">
-        {lang.name}
-        {job.request.pair_language && ` and ${languageDisplay(job.request.pair_language).name}`}
-        , ages {['3–5', '5–7', '7–9'][job.request.level - 1]}
+        {t('progress.languagesAges', { languages, ages: ['3–5', '5–7', '7–9'][job.request.level - 1] })}
       </p>
       <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl leading-tight font-semibold sm:text-4xl">
-        {job.status === 'done' ? 'Your book is ready' : job.status === 'running' ? 'Making your book' : "This book wasn't made"}
+        {job.status === 'done' ? t('progress.ready') : job.status === 'running' ? t('progress.making') : t('progress.notMade')}
       </h1>
       <p className="mt-2 text-lg text-ink-soft">“{job.request.topic}”</p>
 
       {mock && (
         <p className="mt-4 rounded-xl bg-turmeric-soft px-4 py-3 text-sm">
-          Practice mode: agents return sample text while the AI models are being connected.
+          {t('progress.practice')}
         </p>
       )}
 
       <div className="notebook mt-8 rounded-3xl border border-rule py-[2.25rem] pr-4 pl-16 sm:pr-6" aria-live="polite">
-        <StepGroup title="Getting ready" steps={setup.steps} />
+        <StepGroup title={t('progress.gettingReady')} steps={setup.steps} />
         {rest.map((g) => (
           <StepGroup
             key={g.lang}
@@ -117,7 +136,7 @@ export function ProgressPage() {
           to={`/books/${job.book_id}/review`}
           className="mt-8 inline-flex h-14 w-full items-center justify-center rounded-full bg-ink px-10 text-lg font-semibold text-on-ink hover:bg-ink-soft sm:w-auto"
         >
-          Review the book
+          {t('progress.review')}
         </Link>
       )}
 
@@ -128,7 +147,7 @@ export function ProgressPage() {
             to="/create"
             className="mt-4 inline-flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-on-ink hover:bg-ink-soft"
           >
-            {job.status === 'blocked' ? 'Change the topic' : 'Try again'}
+            {job.status === 'blocked' ? t('progress.changeTopic') : t('progress.tryAgain')}
           </Link>
         </div>
       )}
@@ -146,12 +165,12 @@ interface Group {
   steps: Step[]
 }
 
-function groupSteps(steps: Step[]): Group[] {
-  const groups: Group[] = [{ lang: 'setup', title: 'Getting ready', steps: [] }]
+function groupSteps(steps: Step[], t: Translate): Group[] {
+  const groups: Group[] = [{ lang: 'setup', title: t('progress.gettingReady'), steps: [] }]
   for (const step of steps) {
     if (PICTURE_STEPS.has(step.key)) {
       let pictures = groups.find((g) => g.lang === 'pictures')
-      if (!pictures) groups.push((pictures = { lang: 'pictures', title: 'Pictures', steps: [] }))
+      if (!pictures) groups.push((pictures = { lang: 'pictures', title: t('progress.pictures'), steps: [] }))
       pictures.steps.push(step)
       continue
     }
@@ -162,7 +181,7 @@ function groupSteps(steps: Step[]): Group[] {
     }
     let group = groups.find((g) => g.lang === lang)
     if (!group) {
-      group = { lang, title: languageDisplay(lang as AnyLanguage).name, steps: [] }
+      group = { lang, title: t(`lang.${lang as AnyLanguage}`), steps: [] }
       groups.push(group)
     }
     group.steps.push(step)
@@ -171,6 +190,7 @@ function groupSteps(steps: Step[]): Group[] {
 }
 
 function StepGroup({ title, steps, lang }: { title: string; steps: Step[]; lang?: AnyLanguage }) {
+  const t = useT()
   const display = lang ? languageDisplay(lang) : null
   const color = display?.color
   return (
@@ -188,14 +208,16 @@ function StepGroup({ title, steps, lang }: { title: string; steps: Step[]; lang?
           <li key={step.key} className="flex h-[2.25rem] items-center gap-3">
             <StepIcon status={step.status} />
             <span className={`min-w-0 flex-1 truncate ${step.status === 'waiting' ? 'text-ink-faint' : ''}`}>
-              {step.label}
-              <span className="sr-only">: {step.status}</span>
+              {STEP_KEYS.includes(stepKind(step)) ? t(`step.${stepKind(step)}`) : step.label}
+              <span className="sr-only">: {t(`status.${step.status}`)}</span>
             </span>
             {step.detail ? (
-              <span className="rounded-full bg-turmeric-soft px-2.5 py-0.5 text-xs whitespace-nowrap">{step.detail}</span>
+              <span className="rounded-full bg-turmeric-soft px-2.5 py-0.5 text-xs whitespace-nowrap">
+                {translateDetail(step.detail, t)}
+              </span>
             ) : (
               <span className="hidden items-center gap-1.5 text-xs text-ink-faint sm:inline-flex">
-                {AGENT_NAME[step.key.split(':')[0]]}
+                {STEP_KEYS.includes(stepKind(step)) && t(`agent.${stepKind(step)}`)}
                 {step.model && step.model !== 'Practice mode' && (
                   <span
                     className={`rounded-full px-2 py-0.5 font-medium ${

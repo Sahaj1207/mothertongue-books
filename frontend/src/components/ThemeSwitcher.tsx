@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../lib/i18n'
 
 type Theme = 'paper' | 'warm' | 'night'
 
-const THEMES: { id: Theme; name: string; hint: string; swatch: [string, string] }[] = [
-  { id: 'paper', name: 'Paper', hint: 'Bright, for daytime', swatch: ['#ffffff', '#1f2a44'] },
-  { id: 'warm', name: 'Warm', hint: 'Soft light, easy on the eyes', swatch: ['#fcf5e8', '#3a2e22'] },
-  { id: 'night', name: 'Night', hint: 'Dark, for bedtime', swatch: ['#1e2027', '#ebe5d9'] },
+const THEMES: { id: Theme; swatch: [string, string] }[] = [
+  { id: 'paper', swatch: ['#ffffff', '#1f2a44'] },
+  { id: 'warm', swatch: ['#fcf5e8', '#3a2e22'] },
+  { id: 'night', swatch: ['#1e2027', '#ebe5d9'] },
 ]
 
 // Matches each theme's paper colour, for the phone's address bar.
@@ -20,6 +21,7 @@ export function ThemeSwitcher() {
   const [theme, setTheme] = useState<Theme>(savedTheme)
   const [open, setOpen] = useState(false)
   const menu = useRef<HTMLDivElement>(null)
+  const t = useT()
 
   useEffect(() => {
     const root = document.documentElement
@@ -53,7 +55,7 @@ export function ThemeSwitcher() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="true"
-        aria-label="Reading theme"
+        aria-label={t('theme.label')}
         className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft hover:text-ink"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -70,34 +72,34 @@ export function ThemeSwitcher() {
       {open && (
         <div
           role="group"
-          aria-label="Reading theme"
+          aria-label={t('theme.label')}
           className="absolute right-0 mt-2 w-64 rounded-2xl border border-rule bg-sheet p-2 shadow-lg"
         >
-          {THEMES.map((t) => (
+          {THEMES.map((theme_) => (
             <button
-              key={t.id}
+              key={theme_.id}
               type="button"
-              aria-pressed={theme === t.id}
+              aria-pressed={theme === theme_.id}
               onClick={() => {
-                setTheme(t.id)
+                setTheme(theme_.id)
                 setOpen(false)
               }}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left ${
-                theme === t.id ? 'bg-paper' : 'hover:bg-paper'
+                theme === theme_.id ? 'bg-paper' : 'hover:bg-paper'
               }`}
             >
               <span
                 aria-hidden="true"
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rule text-sm font-semibold"
-                style={{ background: t.swatch[0], color: t.swatch[1] }}
+                style={{ background: theme_.swatch[0], color: theme_.swatch[1] }}
               >
                 ಅ
               </span>
               <span className="min-w-0">
-                <span className="block font-medium text-ink">{t.name}</span>
-                <span className="block text-xs text-ink-faint">{t.hint}</span>
+                <span className="block font-medium text-ink">{t(`theme.${theme_.id}`)}</span>
+                <span className="block text-xs text-ink-faint">{t(`theme.${theme_.id}.hint`)}</span>
               </span>
-              {theme === t.id && (
+              {theme === theme_.id && (
                 <svg viewBox="0 0 24 24" className="ml-auto h-5 w-5 text-ink" aria-hidden="true">
                   <path d="M6 12.5l4 4L18 8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
                 </svg>

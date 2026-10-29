@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RedrawPicture } from '../components/RedrawPicture'
 import { api, type AnyLanguage, type Book, type StoryPage } from '../lib/api'
+import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
 
 export function ReviewPage() {
@@ -13,6 +14,7 @@ export function ReviewPage() {
   const [dirty, setDirty] = useState(false)
   const [busy, setBusy] = useState<'save' | 'publish' | 'fix' | null>(null)
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
+  const t = useT()
 
   function load(b: Book) {
     setBook(b)
@@ -40,7 +42,7 @@ export function ReviewPage() {
 
   if (!book) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-12 text-ink-soft">{message ? message.text : 'Opening the book…'}</main>
+      <main className="mx-auto max-w-3xl px-4 py-12 text-ink-soft">{message ? message.text : t('reader.opening')}</main>
     )
   }
 
@@ -49,7 +51,7 @@ export function ReviewPage() {
     try {
       const saved = await api.editBook(book!.id, { titles, pages })
       load(saved)
-      setMessage({ kind: 'ok', text: 'Changes saved.' })
+      setMessage({ kind: 'ok', text: t('review.saved') })
       return saved
     } catch (e) {
       setMessage({ kind: 'error', text: (e as Error).message })
@@ -77,7 +79,7 @@ export function ReviewPage() {
     try {
       const updated = await api.addCorrection({ ...fix, note: fix.note || null, book_id: book!.id })
       load(updated)
-      setMessage({ kind: 'ok', text: `Fixed “${fix.wrong}” everywhere. Future books will use “${fix.right_text}”.` })
+      setMessage({ kind: 'ok', text: t('review.fixed', { wrong: fix.wrong, right: fix.right_text }) })
       return true
     } catch (e) {
       setMessage({ kind: 'error', text: (e as Error).message })
@@ -97,18 +99,18 @@ export function ReviewPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 pt-8 pb-40 sm:px-6 sm:pt-12">
       <Link to="/my-books" className="text-sm text-ink-soft underline-offset-4 hover:underline">
-        My books
+        {t('review.myBooks')}
       </Link>
       <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl font-semibold sm:text-4xl">
-        Review the book
+        {t('review.title')}
       </h1>
       <p className="mt-2 text-ink-soft">
-        Read every page as a parent would read it aloud. Fix anything that sounds wrong, then approve it for the library.
+        {t('review.subtitle')}
       </p>
 
       {textNotes.length > 0 && (
         <section className="mt-8 rounded-2xl bg-turmeric-soft p-5">
-          <h2 className="font-semibold">Notes from the reading-level checker</h2>
+          <h2 className="font-semibold">{t('review.notes')}</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
             {textNotes.map((note) => (
               <li key={note}>{note}</li>
@@ -120,13 +122,13 @@ export function ReviewPage() {
       <FixWord languages={languages} busy={busy === 'fix'} onFix={fixWord} />
 
       <section className="mt-10 space-y-3">
-        <h2 className="text-lg font-semibold">Title</h2>
+        <h2 className="text-lg font-semibold">{t('review.bookTitle')}</h2>
         {book.drafts.map((d, i) => (
           <StoryField
             key={d.language}
             language={d.language}
             value={titles[i]}
-            label={`Title, ${languageDisplay(d.language).name}`}
+            label={t('review.titleField', { lang: t(`lang.${d.language}`) })}
             onChange={(v) => {
               setTitles((t) => t.map((x, j) => (j === i ? v : x)))
               setDirty(true)
@@ -150,8 +152,8 @@ export function ReviewPage() {
                 />
               )}
               <div className="min-w-0">
-                <h3 className="font-semibold">Page {planPage.number}</h3>
-                <p className="line-clamp-2 text-sm text-ink-faint">Picture: {planPage.scene}</p>
+                <h3 className="font-semibold">{t('review.page', { n: planPage.number })}</h3>
+                <p className="line-clamp-2 text-sm text-ink-faint">{t('review.picture', { scene: planPage.scene })}</p>
               </div>
             </div>
             {book.images?.[String(planPage.number)] && (
@@ -167,7 +169,7 @@ export function ReviewPage() {
                 <StoryField
                   key={d.language}
                   language={d.language}
-                  label={`Page ${planPage.number}, ${languageDisplay(d.language).name}`}
+                  label={t('review.pageField', { n: planPage.number, lang: t(`lang.${d.language}`) })}
                   value={pages[draftIndex]?.[pageIndex]?.text ?? ''}
                   onChange={(text) => {
                     setPages((all) =>
@@ -182,7 +184,7 @@ export function ReviewPage() {
               ))}
               {(book.words?.[String(planPage.number)] ?? []).length > 0 && (
                 <div className="pt-1">
-                  <p className="text-sm text-ink-soft">Words to tap in the picture (use Fix a word to change one)</p>
+                  <p className="text-sm text-ink-soft">{t('review.tapWords')}</p>
                   <ul className="mt-2 flex flex-wrap gap-2">
                     {book.words![String(planPage.number)].map((w, i) => (
                       <li key={`${w.english}-${i}`} className="rounded-full bg-paper px-3 py-1 text-sm ring-1 ring-rule">
@@ -213,11 +215,11 @@ export function ReviewPage() {
             {message ? (
               <span className={message.kind === 'error' ? 'font-medium text-margin' : 'text-ink-soft'}>{message.text}</span>
             ) : dirty ? (
-              <span className="text-ink-soft">Unsaved changes</span>
+              <span className="text-ink-soft">{t('review.unsaved')}</span>
             ) : published ? (
-              <span className="text-ink-soft">Published in the library</span>
+              <span className="text-ink-soft">{t('review.isPublished')}</span>
             ) : (
-              <span className="text-ink-soft">Draft: only you can see it</span>
+              <span className="text-ink-soft">{t('review.isDraft')}</span>
             )}
           </p>
           <button
@@ -226,7 +228,7 @@ export function ReviewPage() {
             disabled={!dirty || busy !== null}
             className="h-12 rounded-full border-2 border-ink px-5 font-semibold disabled:border-rule disabled:text-ink-faint"
           >
-            {busy === 'save' ? 'Saving…' : 'Save changes'}
+            {busy === 'save' ? t('review.saving') : t('review.save')}
           </button>
           {!published && (
             <button
@@ -235,7 +237,7 @@ export function ReviewPage() {
               disabled={busy !== null}
               className="h-12 rounded-full bg-ink px-5 font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
             >
-              {busy === 'publish' ? 'Publishing…' : 'Approve and publish'}
+              {busy === 'publish' ? t('review.publishing') : t('review.publish')}
             </button>
           )}
         </div>
@@ -257,6 +259,7 @@ function StoryField({
   onChange: (v: string) => void
   single?: boolean
 }) {
+  const t = useT()
   const display = languageDisplay(language)
   const common = {
     lang: language,
@@ -270,7 +273,7 @@ function StoryField({
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-medium" style={{ color: display.color }}>
-        {display.name}
+        {t(`lang.${language}`)}
       </span>
       {single ? <input {...common} /> : <textarea {...common} rows={2} className={`${common.className} resize-y`} />}
     </label>
@@ -291,12 +294,13 @@ function FixWord({
   const [right, setRight] = useState('')
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const t = useT()
   const display = languageDisplay(language)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!wrong.trim() || !right.trim()) return setError('Enter the wrong word and the right word.')
-    if (wrong.trim() === right.trim()) return setError('The right word is the same as the wrong word.')
+    if (!wrong.trim() || !right.trim()) return setError(t('fix.error.empty'))
+    if (wrong.trim() === right.trim()) return setError(t('fix.error.same'))
     setError(null)
     if (await onFix({ language, wrong: wrong.trim(), right_text: right.trim(), note: note.trim() })) {
       setWrong('')
@@ -310,13 +314,13 @@ function FixWord({
 
   return (
     <section className="mt-8 rounded-2xl border-2 border-rule p-5">
-      <h2 className="text-lg font-semibold">Fix a word</h2>
+      <h2 className="text-lg font-semibold">{t('fix.title')}</h2>
       <p className="mt-1 text-sm text-ink-soft">
-        Fixes the word on every page and teaches the writer, so future books get it right too.
+        {t('fix.subtitle')}
       </p>
       <form onSubmit={submit} noValidate className="mt-4 space-y-3">
         {languages.length > 1 && (
-          <div className="flex gap-2" role="radiogroup" aria-label="Language">
+          <div className="flex gap-2" role="radiogroup" aria-label={t('fix.language')}>
             {languages.map((l) => (
               <button
                 key={l}
@@ -328,27 +332,27 @@ function FixWord({
                   language === l ? 'border-ink bg-ink text-on-ink' : 'border-rule'
                 }`}
               >
-                {languageDisplay(l).name}
+                {t(`lang.${l}`)}
               </button>
             ))}
           </div>
         )}
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-sm font-medium">
-            Wrong word
+            {t('fix.wrong')}
             <input lang={language} value={wrong} onChange={(e) => setWrong(e.target.value)} className={`mt-1 ${input}`} style={{ fontFamily: display.storyFont }} />
           </label>
           <label className="block text-sm font-medium">
-            Right word
+            {t('fix.right')}
             <input lang={language} value={right} onChange={(e) => setRight(e.target.value)} className={`mt-1 ${input}`} style={{ fontFamily: display.storyFont }} />
           </label>
         </div>
         <label className="block text-sm font-medium">
-          Why (optional)
+          {t('fix.why')}
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Pinky is a girl, so the verb is feminine"
+            placeholder={t('fix.whyPlaceholder')}
             className="mt-1 h-11 w-full rounded-xl border-2 border-rule bg-sheet px-3 text-sm placeholder:text-ink-faint focus:border-ink focus:outline-none"
           />
         </label>
@@ -362,7 +366,7 @@ function FixWord({
           disabled={busy}
           className="h-11 rounded-full bg-ink px-5 text-sm font-semibold text-on-ink hover:bg-ink-soft disabled:opacity-60"
         >
-          {busy ? 'Fixing…' : 'Fix everywhere'}
+          {busy ? t('fix.fixing') : t('fix.submit')}
         </button>
       </form>
     </section>

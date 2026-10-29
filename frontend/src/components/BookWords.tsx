@@ -1,4 +1,5 @@
 import type { AnyLanguage } from '../lib/api'
+import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
 import type { BookWord } from '../lib/words'
 import { speak, useVoice } from './TapLayer'
@@ -8,13 +9,14 @@ import { WordThumb } from './WordThumb'
 export function BookWords({ words, languages }: { words: BookWord[]; languages: AnyLanguage[] }) {
   const [main, second] = languages
   const voice = useVoice(main)
+  const t = useT()
   const display = languageDisplay(main)
   return (
     <section className="mt-10" aria-labelledby="book-words">
       <h2 id="book-words" className="font-[family-name:var(--font-display)] text-2xl font-semibold">
-        Words in this book
+        {t('words.title')}
       </h2>
-      <p className="mt-1 text-sm text-ink-soft">{voice ? 'Tap a word to hear it again.' : 'Say each word together.'}</p>
+      <p className="mt-1 text-sm text-ink-soft">{voice ? t('words.tapToHear') : t('words.sayTogether')}</p>
       <ul className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
         {words.map((w) => (
           <li key={w.english}>

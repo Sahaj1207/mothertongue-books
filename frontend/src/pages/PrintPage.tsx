@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { WordThumb } from '../components/WordThumb'
 import { api, type AnyLanguage, type Book } from '../lib/api'
+import { useT } from '../lib/i18n'
 import { LANGUAGES, languageDisplay, READING_LEVELS } from '../lib/languages'
 import { bookWords } from '../lib/words'
 
@@ -17,6 +18,7 @@ export function PrintPage() {
   const { id } = useParams()
   const [book, setBook] = useState<Book | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const t = useT()
 
   useEffect(() => {
     api
@@ -36,7 +38,7 @@ export function PrintPage() {
   }, [book])
 
   if (error) return <p className="p-8">{error}</p>
-  if (!book) return <p className="p-8 text-ink-soft">Getting the book ready…</p>
+  if (!book) return <p className="p-8 text-ink-soft">{t('print.preparing')}</p>
 
   const [main, second] = book.drafts
   const lang = LANGUAGES[book.request.language]
@@ -49,15 +51,15 @@ export function PrintPage() {
     <div className="min-h-screen bg-paper py-6 print:bg-white print:p-0">
       <div className="mx-auto mb-6 flex max-w-[210mm] flex-wrap items-center gap-3 px-4 print:hidden">
         <Link to={`/books/${book.id}`} className="text-sm text-ink-soft underline-offset-4 hover:underline">
-          Back to the book
+          {t('print.backToBook')}
         </Link>
-        <p className="mr-auto text-sm text-ink-faint">In the print window, choose “Save as PDF”.</p>
+        <p className="mr-auto text-sm text-ink-faint">{t('print.howTo')}</p>
         <button
           type="button"
           onClick={() => window.print()}
           className="h-12 rounded-full bg-ink px-6 font-semibold text-on-ink hover:bg-ink-soft"
         >
-          Save as PDF
+          {t('reader.savePdf')}
         </button>
       </div>
 
@@ -80,13 +82,15 @@ export function PrintPage() {
         <div className="text-[2.2cqw] text-ink-soft">
           <p>
             {folk
-              ? `A traditional tale retold${book.request.source ? `, from ${book.request.source}` : ''}`
-              : 'An original story'}{' '}
-            · ages {level.ages}
+              ? book.request.source
+                ? t('reader.retoldFrom', { source: book.request.source })
+                : t('reader.retold')
+              : t('print.original')}{' '}
+            · {t('common.ages', { ages: level.ages })}
           </p>
           <p className="mt-[0.8cqw] text-ink-faint">
-            MotherTongue Books · Story and pictures made with AI
-            {book.status === 'published' ? ', reviewed by a parent before publishing' : ' (draft, not yet reviewed)'}
+            {t('print.madeWithAi')}
+            {book.status === 'published' ? t('print.reviewed') : t('print.draft')}
           </p>
         </div>
       </section>
@@ -118,7 +122,7 @@ export function PrintPage() {
       {words.length > 0 && (
         <section className="sheet">
           <h2 className="text-[4.4cqw] font-semibold" style={{ color: lang.color }}>
-            Words in this book
+            {t('words.title')}
           </h2>
           <ul className="mt-[4cqw] grid grid-cols-4 gap-[3cqw]">
             {words.slice(0, 16).map((w) => (

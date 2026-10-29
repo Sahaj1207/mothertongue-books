@@ -1,23 +1,22 @@
 import { Link } from 'react-router-dom'
+import { useI18n } from '../lib/i18n'
 import { LANGUAGES, READING_LEVELS } from '../lib/languages'
 import type { BookSummary } from '../lib/types'
-
-const KIND_LABEL = {
-  original: 'New story',
-  'two-language': 'Two languages',
-  'folk-tale': 'Retold folk tale',
-} as const
 
 export function BookCover({ book }: { book: BookSummary }) {
   const lang = LANGUAGES[book.language]
   const level = READING_LEVELS.find((l) => l.id === book.level)!
-  const kind = KIND_LABEL[book.kind]
+  const { t, language } = useI18n()
+  const kind = t(`kind.${book.kind}`)
+  const ages = t('common.ages', { ages: level.ages })
+  // The English title helps adults browsing in English; in another website language the cover title is enough.
+  const subtitle = language === 'en' ? book.titleEn : null
 
   return (
     <Link
       to={`/books/${book.id}`}
       className="group block rounded-[var(--radius-cover)] focus-visible:outline-offset-4"
-      aria-label={`${book.titleEn}, ${lang.name}, ${level.label}`}
+      aria-label={`${book.title}, ${t(`lang.${book.language}`)}, ${ages}`}
     >
       <div
         className="relative flex aspect-[3/4] overflow-hidden rounded-[var(--radius-cover)] transition-transform duration-200 group-hover:-translate-y-1 group-active:translate-y-0"
@@ -55,15 +54,15 @@ export function BookCover({ book }: { book: BookSummary }) {
             </p>
             <p className="relative text-xs font-medium" style={{ color: lang.color }}>
               {lang.nativeName}
-              {book.pairLanguage === 'en' && ' + English'}
+              {book.pairLanguage && ` ${t('cover.withLanguage', { lang: t(`lang.${book.pairLanguage}`) })}`}
             </p>
           </div>
         )}
       </div>
       <div className="mt-2.5 px-0.5">
-        <p className="leading-snug font-medium text-ink">{book.titleEn}</p>
+        {subtitle && <p className="leading-snug font-medium text-ink">{subtitle}</p>}
         <p className="mt-0.5 text-sm text-ink-faint">
-          {kind}, <span className="whitespace-nowrap">ages {level.ages}</span>
+          {kind}, <span className="whitespace-nowrap">{ages}</span>
         </p>
       </div>
     </Link>
