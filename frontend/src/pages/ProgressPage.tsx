@@ -6,6 +6,7 @@ import { useT, type Translate } from '../lib/i18n'
 import type { MessageKey } from '../locales/en'
 import { languageDisplay } from '../lib/languages'
 import type { AnyLanguage } from '../lib/api'
+import { usePageTitle } from '../lib/title'
 
 const STEP_KEYS = ['topic_check', 'planner', 'writer', 'reading_level', 'safety', 'illustrator', 'tap_words'] as const
 type StepKind = (typeof STEP_KEYS)[number]
@@ -45,6 +46,7 @@ export function ProgressPage() {
   const [elapsed, setElapsed] = useState(0)
   const [started] = useState(() => Date.now())
   const t = useT()
+  usePageTitle(t('progress.making'))
 
   useEffect(() => {
     fetch('/api/health')

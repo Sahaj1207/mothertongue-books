@@ -65,7 +65,32 @@ export const en = {
   'crash.body': 'Reload the page to try again. Your books are saved.',
   'crash.reload': 'Reload',
   'notFound.title': 'Page not found',
-  'notFound.body': 'This page is being built.',
+  'notFound.body': "This page doesn't exist, or its link has changed.",
+
+  // Footer and privacy
+  'footer.label': 'More',
+  'footer.tagline': "Picture books in your child's own language, written in the language, not translated.",
+  'footer.ai': 'Stories and pictures are made with AI and checked by people who speak the language before they are published.',
+  'footer.source': 'Source code',
+  'privacy.title': 'Privacy',
+  'privacy.intro': 'MotherTongue Books is made for families and schools, so we keep as little as we can.',
+  'privacy.keepTitle': 'What we keep',
+  'privacy.keep1': 'If you make an account: your email address, so you can sign in.',
+  'privacy.keep2': 'The books you make, and the words you fix in them.',
+  'privacy.keep3': 'Which languages people ask for. This has no personal details.',
+  'privacy.keep4': 'How much each book cost to make, so the service can stay free.',
+  'privacy.childrenTitle': 'Children',
+  'privacy.children1': "We never ask for a child's name, photo or voice, and children don't need an account to read.",
+  'privacy.children2': "Please don't type a real child's name or personal details into a story.",
+  'privacy.aiTitle': 'AI services',
+  'privacy.ai1':
+    'To make a book, your story request and its drafts are sent to AI services: Meta (Muse Spark and SAM 3.1), Baseten (Muse Spark Open) and Cloudflare (pictures).',
+  'privacy.ai2': 'These services may keep what is sent to them to run and improve their services, so share only what you are happy to share.',
+  'privacy.choicesTitle': 'Your choices',
+  'privacy.choices1': 'Drafts are visible only to you. Books you publish can be read by anyone.',
+  'privacy.choices2': 'Your website language and theme are saved only on your own device.',
+  'privacy.choices3': 'To delete your account and books, open a request on our source-code page.',
+  'privacy.updated': 'Last updated October 2026.',
 
   // Library
   'home.availableIn': 'Available in:',

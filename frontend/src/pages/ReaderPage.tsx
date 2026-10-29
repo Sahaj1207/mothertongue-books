@@ -7,6 +7,7 @@ import { api, type AnyLanguage, type Book } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay, LANGUAGES } from '../lib/languages'
 import { bookWords } from '../lib/words'
+import { usePageTitle } from '../lib/title'
 
 function fontFor(lang: AnyLanguage) {
   return languageDisplay(lang).storyFont
@@ -18,6 +19,7 @@ export function ReaderPage() {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(0)
   const t = useT()
+  usePageTitle(book?.drafts[0].title)
 
   useEffect(() => {
     api

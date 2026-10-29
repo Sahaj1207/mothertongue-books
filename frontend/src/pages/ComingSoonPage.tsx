@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useT } from '../lib/i18n'
+import { usePageTitle } from '../lib/title'
 
 export function ComingSoonPage() {
   const t = useT()
+  usePageTitle(t('notFound.title'))
   return (
     <main className="mx-auto max-w-xl px-4 py-20 text-center">
       <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold">{t('notFound.title')}</h1>

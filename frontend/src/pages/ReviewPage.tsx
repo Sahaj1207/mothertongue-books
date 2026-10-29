@@ -4,6 +4,7 @@ import { RedrawPicture } from '../components/RedrawPicture'
 import { api, type AnyLanguage, type Book, type StoryPage } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
+import { usePageTitle } from '../lib/title'
 
 export function ReviewPage() {
   const { id } = useParams()
@@ -15,6 +16,7 @@ export function ReviewPage() {
   const [busy, setBusy] = useState<'save' | 'publish' | 'fix' | null>(null)
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
   const t = useT()
+  usePageTitle(t('review.title'))
 
   function load(b: Book) {
     setBook(b)

@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth'
 import { useT } from '../lib/i18n'
 import { LANGUAGES } from '../lib/languages'
 import { supabase } from '../lib/supabase'
+import { usePageTitle } from '../lib/title'
 
 export function MyBooksPage() {
   const { user } = useAuth()
@@ -12,6 +13,7 @@ export function MyBooksPage() {
   const [books, setBooks] = useState<Book[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const t = useT()
+  usePageTitle(t('my.title'))
 
   useEffect(() => {
     api

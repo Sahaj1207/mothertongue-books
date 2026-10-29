@@ -7,6 +7,7 @@ import { useT } from '../lib/i18n'
 import type { MessageKey } from '../locales/en'
 import { LANGUAGE_ORDER, LANGUAGES, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
 import type { BookKind } from '../lib/types'
+import { usePageTitle } from '../lib/title'
 
 const LEVEL_HINT = { 1: 'create.level1', 2: 'create.level2', 3: 'create.level3' } as const satisfies Record<
   ReadingLevel,
@@ -30,6 +31,7 @@ const KINDS = [
 export function CreatePage() {
   const navigate = useNavigate()
   const t = useT()
+  usePageTitle(t('create.title'))
   const [kind, setKind] = useState<BookKind>('original')
   const [language, setLanguage] = useState<LanguageCode | null>(null)
   const [pair, setPair] = useState<AnyLanguage>('en')

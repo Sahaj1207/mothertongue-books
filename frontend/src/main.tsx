@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { AppHeader } from './components/AppHeader'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { SiteFooter } from './components/SiteFooter'
 import { WelcomeSheet } from './components/WelcomeSheet'
 import './index.css'
 import { AuthProvider, RequireSignIn } from './lib/auth'
@@ -13,6 +14,7 @@ import { CreatePage } from './pages/CreatePage'
 import { LibraryPage } from './pages/LibraryPage'
 import { MyBooksPage } from './pages/MyBooksPage'
 import { PrintPage } from './pages/PrintPage'
+import { PrivacyPage } from './pages/PrivacyPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { ReaderPage } from './pages/ReaderPage'
 import { ReviewPage } from './pages/ReviewPage'
@@ -27,6 +29,8 @@ function Layout() {
       <ErrorBoundary key={pathname}>
         <Outlet />
       </ErrorBoundary>
+      {/* The review page has its own bar fixed to the bottom of the screen. */}
+      {!pathname.endsWith('/review') && <SiteFooter />}
       <WelcomeSheet />
     </>
   )
@@ -56,6 +60,7 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="making/:jobId" element={signedIn(<ProgressPage />)} />
                 <Route path="my-books" element={signedIn(<MyBooksPage />)} />
                 <Route path="sign-in" element={<SignInPage />} />
+                <Route path="privacy" element={<PrivacyPage />} />
                 <Route path="*" element={<ComingSoonPage />} />
               </Route>
             </Routes>

@@ -8,6 +8,7 @@ import { api, toSummary, type Book } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { LANGUAGE_ORDER, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
 import type { BookKind, BookSummary } from '../lib/types'
+import { usePageTitle } from '../lib/title'
 
 const KINDS = [
   ['folk-tale', 'library.folkTales'],
@@ -23,6 +24,7 @@ export function LibraryPage() {
   const [demo, setDemo] = useState<DemoPage>(FALLBACK_DEMO)
   const [error, setError] = useState<string | null>(null)
   const t = useT()
+  usePageTitle(null)
 
   useEffect(() => {
     api

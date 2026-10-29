@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useT, type Translate } from '../lib/i18n'
 import { supabase } from '../lib/supabase'
+import { usePageTitle } from '../lib/title'
 
 type Mode = 'sign-in' | 'create'
 
@@ -19,6 +20,7 @@ export function SignInPage() {
   const { user, ready } = useAuth()
   const navigate = useNavigate()
   const t = useT()
+  usePageTitle(t('signIn.title'))
   const [params] = useSearchParams()
   const next = params.get('next')?.startsWith('/') ? params.get('next')! : '/my-books'
 
