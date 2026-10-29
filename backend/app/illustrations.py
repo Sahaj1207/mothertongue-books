@@ -23,8 +23,9 @@ log = logging.getLogger("mothertongue")
 STYLE = (
     "Children's picture book illustration, soft gouache and watercolour texture, warm natural light, "
     "gentle rounded shapes, friendly expressions, uncluttered background, Indian setting, "
-    "every person shown whole and fully inside the frame, "
-    "plain unlabelled buses, signs and shops, no text, no letters, no words, no signature."
+    "every character shown whole and fully inside the frame, "
+    # Name no objects here: FLUX draws whatever the style mentions ("buses" put buses in forests).
+    "no writing anywhere: no text, letters, words, labels or signature."
 )
 
 # Modal L40S list price plus a little CPU and memory, per second of drawing.

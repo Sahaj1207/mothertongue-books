@@ -1,5 +1,6 @@
 """Storage for jobs and books: Supabase in the app, in memory for tests and local runs without keys."""
 
+import hashlib
 from datetime import UTC, datetime
 from typing import Protocol
 
@@ -194,7 +195,9 @@ class SupabaseStore:
             except httpx.TransportError:
                 if attempt:
                     raise
-        return f"{self.url}/storage/v1/object/public/book-assets/{path}"
+        # Pictures are cached for a year; a redrawn page needs a new URL to be seen.
+        version = hashlib.sha256(data).hexdigest()[:10]
+        return f"{self.url}/storage/v1/object/public/book-assets/{path}?v={version}"
 
     async def list_corrections(self, language: str) -> list[Correction]:
         rows = await self._select(
