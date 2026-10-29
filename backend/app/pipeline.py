@@ -9,7 +9,8 @@ from app.agents.client import ModelClient
 from app.agents.schemas import PictureCheck, StoryDraft, StoryPlan
 from app.config import settings
 from app.illustrations import ImageMaker, checker_copy, draw_pages, scene_looks, web_copy
-from app.models import Book, Job, Step
+from app.models import Book, Job, Step, TapWord
+from app.segmentation import Segmenter, apply_corrections, harmonize, largest
 from app.store import Store
 from app.usage import UsageMeter, current_meter
 
@@ -25,7 +26,7 @@ def story_languages(job: Job) -> list[str]:
     return [req.language, req.pair_language] if req.pair_language else [req.language]
 
 
-def build_steps(job: Job, illustrate: bool = False) -> list[Step]:
+def build_steps(job: Job, illustrate: bool = False, tap_words: bool = False) -> list[Step]:
     steps = [
         Step(key="topic_check", label="Checking the topic"),
         Step(key="planner", label="Planning the story"),
@@ -40,6 +41,8 @@ def build_steps(job: Job, illustrate: bool = False) -> list[Step]:
         steps.append(
             Step(key="illustrator", label="Drawing and checking the pictures", model="FLUX.1 + Muse Spark")
         )
+        if tap_words:
+            steps.append(Step(key="tap_words", label="Finding words to tap", model="Muse Spark + SAM 3.1"))
     return steps
 
 
@@ -66,7 +69,7 @@ class Run:
         await self.save()
         return result
 
-    async def illustrate(self, maker: ImageMaker, book: Book) -> None:
+    async def illustrate(self, maker: ImageMaker, book: Book) -> dict[int, bytes]:
         """Draws and stores the pictures. A failure here keeps the story and leaves pictures out."""
         step = self.job.step("illustrator")
         step.status = "running"
@@ -81,6 +84,7 @@ class Run:
             looks = scene_looks(book.plan, page)
             return await agents.check_picture(self.client, checker_copy(data), page.scene, looks)
 
+        drawn = {}
         try:
             drawn = await draw_pages(maker, book.plan, book.id, progress, check)
             for number, drawing in sorted(drawn.items()):
@@ -94,6 +98,42 @@ class Run:
         missing = len(book.plan.pages) - len(book.images)
         step.status = "done" if not missing else "failed"
         step.detail = None if not missing else f"{missing} pictures missing"
+        await self.save()
+        return {n: d.data for n, d in drawn.items() if n in book.images}
+
+    async def find_tap_words(self, segmenter: Segmenter, book: Book, drawn: dict[int, bytes]) -> None:
+        """Picks objects in each picture with Muse Spark, locates them with SAM 3.1. Optional: never fails a book."""
+        step = self.job.step("tap_words")
+        step.status = "running"
+        await self.save()
+        languages = [d.language for d in book.drafts]
+        limit = asyncio.Semaphore(settings.illustration_concurrency)
+
+        async def page_words(number: int, data: bytes) -> list[TapWord]:
+            texts = {d.language: p.text for d in book.drafts for p in d.pages if p.number == number}
+            async with limit:
+                found = await agents.find_objects(self.client, checker_copy(data), texts, languages)
+                words = []
+                for obj in found.objects[:4]:
+                    sam_image, mime = checker_copy(data, size=768)
+                    box = largest(await segmenter.boxes(sam_image, mime, obj.english))
+                    names = {w.language: w.word for w in obj.words if w.language in languages}
+                    if box and names:
+                        words.append(TapWord(english=obj.english, words=names, box=box))
+                return words
+
+        results = await asyncio.gather(*(page_words(n, d) for n, d in drawn.items()), return_exceptions=True)
+        for number, result in zip(drawn, results, strict=True):
+            if isinstance(result, Exception):
+                log.warning("Tap words failed for page %s: %s", number, result)
+            elif result:
+                book.words[number] = result
+        harmonize(book.words)
+        for lang in languages:
+            apply_corrections(book.words, await self.store.list_corrections(lang))
+        await self.store.save_book(book)
+        step.status = "done" if book.words else "failed"
+        step.detail = f"{sum(len(w) for w in book.words.values())} words" if book.words else "No words found"
         await self.save()
 
     async def write_and_review(self, plan: StoryPlan, lang: str) -> StoryDraft:
@@ -142,11 +182,16 @@ class Run:
 
 
 async def run_pipeline(
-    client: ModelClient, job: Job, store: Store, image_maker: ImageMaker | None = None
+    client: ModelClient,
+    job: Job,
+    store: Store,
+    image_maker: ImageMaker | None = None,
+    segmenter: Segmenter | None = None,
 ) -> None:
-    job.steps = build_steps(job, illustrate=image_maker is not None)
+    illustrate = image_maker is not None
+    job.steps = build_steps(job, illustrate=illustrate, tap_words=illustrate and segmenter is not None)
     for step in job.steps:
-        if step.key != "illustrator":
+        if step.key not in ("illustrator", "tap_words"):
             step.model = client.model_name(step.key.split(":")[0])
     run = Run(client, job, store)
     meter = UsageMeter()
@@ -168,7 +213,9 @@ async def run_pipeline(
         await store.save_book(book)
         job.book_id = book.id
         if image_maker is not None:
-            await run.illustrate(image_maker, book)
+            drawn = await run.illustrate(image_maker, book)
+            if segmenter is not None:
+                await run.find_tap_words(segmenter, book, drawn)
         job.status = "done"
     except StoryRejected as exc:
         job.status = "failed"

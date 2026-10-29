@@ -96,3 +96,21 @@ class PictureCheck(BaseModel):
         if self.usable and self.problems:
             raise ValueError("A picture with problems cannot be usable.")
         return self
+
+
+class WordInLanguage(BaseModel):
+    language: LanguageCode
+    word: str = Field(description="The everyday word a parent would say, in the language's own script.")
+
+
+class PictureObject(BaseModel):
+    english: str = Field(
+        description="Short noun phrase naming the object for a segmentation model, e.g. 'red kite'."
+    )
+    words: list[WordInLanguage]
+
+
+class FoundObjects(BaseModel):
+    objects: list[PictureObject] = Field(
+        description="Up to 4 clearly visible objects a young child could point at and name. Empty if none."
+    )

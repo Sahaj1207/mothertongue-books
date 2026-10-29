@@ -14,6 +14,7 @@ from app.config import settings
 from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
 from app.models import Book, Correction, Job
 from app.pipeline import run_pipeline
+from app.segmentation import apply_corrections, get_segmenter
 from app.store import store
 
 log = logging.getLogger("mothertongue")
@@ -43,7 +44,7 @@ async def create_book(request: BookRequest, user: SignedIn) -> Job:
         await check_budget()
     job = Job(request=request, owner_id=user.id)
     await store.save_job(job)
-    task = asyncio.create_task(run_pipeline(get_client(), job, store, get_image_maker()))
+    task = asyncio.create_task(run_pipeline(get_client(), job, store, get_image_maker(), get_segmenter()))
     _tasks.add(task)
     task.add_done_callback(_finish_task)
     return job
@@ -159,12 +160,15 @@ async def add_correction(fix: CorrectionRequest, user: SignedIn) -> Book:
     draft = next((d for d in book.drafts if d.language == fix.language), None)
     if draft is None:
         raise HTTPException(422, "This book has no version in that language.")
-    if not any(fix.wrong in p.text or fix.wrong in draft.title for p in draft.pages):
+    in_words = any(w.words.get(fix.language) == fix.wrong for ws in book.words.values() for w in ws)
+    if not in_words and not any(fix.wrong in p.text or fix.wrong in draft.title for p in draft.pages):
         raise HTTPException(422, f"“{fix.wrong}” doesn't appear in this book.")
     draft.title = draft.title.replace(fix.wrong, fix.right_text)
     for page in draft.pages:
         page.text = page.text.replace(fix.wrong, fix.right_text)
-    await store.save_correction(Correction(**fix.model_dump(exclude={"book_id"})), book.id, user.id)
+    correction = Correction(**fix.model_dump(exclude={"book_id"}))
+    apply_corrections(book.words, [correction])
+    await store.save_correction(correction, book.id, user.id)
     await store.save_book(book)
     return book
 

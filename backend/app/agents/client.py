@@ -69,6 +69,7 @@ EFFORT = {
     "reading_level": "low",
     "safety": "low",
     "picture_check": "minimal",
+    "object_finder": "minimal",
 }
 
 # Hard ceiling on tokens per call (reasoning included), so no single call can run up a large bill.

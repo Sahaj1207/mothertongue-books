@@ -58,10 +58,19 @@ export interface Book {
   review_notes: string[]
   /** Picture URL per page number; pages without a picture are missing. */
   images?: Record<string, string>
+  /** Tap-to-learn objects per page number. */
+  words?: Record<string, TapWord[]>
   owner_id: string | null
   status: 'draft' | 'published'
   created_at: string
   published_at: string | null
+}
+
+export interface TapWord {
+  english: string
+  words: Partial<Record<AnyLanguage, string>>
+  /** Where the object is in the picture, as fractions: x1, y1, x2, y2. */
+  box: [number, number, number, number]
 }
 
 export interface Correction {

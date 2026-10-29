@@ -12,10 +12,11 @@ const AGENT_NAME: Record<string, string> = {
   reading_level: 'Reading-level checker',
   safety: 'Safety reviewer',
   illustrator: 'Illustrator and picture checker',
+  tap_words: 'Word finder',
 }
 
 // Steps without a language that run after the story is written.
-const PICTURE_STEPS = new Set(['illustrator'])
+const PICTURE_STEPS = new Set(['illustrator', 'tap_words'])
 
 const POLL_MS = 1000
 

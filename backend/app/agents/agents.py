@@ -1,7 +1,15 @@
 """The story agents. Each one is a single structured model call with its own instructions."""
 
 from app.agents.client import ImageInput, ModelClient
-from app.agents.schemas import BookRequest, PictureCheck, Review, StoryDraft, StoryPlan, TopicCheck
+from app.agents.schemas import (
+    BookRequest,
+    FoundObjects,
+    PictureCheck,
+    Review,
+    StoryDraft,
+    StoryPlan,
+    TopicCheck,
+)
 from app.models import Correction
 
 LANGUAGE_NAMES = {"te": "Telugu", "kn": "Kannada", "mr": "Marathi", "en": "English"}
@@ -131,5 +139,27 @@ async def check_picture(client: ModelClient, image: ImageInput, scene: str, look
         ),
         prompt=f"Scene: {scene}\nCharacters: {'; '.join(looks) or 'none named'}",
         schema=PictureCheck,
+        images=[image],
+    )
+
+
+async def find_objects(
+    client: ModelClient, image: ImageInput, page_texts: dict[str, str], languages: list[str]
+) -> FoundObjects:
+    """Picks objects in a picture worth tapping, with their words in each language of the book."""
+    names = ", ".join(f"{LANGUAGE_NAMES[code]} ({code})" for code in languages)
+    text = "\n".join(f"{LANGUAGE_NAMES[code]}: {t}" for code, t in page_texts.items())
+    return await client.structured(
+        agent="object_finder",
+        instructions=(
+            "You choose words for a tap-to-learn picture book. Look at the picture and pick up to 4 objects a "
+            "young child could point at and name: clearly visible, large enough to tap, and concrete (a kite, "
+            "an umbrella, a bus, a mango, a dog). Prefer objects mentioned in the page text, and skip people's "
+            "names, tiny background details and abstract things. For each object give a short English noun "
+            f"phrase that names it as drawn (for a segmentation model) and the everyday word in: {names}. "
+            "Use the word a parent would say at home, in the language's own script, singular."
+        ),
+        prompt=f"Page text:\n{text}",
+        schema=FoundObjects,
         images=[image],
     )

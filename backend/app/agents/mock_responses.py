@@ -71,6 +71,9 @@ def respond(agent: str, prompt: str) -> dict:
             "pages": [{"number": n, "text": f"{sentence} ({n})"} for n in range(1, PAGE_COUNT + 1)],
         }
 
+    if agent == "object_finder":
+        return {"objects": []}
+
     if agent == "picture_check":
         return {"problems": [], "usable": True}
 

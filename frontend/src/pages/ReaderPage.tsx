@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { TapLayer } from '../components/TapLayer'
 import { api, type AnyLanguage, type Book } from '../lib/api'
 import { languageDisplay, LANGUAGES } from '../lib/languages'
 
@@ -50,6 +51,7 @@ export function ReaderPage() {
   const lang = LANGUAGES[book.request.language]
   const scene = book.plan.pages[page]?.scene
   const image = book.images?.[String(main.pages[page].number)]
+  const tapWords = book.words?.[String(main.pages[page].number)] ?? []
   const isLast = page === total - 1
 
 
@@ -100,14 +102,20 @@ export function ReaderPage() {
           style={{ background: lang.softColor }}
         >
           {image ? (
-            // Pictures are square; showing them whole keeps heads and feet in the frame.
-            <img
-              key={image}
-              src={image}
-              alt={scene ?? ''}
-              className="absolute inset-0 h-full w-full object-contain"
-              loading={page === 0 ? 'eager' : 'lazy'}
-            />
+            <>
+              {/* Pictures are square; showing them whole keeps heads and feet in the frame. */}
+              <img
+                key={image}
+                src={image}
+                alt={scene ?? ''}
+                className="absolute inset-0 h-full w-full object-contain"
+                loading={page === 0 ? 'eager' : 'lazy'}
+              />
+              {tapWords.length > 0 && (
+                // Keyed by page so a new page starts with nothing selected.
+                <TapLayer key={page} words={tapWords}languages={book.drafts.map((d) => d.language)} />
+              )}
+            </>
           ) : (
             <figcaption className="max-w-md p-5 text-sm text-ink-soft">
               <span className="font-medium text-ink">Picture: </span>

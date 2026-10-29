@@ -164,6 +164,28 @@ export function ReviewPage() {
                   }}
                 />
               ))}
+              {(book.words?.[String(planPage.number)] ?? []).length > 0 && (
+                <div className="pt-1">
+                  <p className="text-sm text-ink-soft">Words to tap in the picture (use Fix a word to change one)</p>
+                  <ul className="mt-2 flex flex-wrap gap-2">
+                    {book.words![String(planPage.number)].map((w, i) => (
+                      <li key={`${w.english}-${i}`} className="rounded-full bg-paper px-3 py-1 text-sm ring-1 ring-rule">
+                        {book.drafts.map((d) => (
+                          <span
+                            key={d.language}
+                            lang={d.language}
+                            className="mr-1.5 font-medium"
+                            style={{ fontFamily: languageDisplay(d.language).storyFont }}
+                          >
+                            {w.words[d.language]}
+                          </span>
+                        ))}
+                        <span className="text-ink-faint">{w.english}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </li>
         ))}
