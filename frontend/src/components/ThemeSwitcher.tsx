@@ -92,7 +92,7 @@ export function ThemeSwitcher() {
         <div
           role="group"
           aria-label={t('theme.label')}
-          className="absolute right-0 z-30 mt-2 w-72 rounded-2xl border border-rule bg-sheet p-2 shadow-lg"
+          className="fixed inset-x-3 top-[4.25rem] z-30 rounded-2xl sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-72 border border-rule bg-sheet p-2 shadow-lg"
         >
           {THEMES.map((option) => (
             <button

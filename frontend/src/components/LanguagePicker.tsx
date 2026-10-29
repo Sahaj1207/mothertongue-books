@@ -37,7 +37,7 @@ export function LanguagePicker() {
         <div
           role="group"
           aria-label={t('nav.websiteLanguage')}
-          className="absolute right-0 mt-2 w-48 rounded-2xl border border-rule bg-sheet p-2 shadow-lg"
+          className="fixed inset-x-3 top-[4.25rem] z-30 rounded-2xl sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:mt-2 sm:w-48 border border-rule bg-sheet p-2 shadow-lg"
         >
           {UI_LANGUAGES.map((l) => (
             <button
