@@ -136,6 +136,8 @@ export const api = {
     request<Book>('/corrections', { method: 'POST', body: JSON.stringify(fix) }),
   folkOutline: (tale: string, language: LanguageCode) =>
     request<FolkOutline>('/folk-outline', { method: 'POST', body: JSON.stringify({ tale, language }) }),
+  redrawPage: (id: string, page: number, note: string | null) =>
+    request<Job>(`/books/${id}/pages/${page}/redraw`, { method: 'POST', body: JSON.stringify({ note }) }),
   publishBook: (id: string) => request<Book>(`/books/${id}/publish`, { method: 'POST' }),
 }
 

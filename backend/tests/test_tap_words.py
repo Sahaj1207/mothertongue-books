@@ -87,3 +87,26 @@ def test_saved_corrections_fix_tap_words():
     words = {1: [tap("red sandal", "ಚಪ್ಪಲ್")]}
     apply_corrections(words, [Correction(language="kn", wrong="ಚಪ್ಪಲ್", right_text="ಚಪ್ಪಲಿ")])
     assert words[1][0].words["kn"] == "ಚಪ್ಪಲಿ"
+
+
+def test_redrawing_one_page_keeps_the_rest_and_follows_the_adults_note():
+    from app.pipeline import redraw_page
+    from tests.test_illustrations import FakePainter
+
+    store = MemoryStore()
+    job = Job(request=BookRequest(language="te", level=1, topic="kites"))
+    asyncio.run(run_pipeline(WordFinder(), job, store, FakePainter(), FakeSam()))
+    book = store.books[job.book_id]
+    book.review_notes.append("Page 2 picture: the kite string is missing.")
+    page_one = book.images[1]
+
+    painter = FakePainter()
+    redraw = Job(request=book.request, book_id=book.id)
+    asyncio.run(redraw_page(WordFinder(), redraw, store, book, 2, "make the kite red", painter, FakeSam()))
+
+    assert redraw.status == "done"
+    assert len(painter.prompts) == 1 and "Picture 2:" in painter.prompts[0]
+    assert "make the kite red" in painter.prompts[0]
+    assert book.images[1] == page_one
+    assert not any(n.startswith("Page 2 picture:") for n in book.review_notes)
+    assert [w.english for w in book.words[2]] == ["red kite"]

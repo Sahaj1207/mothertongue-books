@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { RedrawPicture } from '../components/RedrawPicture'
 import { api, type AnyLanguage, type Book, type StoryPage } from '../lib/api'
 import { languageDisplay } from '../lib/languages'
 
@@ -26,6 +27,9 @@ export function ReviewPage() {
       .then(load)
       .catch((e: Error) => setMessage({ kind: 'error', text: e.message }))
   }, [id])
+
+  // A redraw changes pictures, words and notes, never the text being edited.
+  const onRedrawn = useCallback((b: Book) => setBook(b), [])
 
   useEffect(() => {
     if (!dirty) return
@@ -83,6 +87,10 @@ export function ReviewPage() {
     }
   }
 
+  const isPictureNote = (n: string) => /^Page \d+ picture: /.test(n)
+  const textNotes = book.review_notes.filter((n) => !isPictureNote(n))
+  const pictureNotes = (page: number) =>
+    book.review_notes.filter((n) => n.startsWith(`Page ${page} picture: `)).map((n) => n.split(': ').slice(1).join(': '))
   const languages = book.drafts.map((d) => d.language)
   const published = book.status === 'published'
 
@@ -98,11 +106,11 @@ export function ReviewPage() {
         Read every page as a parent would read it aloud. Fix anything that sounds wrong, then approve it for the library.
       </p>
 
-      {book.review_notes.length > 0 && (
+      {textNotes.length > 0 && (
         <section className="mt-8 rounded-2xl bg-turmeric-soft p-5">
           <h2 className="font-semibold">Notes from the reading-level checker</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-            {book.review_notes.map((note) => (
+            {textNotes.map((note) => (
               <li key={note}>{note}</li>
             ))}
           </ul>
@@ -146,6 +154,14 @@ export function ReviewPage() {
                 <p className="line-clamp-2 text-sm text-ink-faint">Picture: {planPage.scene}</p>
               </div>
             </div>
+            {book.images?.[String(planPage.number)] && (
+              <RedrawPicture
+                book={book}
+                page={planPage.number}
+                notes={pictureNotes(planPage.number)}
+                onRedrawn={onRedrawn}
+              />
+            )}
             <div className="space-y-3 p-4">
               {book.drafts.map((d, draftIndex) => (
                 <StoryField

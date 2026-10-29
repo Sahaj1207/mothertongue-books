@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import secrets
 
 from app.agents import agents
 from app.agents.agents import LANGUAGE_NAMES
@@ -69,11 +70,16 @@ class Run:
         await self.save()
         return result
 
-    async def illustrate(self, maker: ImageMaker, book: Book) -> dict[int, bytes]:
-        """Draws and stores the pictures. A failure here keeps the story and leaves pictures out."""
+    async def illustrate(
+        self, maker: ImageMaker, book: Book, only: set[int] | None = None, hint: str | None = None
+    ) -> dict[int, bytes]:
+        """Draws and stores the pictures (or just the pages in `only`, with a fresh seed).
+
+        A failure here keeps the story and leaves pictures out.
+        """
         step = self.job.step("illustrator")
         step.status = "running"
-        step.detail = f"0 of {len(book.plan.pages)}"
+        step.detail = f"0 of {len(only or book.plan.pages)}"
         await self.save()
 
         async def progress(done: int, total: int, redrawing: int | None = None) -> None:
@@ -86,16 +92,28 @@ class Run:
 
         drawn = {}
         try:
-            drawn = await draw_pages(maker, book.plan, book.id, progress, check)
+            drawn = await draw_pages(
+                maker,
+                book.plan,
+                book.id,
+                progress,
+                check,
+                only=only,
+                # A redraw that reused the book's seed would draw the same picture again.
+                seed_offset=secrets.randbelow(1_000_000) if only else 0,
+                hints=[hint] if hint else None,
+            )
             for number, drawing in sorted(drawn.items()):
                 book.images[number] = await self.store.save_image(
                     book.id, number, web_copy(drawing.data), "image/webp"
                 )
-                book.review_notes += [f"Page {number} picture: {p}" for p in drawing.unresolved]
+                prefix = f"Page {number} picture: "
+                book.review_notes = [n for n in book.review_notes if not n.startswith(prefix)]
+                book.review_notes += [prefix + p for p in drawing.unresolved]
             await self.store.save_book(book)
         except Exception:
             log.exception("Illustration failed for book %s", book.id)
-        missing = len(book.plan.pages) - len(book.images)
+        missing = len(only) - len(drawn) if only else len(book.plan.pages) - len(book.images)
         step.status = "done" if not missing else "failed"
         step.detail = None if not missing else f"{missing} pictures missing"
         await self.save()
@@ -124,6 +142,8 @@ class Run:
 
         results = await asyncio.gather(*(page_words(n, d) for n, d in drawn.items()), return_exceptions=True)
         for number, result in zip(drawn, results, strict=True):
+            # A redrawn page's old boxes point at things that may have moved or gone.
+            book.words.pop(number, None)
             if isinstance(result, Exception):
                 log.warning("Tap words failed for page %s: %s", number, result)
             elif result:
@@ -229,3 +249,45 @@ async def run_pipeline(
         job.cost_usd = round(meter.cost_usd, 6)
         await store.save_usage(job.id, meter.entries)
         await run.save()
+
+
+async def redraw_page(
+    client: ModelClient,
+    job: Job,
+    store: Store,
+    book: Book,
+    number: int,
+    hint: str | None,
+    image_maker: ImageMaker,
+    segmenter: Segmenter | None = None,
+) -> None:
+    """Redraws one page the adult wasn't happy with, then finds its tap words again."""
+    job.steps = [
+        Step(key="illustrator", label=f"Redrawing page {number}", model="FLUX.1 + Muse Spark"),
+        *(
+            [Step(key="tap_words", label="Finding words to tap", model="Muse Spark + SAM 3.1")]
+            if segmenter
+            else []
+        ),
+    ]
+    run = Run(client, job, store)
+    meter = UsageMeter()
+    meter_token = current_meter.set(meter)
+    try:
+        drawn = await run.illustrate(image_maker, book, only={number}, hint=hint)
+        if not drawn:
+            job.status = "failed"
+            job.message = "The picture couldn't be drawn. Try again in a minute."
+            return
+        if segmenter is not None:
+            await run.find_tap_words(segmenter, book, drawn)
+        job.status = "done"
+    except Exception:
+        job.status = "failed"
+        job.message = "Something went wrong while redrawing. Try again."
+        raise
+    finally:
+        current_meter.reset(meter_token)
+        job.cost_usd = round(meter.cost_usd, 6)
+        await store.save_usage(job.id, meter.entries)
+        await store.save_job(job)

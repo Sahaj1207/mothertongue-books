@@ -139,34 +139,43 @@ class Drawing(NamedTuple):
 
 
 async def draw_pages(
-    maker: ImageMaker, plan: StoryPlan, book_id: str, on_progress, check: Checker | None = None
+    maker: ImageMaker,
+    plan: StoryPlan,
+    book_id: str,
+    on_progress,
+    check: Checker | None = None,
+    only: set[int] | None = None,
+    seed_offset: int = 0,
+    hints: list[str] | None = None,
 ) -> dict[int, Drawing]:
-    """Draws every page a few at a time; each picture is checked and redrawn if flawed.
+    """Draws every page (or just `only`) a few at a time; each picture is checked and redrawn if flawed.
 
-    Pages that can't be drawn at all are left out rather than failing the book.
+    `hints` are the adult's own notes for a redraw, followed like the checker's. Pages that can't be
+    drawn at all are left out rather than failing the book.
     """
     limit = asyncio.Semaphore(settings.illustration_concurrency)
-    seed = book_seed(book_id)
+    seed = book_seed(book_id) + seed_offset
+    pages = [p for p in plan.pages if only is None or p.number in only]
     drawn: dict[int, Drawing] = {}
 
     async def one(page: PagePlan) -> None:
         async with limit:
-            fixes: list[str] = []
+            fixes: list[str] = list(hints or [])
             for attempt in range(settings.max_picture_redraws + 1):
                 if attempt:
-                    await on_progress(len(drawn), len(plan.pages), redrawing=page.number)
+                    await on_progress(len(drawn), len(pages), redrawing=page.number)
                 data = await maker.draw(picture_prompt(plan, page, fixes), seed + attempt)
                 review = await _safe_check(check, data, page)
                 if review is None or review.usable:
                     drawn[page.number] = Drawing(data, [])
                     break
-                fixes = review.problems
+                fixes = [*(hints or []), *review.problems]
             else:
-                drawn[page.number] = Drawing(data, fixes)
-            await on_progress(len(drawn), len(plan.pages))
+                drawn[page.number] = Drawing(data, review.problems)
+            await on_progress(len(drawn), len(pages))
 
-    results = await asyncio.gather(*(one(p) for p in plan.pages), return_exceptions=True)
-    for page, result in zip(plan.pages, results, strict=True):
+    results = await asyncio.gather(*(one(p) for p in pages), return_exceptions=True)
+    for page, result in zip(pages, results, strict=True):
         if isinstance(result, Exception):
             log.warning("Page %s picture failed: %s", page.number, result)
             drawn.pop(page.number, None)

@@ -14,7 +14,7 @@ from app.auth import User, optional_user, require_user
 from app.config import settings
 from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
 from app.models import Book, Correction, Job
-from app.pipeline import run_pipeline
+from app.pipeline import redraw_page, run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
 from app.store import store
 from app.usage import UsageMeter, current_meter
@@ -192,6 +192,32 @@ async def add_correction(fix: CorrectionRequest, user: SignedIn) -> Book:
 @app.get("/api/corrections/{language}")
 async def list_corrections(language: str, user: SignedIn) -> list[Correction]:
     return await store.list_corrections(language)
+
+
+class RedrawRequest(BaseModel):
+    # What the adult wants changed, e.g. "the tiger's head faces the wrong way".
+    note: str | None = Field(default=None, max_length=300)
+
+
+@app.post("/api/books/{book_id}/pages/{number}/redraw", status_code=202)
+async def redraw_book_page(book_id: str, number: int, fix: RedrawRequest, user: SignedIn) -> Job:
+    """Redraws one picture in the background; the job shows progress like making a book."""
+    book = await _owned_book(book_id, user)
+    if not any(p.number == number for p in book.plan.pages):
+        raise HTTPException(404, "This book has no such page.")
+    maker = get_image_maker()
+    if maker is None:
+        raise HTTPException(503, "Pictures can't be drawn right now.")
+    await check_budget()
+    job = Job(request=book.request, owner_id=user.id, book_id=book.id)
+    await store.save_job(job)
+    note = fix.note.strip() if fix.note else None
+    task = asyncio.create_task(
+        redraw_page(get_client(), job, store, book, number, note or None, maker, get_segmenter())
+    )
+    _tasks.add(task)
+    task.add_done_callback(_finish_task)
+    return job
 
 
 @app.post("/api/books/{book_id}/publish")
