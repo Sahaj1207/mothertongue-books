@@ -68,6 +68,7 @@ export const en = {
   'notFound.body': 'This page is being built.',
 
   // Library
+  'home.availableIn': 'Available in:',
   'home.hook': 'Your child speaks {lang} at home. Their books should too.',
   'home.sub':
     'Free picture books written in the language, not translated from English. Read together, tap a picture to learn a word, print it.',

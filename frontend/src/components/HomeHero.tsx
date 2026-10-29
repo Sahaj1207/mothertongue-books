@@ -60,6 +60,7 @@ export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookS
       {/* Everything sits right of the red margin line, as on a real exercise-book page. */}
       <div className="pl-10 sm:pl-0">
         <p className="text-sm text-ink-soft">
+          <span className="font-medium text-ink">{t('home.availableIn')} </span>
           {LANGUAGE_ORDER.map((code, i) => (
             <span key={code} lang={code} style={{ fontFamily: LANGUAGES[code].storyFont }}>
               {i > 0 && ' · '}
@@ -67,19 +68,19 @@ export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookS
             </span>
           ))}
         </p>
-        {/* Room for the longest name, so the page doesn't jump as the language changes. */}
-        <h1 className="mt-2 min-h-[4.85em] font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-semibold text-ink sm:min-h-[3.3em] sm:text-5xl sm:leading-[1.08]">
-          {before}
+        <h1 className="mt-2 font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-semibold text-ink sm:text-5xl sm:leading-[1.08]">
+          {before.trimEnd()}{' '}
+          {/* While it cycles, the language word has a line of its own with a fixed height, so the words
+              around it never move; the headline's own line height keeps taller scripts from pushing it. */}
           <span
             key={hookLanguage}
             lang={ownScript ? hookLanguage : undefined}
-            className="hook-word"
-            // The headline's own line height: Indic scripts' taller one would make the headline jump.
+            className={`hook-word ${ownScript ? 'block h-[1.15em] overflow-visible whitespace-nowrap sm:h-[1.08em]' : ''}`}
             style={{ color: lang.color, fontFamily: ownScript ? lang.storyFont : undefined, lineHeight: 'inherit' }}
           >
             {ownScript ? lang.nativeName : t(`lang.${hookLanguage}`)}
           </span>
-          {after}
+          {ownScript ? after.trimStart() : after}
         </h1>
         <p className="mt-4 max-w-xl text-ink-soft sm:text-lg">{t('home.sub')}</p>
         <div className="mt-6 flex flex-wrap gap-3">

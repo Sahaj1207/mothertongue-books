@@ -300,13 +300,11 @@
 
 /* The home screen's hook changes its language word every few seconds. */
 .hook-word {
-  display: inline-block;
   animation: hook-in 0.5s ease-out;
 }
 @keyframes hook-in {
   from {
     opacity: 0;
-    transform: translateY(0.25em);
   }
 }
 
