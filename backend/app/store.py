@@ -181,12 +181,16 @@ class SupabaseStore:
 
     async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str:
         path = f"{book_id}/page-{page}.{_EXTENSIONS[content_type]}"
-        r = await self.http.post(
-            f"{self.url}/storage/v1/object/book-assets/{path}",
-            content=data,
-            headers={"Content-Type": content_type, "x-upsert": "true", "Cache-Control": "max-age=31536000"},
-        )
-        r.raise_for_status()
+        headers = {"Content-Type": content_type, "x-upsert": "true", "Cache-Control": "max-age=31536000"}
+        url = f"{self.url}/storage/v1/object/book-assets/{path}"
+        for attempt in range(2):
+            try:
+                r = await self.http.post(url, content=data, headers=headers, timeout=60)
+                r.raise_for_status()
+                break
+            except httpx.TransportError:
+                if attempt:
+                    raise
         return f"{self.url}/storage/v1/object/public/book-assets/{path}"
 
     async def list_corrections(self, language: str) -> list[Correction]:

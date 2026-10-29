@@ -192,3 +192,15 @@ def checker_copy(data: bytes, size: int = 512) -> tuple[bytes, str]:
         out = io.BytesIO()
         img.save(out, format="JPEG", quality=80)
     return out.getvalue(), "image/jpeg"
+
+
+def web_copy(data: bytes, size: int = 1024) -> bytes:
+    """WebP for the reader: about a quarter the size of FLUX's JPEG, so pages load fast on phones."""
+    from PIL import Image
+
+    with Image.open(io.BytesIO(data)) as img:
+        img = img.convert("RGB")
+        img.thumbnail((size, size))
+        out = io.BytesIO()
+        img.save(out, format="WEBP", quality=80, method=6)
+    return out.getvalue()

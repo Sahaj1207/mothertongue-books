@@ -122,10 +122,12 @@ async def check_picture(client: ModelClient, image: ImageInput, scene: str, look
             "You check illustrations for a children's picture book. Ask one question: would a parent reject "
             "this page? Report only serious problems: broken or impossible bodies (a detached or floating "
             "head, extra or missing limbs, people merged together), a face that looks frightening or monstrous, "
-            "any text or letters, anything unsafe or not child-friendly, or the scene's main action missing "
+            "text a reader would notice (words or names written over the picture, labels, captions, signatures, "
+            "or large lettering), anything unsafe or not child-friendly, or the scene's main action missing "
             "entirely. Do NOT report small differences from the descriptions (hair, number of braids, jewellery, "
-            "beards, clothing details), hand poses, mild expressions, background objects, kite strings or "
-            "artistic choices. For each serious problem, say what is wrong and how to fix it."
+            "beards, clothing details), hand poses, mild expressions, background objects, small marks or "
+            "scribbles on background vehicles and shop signs, kite strings or artistic choices. For each "
+            "serious problem, say what is wrong and how to fix it."
         ),
         prompt=f"Scene: {scene}\nCharacters: {'; '.join(looks) or 'none named'}",
         schema=PictureCheck,

@@ -8,7 +8,7 @@ from app.agents.agents import LANGUAGE_NAMES
 from app.agents.client import ModelClient
 from app.agents.schemas import PictureCheck, StoryDraft, StoryPlan
 from app.config import settings
-from app.illustrations import ImageMaker, checker_copy, draw_pages, scene_looks
+from app.illustrations import ImageMaker, checker_copy, draw_pages, scene_looks, web_copy
 from app.models import Book, Job, Step
 from app.store import Store
 from app.usage import UsageMeter, current_meter
@@ -85,7 +85,7 @@ class Run:
             drawn = await draw_pages(maker, book.plan, book.id, progress, check)
             for number, drawing in sorted(drawn.items()):
                 book.images[number] = await self.store.save_image(
-                    book.id, number, drawing.data, maker.content_type
+                    book.id, number, web_copy(drawing.data), "image/webp"
                 )
                 book.review_notes += [f"Page {number} picture: {p}" for p in drawing.unresolved]
             await self.store.save_book(book)

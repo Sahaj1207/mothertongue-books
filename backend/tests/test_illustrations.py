@@ -30,8 +30,21 @@ def test_every_page_of_a_book_uses_the_same_seed():
     assert book_seed("book-1") == book_seed("book-1") != book_seed("book-2")
 
 
+def tiny_png() -> bytes:
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (8, 8), "orange").save(buf, format="PNG")
+    return buf.getvalue()
+
+
+PICTURE = tiny_png()
+
+
 class FakePainter:
-    content_type = "image/webp"
+    content_type = "image/png"
 
     def __init__(self, fail_page: int | None = None):
         self.prompts: list[str] = []
@@ -41,7 +54,7 @@ class FakePainter:
         self.prompts.append(prompt)
         if self.fail_page is not None and f"Picture {self.fail_page}:" in prompt:
             raise RuntimeError("GPU unavailable")
-        return b"webp"
+        return PICTURE
 
 
 def make(painter):
@@ -115,7 +128,7 @@ def test_problems_left_after_the_last_redraw_go_to_the_reviewer():
 
 def test_a_checker_outage_keeps_the_picture():
     drawn = draw(FakePainter(), check_with([RuntimeError("model down")]))
-    assert drawn[1].data == b"webp"
+    assert drawn[1].data == PICTURE
 
 
 def test_names_and_quoted_text_never_reach_the_picture_prompt():
