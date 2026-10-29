@@ -33,13 +33,15 @@ async def share_page(book_id: str) -> HTMLResponse:
     book = await _published(book_id)
     url = f"{SITE}/books/{book_id}"
     if book is None:
-        title, description, image = "MotherTongue Books", "Picture books in your child's own language.", None
+        title, description = "MotherTongue Books", "Picture books in your child's own language."
+        image, size = f"{SITE}/og.jpg", ("1200", "630")
     else:
         main = book.drafts[0]
         languages = " and ".join(LANGUAGE_NAMES[d.language] for d in book.drafts)
         title = f"{main.title} · {book.plan.title_en}"
         description = f"A {languages} {KIND[book.request.kind]} for ages {AGES[book.request.level]}, on MotherTongue Books."
-        image = f"{SITE}/api/share/{book_id}/cover.jpg" if book.images else None
+        image = f"{SITE}/api/share/{book_id}/cover.jpg" if book.images else f"{SITE}/og.jpg"
+        size = ("600", "600") if book.images else ("1200", "630")
     tags = [
         ("og:type", "book"),
         ("og:site_name", "MotherTongue Books"),
@@ -48,7 +50,7 @@ async def share_page(book_id: str) -> HTMLResponse:
         ("og:url", url),
     ]
     if image:
-        tags += [("og:image", image), ("og:image:width", "600"), ("og:image:height", "600")]
+        tags += [("og:image", image), ("og:image:width", size[0]), ("og:image:height", size[1])]
     meta = "\n".join(f'<meta property="{k}" content="{escape(v)}">' for k, v in tags)
     card = "summary_large_image" if image else "summary"
     return HTMLResponse(
