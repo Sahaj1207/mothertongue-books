@@ -153,6 +153,11 @@
   background: #9c3d2a;
   border-bottom: 0;
 }
+/* Menus open from the header onto the page's own colours. */
+[data-theme='kolam'] .site-header [role='group'] {
+  --color-ink: #3a1d12;
+  --color-ink-soft: #6b4130;
+}
 [data-theme='kolam'] .site-header::after {
   content: '';
   position: absolute;
