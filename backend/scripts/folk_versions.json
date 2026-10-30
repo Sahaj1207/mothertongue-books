@@ -1,0 +1,47 @@
+{
+  "Punyakoti, the truthful cow": {
+    "source": "aa8018e9-7e10-4377-89e8-316c5bb51967",
+    "versions": {
+      "kn": "aa8018e9-7e10-4377-89e8-316c5bb51967",
+      "te": "a6626f02-4457-4b7c-84ee-f0c2f486e298",
+      "mr": "3f68ca62-9d22-4f32-867d-54cb8512e444"
+    },
+    "needs_pictures": false
+  },
+  "The thirsty crow": {
+    "source": "f7477965-34b6-46ca-ab57-edaa78538d9e",
+    "versions": {
+      "te": "f7477965-34b6-46ca-ab57-edaa78538d9e",
+      "kn": "8c5462fc-1c9b-4f92-af40-9024cbe02179",
+      "mr": "77707297-a2fb-4bd5-b91c-b16f5c6a36f3"
+    },
+    "needs_pictures": false
+  },
+  "Chiu and Kau, the sparrow and the crow": {
+    "source": "ff14df89-44af-4217-ad67-cd85f0a711ad",
+    "versions": {
+      "mr": "ff14df89-44af-4217-ad67-cd85f0a711ad",
+      "te": "babc95b0-f412-43e1-98f9-43c8a3cfcb9a",
+      "kn": "4c0f9a1e-924d-49ea-ba80-ad0dc8d4caa8"
+    },
+    "needs_pictures": false
+  },
+  "The lion and the clever rabbit": {
+    "source": "d4089ccb-c444-4234-bdfa-ecad458764c0",
+    "versions": {
+      "kn": "d4089ccb-c444-4234-bdfa-ecad458764c0",
+      "te": "3733362a-7b2c-45f9-a286-9af19516c33c",
+      "mr": "50ee380b-80ad-48a1-bf6b-a60b4a24363b"
+    },
+    "needs_pictures": true
+  },
+  "The monkey and the crocodile": {
+    "source": "9f88a73a-abc1-41eb-94dc-94209c0f785a",
+    "versions": {
+      "mr": "9f88a73a-abc1-41eb-94dc-94209c0f785a",
+      "te": "e4f09d97-c3ba-4f92-a291-7ac5e7af21e3",
+      "kn": "55f0d1c8-16ef-4c2e-8cc2-fcc7811d5d88"
+    },
+    "needs_pictures": true
+  }
+}
