@@ -134,8 +134,11 @@ async def check_reading_level(client: ModelClient, draft: StoryDraft, level: int
             "book that a parent reads aloud with the child. Judge each word by whether a child of this age hears "
             "it at home, not by its length: in many languages words are naturally long because they join parts "
             "together, and that is fine. Also check the number of sentences per page and grammar such as gender "
-            "and number agreement. Report only real problems a parent would notice, each with its page number "
-            "and a concrete fix. Minor style preferences are not problems. Pass if no page has a real problem."
+            "and number agreement. Follow how stories are really told in this language, not textbook rules: a "
+            "named animal character may take the personal form (Kannada ಅರ್ಭುತನ) beside neuter verbs, and "
+            "everyday spoken words such as loanwords children use at home are fine. Report only real problems a "
+            "parent would notice, each with its page number and a concrete fix. Minor style preferences are not "
+            "problems. Pass if no page has a real problem."
         ),
         prompt=f"Reading level: {LEVEL_GUIDE[level]}\nStory:\n{draft.model_dump_json(indent=2)}",
         schema=Review,
