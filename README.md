@@ -1,6 +1,6 @@
 # MotherTongue Books
 
-Original, illustrated children's picture books written natively in a child's own language, starting with **Telugu, Kannada and Marathi**.
+Original, illustrated children's picture books written natively in a child's own language: **Telugu, Kannada and Marathi**, and new in **Swahili, Nepali, isiZulu, Haitian Creole and Basque**.
 
 **Live:** https://mothertongue-books.vercel.app
 
@@ -12,14 +12,17 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 
 ## What it does
 
-- **Original books in Telugu, Kannada and Marathi**, at three reading levels (ages 3–5, 5–7, 7–9), and new in **Swahili, Nepali, isiZulu, Haitian Creole and Basque** (create-only until native speakers have checked them).
-- **Two-language books**: the same story side by side, page by page (any two of Telugu, Kannada, Marathi and English).
+- **Original books in eight languages**, at three reading levels (ages 3–5, 5–7, 7–9). Telugu, Kannada and Marathi are checked by native speakers; Swahili, Nepali, isiZulu, Haitian Creole and Basque are marked "New" until they are. Stories and pictures are set where each language's children live. Visitors can ask for their own language.
+- **Two-language books**: the same story side by side, page by page, in any two of these languages or one of them and English.
 - **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
 - **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.
 - **Tap to learn**: tap the cow, the bus or the kite in a picture to see and hear its word. Muse Spark picks the objects and names them in each language; **SAM 3.1** finds where each one is.
 - **Native speakers stay in charge**: drafts are private; the adult reviews every page, fixes wording, redraws any picture, and only then publishes. "Fix a word" corrects the word everywhere in the book and teaches the writer, so later books get it right.
-- **Save as PDF** for printing, ending with a "Words in this book" page.
-- **Reading themes** (Paper, Warm, Night for bedtime) and the **website itself in Kannada, Telugu, Marathi or English**.
+- **A reader made for small hands**: swipe or tap to turn pages, buttons that stay within reach on a phone, a first-page glow that shows what can be tapped, an ending page to celebrate, and a "Words in this book" page to say the words again.
+- **Save as PDF** for printing, ending with the book's words cut out of their pictures.
+- **Five looks**: Notebook, Clay toys, Comic pop, Kolam (muggulu, rangoli) and Slate for bedtime, plus a Warm light switch for evening reading. Text contrast meets WCAG AA (4.5:1) in all five.
+- **The website itself in Kannada, Telugu, Marathi or English**, chosen on the first visit, with short first-time tips that can be skipped.
+- **Shares and installs like an app**: book links show their cover in WhatsApp and other apps, and the site can be added to a phone's home screen.
 
 ## How a book is made
 
@@ -70,7 +73,7 @@ Measured from the `model_usage` table, which records every call:
 | Of which: picture checks | about $0.003 each |
 | Of which: SAM 3.1 boxes | $0.0025 per object |
 | Folk-tale steps | about $0.005 |
-| Drafting the website's three translations | $0.17, once |
+| Drafting the website's three translations | about $0.30 in all, once |
 
 Spending is capped: a daily budget, a lifetime budget per provider, and hard `max_tokens` limits per call. The free illustrator draws about 70 pictures a day, so about six books a day.
 
@@ -131,7 +134,7 @@ supabase/migrations/  database schema
 - Pictures sometimes come out wrong (a twisted pose, an extra animal). The checker catches most; the adult can redraw any page.
 - The website translations were drafted by Muse Spark and are being checked by native speakers.
 - Read-aloud uses the phone's own voice for tap words; full narration isn't built.
-- Children's voices are never recorded.
+- Children's voices are never recorded, and children need no account to read. See the Privacy page on the site.
 
 ## License
 
