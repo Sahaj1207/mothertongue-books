@@ -86,7 +86,7 @@ async def make() -> None:
         if left < PICTURES_PER_BOOK:
             print(f"About {left} pictures left today; stopping. Run again after 5:30 AM India time.")
             break
-        fields = {k: book[k] for k in ("language", "pair_language", "level", "kind", "topic", "source", "outline")}
+        fields = {k: book.get(k) for k in ("language", "pair_language", "level", "kind", "topic", "source", "outline")}
         job = Job(request=BookRequest(**{k: v for k, v in fields.items() if v is not None}), owner_id=STARTER_OWNER)
         print(f"Making {book['topic']} ({book['language']})…", flush=True)
         await run_pipeline(get_client(), job, store, maker, segmenter)
