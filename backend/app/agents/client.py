@@ -74,8 +74,8 @@ EFFORT = {
 }
 
 # Hard ceiling on tokens per call (reasoning included), so no single call can run up a large bill.
-# The topic check can deliberate at length over a borderline folk tale before it decides.
-MAX_TOKENS = {"planner": 8000, "writer": 12000, "topic_check": 8000}
+# The checkers can deliberate at length over a borderline folk tale before they decide.
+MAX_TOKENS = {"planner": 8000, "writer": 12000, "topic_check": 8000, "reading_level": 8000, "safety": 8000}
 DEFAULT_MAX_TOKENS = 4000
 
 
