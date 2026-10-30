@@ -9,11 +9,9 @@
     "kind": "folk-tale",
     "topic": "The lion and the clever rabbit",
     "source": "Panchatantra",
-    "outline": "In a green forest lives a big, bossy lion who shouts at everyone.\nHe tells the animals to bring him a big basket of food every single day.\nThe tired animals take turns, and one day it is the small rabbit's turn.\nThe rabbit walks slowly and thinks of a clever plan.\nShe tells the lion that another lion in the forest says he is the real king.\nThe angry lion asks to see him, and the rabbit leads him to an old well.\nThe lion looks in, sees his own face in the water, roars, and splashes into the shallow well.\nHe climbs out wet and embarrassed, says sorry, and promises never to bully the animals again.",
-    "check": "Retold gently after the first version was blocked by the topic check: food instead of animals, and the lion only gets wet.",
-    "book_id": "707c7921-d2d7-4445-87c8-090f5c1c5ead",
-    "status": "done",
-    "cost_usd": 0.114561
+    "outline": "A fierce lion rules a forest and hunts animals at will, filling them with fear.\nThe animals gather and offer the lion one animal each day as food, if he will stop random killing.\nThe lion agrees. Each day one animal goes to him and is eaten.\nOne day it is the turn of a small old rabbit. He walks very slowly and reaches the lion late.\nThe hungry, angry lion roars at him. The rabbit says another lion stopped him on the road and claimed to be the true king.\nBurning with jealousy, the lion demands to be taken to this rival at once.\nThe clever rabbit leads him to a deep old well and says the rival hides inside.\nThe lion sees his own reflection in the water, roars at it, leaps in to fight, and drowns. The forest animals rejoice and live in peace.",
+    "check": "Traditional version, as told in the Panchatantra. Nothing essential changed. Only softened descriptions of hunting and death with no gore or cruelty described; kept the lion as dangerous and the traditional ending where he drowns.",
+    "replaces": "707c7921-d2d7-4445-87c8-090f5c1c5ead"
   },
   {
     "language": "te",
