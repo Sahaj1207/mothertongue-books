@@ -18,26 +18,38 @@ export function AppHeader() {
   return (
     <header className="site-header sticky top-0 z-20 border-b border-rule/70 bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-        <Link to="/" className="flex min-w-0 items-center gap-2 rounded-md sm:gap-2.5">
+        {/* The logo never shrinks; on phones the nav makes room instead. */}
+        <Link to="/" aria-label="MotherTongue Books" className="flex shrink-0 items-center gap-2 rounded-md sm:gap-2.5">
           <img src="/favicon.svg" alt="" className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" />
           <span className="hidden font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight whitespace-nowrap text-ink min-[400px]:inline">
             MotherTongue Books
           </span>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="flex min-w-0 items-center gap-0.5 sm:gap-2">
           <LanguagePicker />
           <ThemeSwitcher />
           {user ? (
             <>
               <NavLink
                 to="/my-books"
+                aria-label={t('nav.myBooks')}
                 className={({ isActive }) =>
-                  `inline-flex h-11 items-center rounded-full px-3 text-sm whitespace-nowrap ${
+                  `inline-flex h-11 min-w-11 items-center justify-center rounded-full px-2 text-sm whitespace-nowrap sm:px-3 ${
                     isActive ? 'font-semibold text-ink' : 'text-ink-soft hover:text-ink'
                   }`
                 }
               >
-                {t('nav.myBooks')}
+                {/* A book icon on phones, words on wider screens. */}
+                <svg viewBox="0 0 24 24" className="h-6 w-6 sm:hidden" aria-hidden="true">
+                  <path
+                    d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="hidden sm:inline">{t('nav.myBooks')}</span>
               </NavLink>
               <button
                 type="button"
@@ -54,7 +66,7 @@ export function AppHeader() {
           )}
           <Link
             to="/create"
-            className="inline-flex h-11 shrink-0 items-center rounded-full bg-ink px-4 text-sm font-medium whitespace-nowrap text-on-ink transition-colors hover:bg-ink-soft sm:px-5"
+            className="ml-1 inline-flex h-11 shrink-0 items-center rounded-full bg-ink px-4 text-sm font-medium whitespace-nowrap text-on-ink transition-colors hover:bg-ink-soft sm:ml-0 sm:px-5"
           >
             {t('nav.create')}
           </Link>
