@@ -26,3 +26,6 @@ Thumbs.db
 
 # Local test output
 scratch/
+
+# Story texts sent to native readers for checking
+review/

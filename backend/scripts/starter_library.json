@@ -74,5 +74,50 @@
     "book_id": "05c5e734-19a5-470d-9aa5-3c188763fedc",
     "status": "done",
     "cost_usd": 0.06373
+  },
+  {
+    "language": "sw",
+    "level": 2,
+    "kind": "original",
+    "topic": "Helping Bibi at the market in Mombasa",
+    "book_id": "756cef0a-8fc9-4b29-aee7-6db39ad7b7e4",
+    "status": "done",
+    "pictures": "later"
+  },
+  {
+    "language": "ne",
+    "level": 2,
+    "kind": "original",
+    "topic": "Flying kites at Dashain with Hajurba",
+    "book_id": "738a5c44-0cee-4263-b232-3765ee313223",
+    "status": "done",
+    "pictures": "later"
+  },
+  {
+    "language": "zu",
+    "level": 1,
+    "kind": "original",
+    "topic": "Helping Gogo in her vegetable garden",
+    "book_id": "d00c5059-3e43-4412-9535-fd10b5ed8040",
+    "status": "done",
+    "pictures": "later"
+  },
+  {
+    "language": "ht",
+    "level": 2,
+    "kind": "original",
+    "topic": "Flying kites at Easter with Grann",
+    "book_id": "8c52a5d6-e471-469d-b622-40ad6a4e50e3",
+    "status": "done",
+    "pictures": "later"
+  },
+  {
+    "language": "eu",
+    "level": 2,
+    "kind": "original",
+    "topic": "Waiting for Olentzero on Christmas Eve",
+    "book_id": "3c9bd09e-5b10-4b8a-bc95-780552bcc68d",
+    "status": "done",
+    "pictures": "later"
   }
 ]
