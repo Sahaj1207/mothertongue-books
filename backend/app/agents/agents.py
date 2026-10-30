@@ -20,20 +20,26 @@ LEVEL_GUIDE = {
     3: "Ages 7-9. Two or three sentences per page, a little dialogue, simple connecting words.",
 }
 
+# Traditional tales have always been told to children with their villains and danger, with a parent or
+# elder alongside; those are allowed. The hard lines below hold at every age.
 CHILD_SAFE_RULES = """Child-safety rules for every story:
-- Age-appropriate language only. No frightening, violent, cruel or adult content.
+- Danger and villains are fine, as in traditional tales told to children: threats, tricks, chases, a villain
+  who comes to a bad end. Tell them simply; never describe gore, injuries or cruelty in detail, and don't
+  dwell on fear.
+- Language a child of this age could hear at home. No sexual or adult content and no swearing.
+- No self-harm, and nothing that makes violence look fun or admirable.
 - No stereotypes about any religion, caste, gender, region, community or disability.
-- No real public figures, brands or political content.
-- Conflict is gentle and always resolved kindly."""
+- No real public figures, brands or political content."""
 
 
 async def check_topic(client: ModelClient, request: BookRequest) -> TopicCheck:
     return await client.structured(
         agent="topic_check",
         instructions=(
-            "You screen story requests for a children's picture-book app. Allow ordinary childhood topics. "
-            "Block anything violent, sexual, hateful, frightening, political or about self-harm.\n"
-            + CHILD_SAFE_RULES
+            "You screen story requests for a children's picture-book app. Allow ordinary childhood topics and "
+            "traditional folk tales, including their villains and danger. Block anything sexual, hateful, "
+            "gory or graphically violent, about self-harm, or political, and real-world horrors such as war or "
+            "abuse as a story's subject.\n" + CHILD_SAFE_RULES
         ),
         prompt=f"Topic: {request.topic}\nReading level: {request.level}"
         + (f"\nRetold folk tale. Outline:\n{request.outline}" if request.outline else ""),
@@ -42,14 +48,15 @@ async def check_topic(client: ModelClient, request: BookRequest) -> TopicCheck:
 
 
 async def outline_folk_tale(client: ModelClient, tale: str, language: str) -> FolkOutline:
-    """The plot of a traditional tale, softened for young children; an adult edits it before writing."""
+    """The plot of a traditional tale as it is told to children; an adult edits it before writing."""
     return await client.structured(
         agent="folk_outline",
         instructions=(
             f"You know the world's traditional tales, especially {LANGUAGES[language].traditions}, as told "
             f"to children in {LANGUAGES[language].region}. Give the plot of the tale the adult names, as it is traditionally told, in 6-8 short steps. Keep its characters, "
-            "setting and ending. Soften anything too frightening for ages 3-9 (no killing, eating or cruelty "
-            "shown; a trick or a lucky escape instead) and say what you softened. If you don't know the tale "
+            "setting, events and ending as traditionally told, villains and danger included. Only tone down "
+            "graphic details (no gore or cruelty described) and say what you changed, or that nothing needed "
+            "changing. If you don't know the tale "
             "or it isn't traditional, set known to false and don't invent one."
         ),
         prompt=f"Tale: {tale}\nIt will be retold in {LANGUAGE_NAMES[language]}.",
