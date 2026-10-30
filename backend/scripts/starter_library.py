@@ -89,7 +89,12 @@ async def make() -> None:
         fields = {k: book.get(k) for k in ("language", "pair_language", "level", "kind", "topic", "source", "outline")}
         job = Job(request=BookRequest(**{k: v for k, v in fields.items() if v is not None}), owner_id=STARTER_OWNER)
         print(f"Making {book['topic']} ({book['language']})…", flush=True)
-        await run_pipeline(get_client(), job, store, maker, segmenter)
+        try:
+            await run_pipeline(get_client(), job, store, maker, segmenter)
+        except Exception as exc:  # noqa: BLE001 -- one book failing shouldn't stop the others
+            print(f"  failed: {exc!r}"[:300])
+            book["message"] = repr(exc)[:300]
+            continue
         book["book_id"], book["status"], book["cost_usd"] = job.book_id, job.status, job.cost_usd
         if job.message:
             book["message"] = job.message
