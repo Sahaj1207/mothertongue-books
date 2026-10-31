@@ -6,7 +6,7 @@ import { FALLBACK_DEMO, HomeHero, HomeStory, type DemoPage } from '../components
 import { LanguageTile } from '../components/LanguageTile'
 import { api, toSummary, type Book } from '../lib/api'
 import { useT } from '../lib/i18n'
-import { LANGUAGE_ORDER, READING_LEVELS, type LanguageCode, type ReadingLevel } from '../lib/languages'
+import { LANGUAGE_ORDER, READING_LEVELS, languageDisplay, type LanguageCode, type ReadingLevel } from '../lib/languages'
 import type { BookKind, BookSummary } from '../lib/types'
 import { usePageTitle } from '../lib/title'
 
@@ -21,6 +21,8 @@ export function LibraryPage() {
   const [level, setLevel] = useState<ReadingLevel | null>(null)
   const [kind, setKind] = useState<BookKind | null>(null)
   const [books, setBooks] = useState<BookSummary[] | null>(null)
+  const [searchText, setSearchText] = useState<Map<string, string>>(new Map())
+  const [query, setQuery] = useState('')
   const [demo, setDemo] = useState<DemoPage>(FALLBACK_DEMO)
   const [error, setError] = useState<string | null>(null)
   const t = useT()
@@ -31,19 +33,23 @@ export function LibraryPage() {
       .listBooks()
       .then((list) => {
         setBooks(list.map(toSummary))
+        setSearchText(new Map(list.map((b) => [b.id, searchableText(b)])))
         const page = demoPage(list)
         if (page) setDemo(page)
       })
       .catch((e: Error) => setError(e.message))
   }, [])
 
-  const shown = useMemo(
-    () =>
-      (books ?? []).filter(
-        (b) => (!language || b.language === language) && (!level || b.level === level) && (!kind || b.kind === kind),
-      ),
-    [books, language, level, kind],
-  )
+  const shown = useMemo(() => {
+    const terms = normalize(query).split(/\s+/).filter(Boolean)
+    return (books ?? []).filter(
+      (b) =>
+        (!language || b.language === language) &&
+        (!level || b.level === level) &&
+        (!kind || b.kind === kind) &&
+        terms.every((term) => searchText.get(b.id)?.includes(term)),
+    )
+  }, [books, searchText, query, language, level, kind])
   const newThisWeek = (books ?? []).filter(isNew).length
 
   return (
@@ -92,6 +98,36 @@ export function LibraryPage() {
             </p>
           )}
         </div>
+        <div className="relative mt-4 sm:max-w-md">
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-ink-faint"
+          >
+            <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M16 16l4.5 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label={t('library.search')}
+            placeholder={t('library.searchHint')}
+            className="h-12 w-full rounded-full border-2 border-rule bg-sheet pr-12 pl-11 text-base placeholder:text-ink-faint focus:border-ink focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              aria-label={t('library.clearSearch')}
+              className="absolute top-1/2 right-1.5 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-ink-soft hover:bg-rule/50 hover:text-ink"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
+        </div>
         {/* Chips wrap instead of scrolling sideways, so no choice is hidden off the edge of a phone. */}
         <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={t('library.kind')}>
           <FilterChip active={kind === null} onClick={() => setKind(null)}>
@@ -136,6 +172,18 @@ export function LibraryPage() {
             </li>
           ))}
         </ul>
+      ) : query.trim() ? (
+        <div className="rounded-2xl border-2 border-dashed border-rule px-6 py-12 text-center">
+          <p className="font-medium">{t('library.noMatch', { query: query.trim() })}</p>
+          <p className="mt-1 text-ink-soft">{t('library.noMatchHint')}</p>
+          <button
+            type="button"
+            onClick={() => setQuery('')}
+            className="mt-5 inline-flex h-11 items-center rounded-full border-2 border-ink px-5 text-sm font-medium hover:bg-ink hover:text-on-ink"
+          >
+            {t('library.clearSearch')}
+          </button>
+        </div>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-rule px-6 py-12 text-center">
           <p className="font-medium">{t('library.empty')}</p>
@@ -175,6 +223,24 @@ function FilterChip({
       {children}
     </button>
   )
+}
+
+function normalize(text: string): string {
+  return text.normalize('NFC').toLocaleLowerCase()
+}
+
+/** Everything a parent might search a book by: titles in every language, the topic, the tale's tradition,
+ * the language's names, the story itself and its tap words. */
+function searchableText(book: Book): string {
+  const parts = [book.plan.title_en, book.request.topic, book.request.source ?? '']
+  for (const draft of book.drafts) {
+    const lang = languageDisplay(draft.language)
+    parts.push(draft.title, lang.name, lang.nativeName, ...draft.pages.map((p) => p.text))
+  }
+  for (const words of Object.values(book.words ?? {})) {
+    for (const word of words) parts.push(word.english, ...Object.values(word.words).filter((w) => w !== undefined))
+  }
+  return normalize(parts.join(' '))
 }
 
 /** The newest published page that has words to tap, for the home screen's try-it page. */
