@@ -32,10 +32,10 @@ STYLE = (
 GPU_USD_PER_SECOND = 0.00060
 
 
-# Cloudflare bills FLUX.1 schnell in "neurons" at $0.011 per 1,000 above the free 10,000 a day. Measured:
-# a 1024x1024 picture in 4 steps uses about 137, so the free plan draws about 70 pictures a day. It can't
+# Cloudflare bills FLUX.1 schnell in "neurons" at $0.011 per 1,000 above the free 10,000 a day. On 31 Oct
+# the free plan ran out after about 41 pictures (1024x1024, 4 steps), so each uses about 240. It can't
 # be charged, so this cost is only recorded to show usage.
-CLOUDFLARE_NEURONS_PER_PICTURE = 137
+CLOUDFLARE_NEURONS_PER_PICTURE = 240
 CLOUDFLARE_USD_PER_PICTURE = CLOUDFLARE_NEURONS_PER_PICTURE * 0.011 / 1000
 
 

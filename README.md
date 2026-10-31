@@ -75,7 +75,7 @@ Measured from the `model_usage` table, which records every call:
 | Folk-tale steps | about $0.005 |
 | Drafting the website's three translations | about $0.30 in all, once |
 
-Spending is capped: a daily budget, a lifetime budget per provider, and hard `max_tokens` limits per call. The free illustrator draws about 70 pictures a day, so about six books a day.
+Spending is capped: a daily budget, a lifetime budget per provider, and hard `max_tokens` limits per call. The free illustrator draws about 40 pictures a day, so three or four books a day.
 
 ## Stack
 
