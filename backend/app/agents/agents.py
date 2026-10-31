@@ -15,7 +15,11 @@ from app.languages import LANGUAGE_NAMES, LANGUAGES
 from app.models import Correction
 
 LEVEL_GUIDE = {
-    1: "Ages 3-5. One short sentence per page, 3-6 common words, lots of repetition.",
+    1: (
+        "Ages 3-5. One or two short, complete sentences per page in everyday words, the way a parent reads "
+        "aloud. Repetition means a phrase that comes back across pages (a refrain), never the same word "
+        "doubled inside a line. Every page must still tell its part of the story clearly."
+    ),
     2: "Ages 5-7. One or two short sentences per page, everyday words, simple past tense.",
     3: "Ages 7-9. Two or three sentences per page, a little dialogue, simple connecting words.",
 }
@@ -115,7 +119,8 @@ async def write_story(
             f"You are a children's author who writes natively in {LANGUAGE_NAMES[language]}. Write the story "
             "directly in the language from the plan. Do not translate word by word from English: use natural "
             "phrasing, rhythm and repetition a native parent would use when reading aloud. Use the script of the "
-            "language only. One page of text per planned page.\n" + CHILD_SAFE_RULES
+            "language only, with the punctuation its children's books use (a full stop in Kannada, Telugu and "
+            "Marathi; never the Hindi danda). One page of text per planned page.\n" + CHILD_SAFE_RULES
         ),
         prompt=(
             f"Language code: {language}\n"
@@ -136,7 +141,9 @@ async def check_reading_level(client: ModelClient, draft: StoryDraft, level: int
             "together, and that is fine. Also check the number of sentences per page and grammar such as gender "
             "and number agreement. Follow how stories are really told in this language, not textbook rules: a "
             "named animal character may take the personal form (Kannada ಅರ್ಭುತನ) beside neuter verbs, and "
-            "everyday spoken words such as loanwords children use at home are fine. Report only real problems a "
+            "everyday spoken words such as loanwords children use at home are fine. Do report words doubled for "
+            'no reason ("flew flew"), broken fragments that lose the story\'s meaning, missing full stops and the '
+            "danda (।) in a language whose books use a full stop, such as Marathi. Report only real problems a "
             "parent would notice, each with its page number and a concrete fix. Minor style preferences are not "
             "problems. Pass if no page has a real problem."
         ),
