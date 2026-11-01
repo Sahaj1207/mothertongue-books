@@ -29,3 +29,6 @@ scratch/
 
 # Story texts sent to native readers for checking
 review/
+
+# Demo video clips, voice and edits (large files)
+video/
