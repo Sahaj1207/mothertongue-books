@@ -17,7 +17,7 @@ from app.models import Book, Correction, Job, LanguageRequest
 from app.pipeline import redraw_page, run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
 from app.share import router as share_router
-from app.speech import META_VOICES, Kind, clip_url, get_voice, prepare_book, readable_texts
+from app.speech import META_VOICES, Kind, clip_url, get_listener, get_voice, prepare_book, readable_texts
 from app.store import store
 from app.usage import UsageMeter, current_meter
 
@@ -246,7 +246,7 @@ async def publish_book(book_id: str, user: SignedIn) -> Book:
         await store.save_book(book)
         # Read the published book aloud once now, so no reader waits for a clip.
         if voice := get_voice():
-            task = asyncio.create_task(prepare_book(voice, book))
+            task = asyncio.create_task(prepare_book(voice, get_listener(), book))
             _tasks.add(task)
             task.add_done_callback(_finish_task)
     return book
@@ -276,4 +276,4 @@ async def speech(request: SpeechRequest, user: MaybeSignedIn) -> Speech:
     kind = readable_texts(book, request.language).get(request.text)
     if kind is None:
         raise HTTPException(422, "That text isn't in this book.")
-    return Speech(url=await clip_url(voice, request.language, request.text, kind), kind=kind)
+    return Speech(url=await clip_url(voice, get_listener(), request.language, request.text, kind), kind=kind)

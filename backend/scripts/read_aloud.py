@@ -7,12 +7,12 @@ With no ids it does every published book. Clips already made are skipped.
 import asyncio
 import sys
 
-from app.speech import get_voice, prepare_book
+from app.speech import get_listener, get_voice, prepare_book
 from app.store import store
 
 
 async def main(ids: list[str]) -> None:
-    voice = get_voice()
+    voice, listener = get_voice(), get_listener()
     if voice is None:
         sys.exit("No voice: USE_MOCK_AI must be false.")
     books = [await store.get_book(i) for i in ids] if ids else await store.list_books(published_only=True)
@@ -21,7 +21,7 @@ async def main(ids: list[str]) -> None:
 
     async def one(book) -> None:
         async with gate:
-            done = await prepare_book(voice, book)
+            done = await prepare_book(voice, listener, book)
             print(f"{book.drafts[0].language} {book.drafts[0].title}: {done} clips", flush=True)
 
     await asyncio.gather(*(one(b) for b in books if b))

@@ -19,7 +19,7 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 - **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
 - **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.
 - **Tap to learn**: tap the cow, the bus or the kite in a picture to see and hear its word. Muse Spark picks the objects and names them in each language; **SAM 3.1** finds where each one is.
-- **Read aloud**: Listen reads the page, and tapped words are spoken, in **Meta's MMS voices** for Kannada, Telugu, Marathi, Swahili, Haitian Creole and Basque, so it works in any browser. Each clip is made once and saved when a book is published. MMS has no isiZulu or Nepali voice, so those use the device's own voice where it has one.
+- **Read aloud**: Listen reads the page, and tapped words are spoken, in **Meta's MMS voices** for Kannada, Telugu, Marathi, Swahili, Haitian Creole and Basque, so it works in any browser. Pages are read sentence by sentence with short pauses. Before a page is saved, **Muse Voice Transcribe** listens to it, and a reading it doesn't hear as the text is read again; the closest of three is kept (it heard 175 of our 203 pages right first time). Each clip is made once and saved when a book is published. MMS has no isiZulu or Nepali voice, so those use the device's own voice where it has one.
 - **Native speakers stay in charge**: drafts are private; the adult reviews every page, fixes wording, redraws any picture, and only then publishes. "Fix a word" corrects the word everywhere in the book and teaches the writer, so later books get it right.
 - **A reader made for small hands**: swipe or tap to turn pages, buttons that stay within reach on a phone, a first-page glow that shows what can be tapped, an ending page to celebrate, and a "Words in this book" page to say the words again.
 - **Save as PDF** for printing, ending with the book's words cut out of their pictures.
@@ -67,6 +67,7 @@ Every step is shown live on the progress screen with the model that runs it.
 | Object locations for tap-to-learn | SAM 3.1 | Meta Model API |
 | Illustrations | FLUX.1 [schnell] | Cloudflare Workers AI (free plan) |
 | Read aloud | MMS text-to-speech (`facebook/mms-tts-*`, CC BY-NC 4.0) | Modal CPUs (`backend/voice_app.py`) |
+| Read-aloud checker | Muse Voice Transcribe (`muse-voice-transcribe-1.0`) | Meta Model API |
 
 Muse Image wasn't available in our region, so pictures use FLUX.1 schnell; the picture checker is still Muse Spark.
 

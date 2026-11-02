@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from app import main, share, speech
 from app.agents.schemas import BookRequest, StoryDraft, StoryPage, StoryPlan
 from app.auth import User, optional_user, require_user
-from app.models import Book
+from app.models import Book, TapWord
 from app.store import MemoryStore
 
 OWNER = User(id="owner-1", email="parent@example.com")
@@ -159,15 +159,26 @@ class FakeVoice:
     def __init__(self) -> None:
         self.said: list[tuple[str, str, float]] = []
 
-    async def speak(self, language: str, text: str, rate: float) -> bytes:
+    async def speak(self, language: str, text: str, rate: float, seed: int) -> dict:
         self.said.append((language, text, rate))
-        return b"mp3"
+        return {"mp3": f"mp3 {seed}".encode(), "wav": text.encode()}
+
+
+class FakeListener:
+    """Hears each reading as the given transcripts, in turn, then as the clip's own text."""
+
+    def __init__(self, *heard: str) -> None:
+        self.heard = list(heard)
+
+    async def hear(self, wav: bytes) -> str:
+        return self.heard.pop(0) if self.heard else wav.decode()
 
 
 @pytest.fixture
 def voice(monkeypatch):
     v = FakeVoice()
     monkeypatch.setattr(main, "get_voice", lambda: v)
+    monkeypatch.setattr(main, "get_listener", lambda: FakeListener())
     return v
 
 
@@ -196,3 +207,36 @@ def test_publishing_reads_the_whole_book_ahead(store, voice):
     client_as(OWNER).post(f"/api/books/{book.id}/publish")
     # The title and both pages, each at the page pace.
     assert sorted(t for _, t, _ in voice.said) == sorted(["పింకీ మామిడి", "పింకీ వచ్చాడు.", "పింకీ నవ్వింది."])
+
+
+def test_a_reading_the_listener_mishears_is_read_again():
+    import asyncio
+
+    v = FakeVoice()
+    mp3 = asyncio.run(speech.best_reading(v, FakeListener("something else entirely"), "kn", "ಹಸು ಹುಲಿ", 0.8))
+    assert mp3 == b"mp3 1"
+    assert len(v.said) == 2
+
+
+def test_the_closest_reading_is_kept_when_none_is_heard_right():
+    import asyncio
+
+    v = FakeVoice()
+    listener = FakeListener("xx", "ಹಸು", "yy")
+    assert asyncio.run(speech.best_reading(v, listener, "kn", "ಹಸು ಹುಲಿ", 0.8)) == b"mp3 1"
+    assert len(v.said) == speech.READINGS
+
+
+def test_a_clip_heard_in_a_neighbouring_script_still_matches():
+    assert speech.match("ఇది సంక్రాంతి ఉదయం!", "ಇದು ಸಂಕ್ರಾಂತಿ ಉದಯಂ.") > 0.8  # Telugu heard as Kannada
+    assert speech.match("कावळा पाणी", "કાવળા પાણી") == 1.0  # Marathi heard as Gujarati
+    assert speech.match("ಹಸು", "something else") == 0.0
+
+
+def test_tap_words_are_read_once_without_the_listener(store, voice, monkeypatch):
+    monkeypatch.setattr(main, "get_listener", lambda: FakeListener("wrong", "wrong", "wrong"))
+    book = draft_book(store)
+    book.words = {1: [TapWord(english="mango", words={"te": "మామిడి"}, box=[0.1, 0.1, 0.5, 0.5])]}
+    body = {"book_id": book.id, "language": "te", "text": "మామిడి"}
+    assert client_as(OWNER).post("/api/speech", json=body).json()["kind"] == "word"
+    assert len(voice.said) == 1
