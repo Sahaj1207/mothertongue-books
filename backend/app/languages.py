@@ -46,7 +46,7 @@ LANGUAGES: dict[str, Language] = {
             "Swahili",
             "Kenya and Tanzania, East Africa",
             "Swahili and East African folk tales, such as the Abunuwasi stories",
-            reviewed=False,
+            reviewed=True,
         ),
         Language("ne", "Nepali", "Nepal", "Nepali folk tales and Panchatantra", reviewed=False),
         Language(
@@ -54,14 +54,14 @@ LANGUAGES: dict[str, Language] = {
             "isiZulu",
             "KwaZulu-Natal and Gauteng, South Africa",
             "isiZulu and Southern African folk tales, such as the uChakijana stories",
-            reviewed=False,
+            reviewed=True,
         ),
         Language(
             "ht",
             "Haitian Creole",
             "Haiti",
             "Haitian folk tales, such as the Bouki and Ti Malice stories",
-            reviewed=False,
+            reviewed=True,
         ),
         Language(
             "eu",

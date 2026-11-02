@@ -14,7 +14,7 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 
 ## What it does
 
-- **Original books in eight languages**, at three reading levels (ages 3–5, 5–7, 7–9). Telugu, Kannada and Marathi are checked by native speakers; Swahili, Nepali, isiZulu, Haitian Creole and Basque are marked "New" until they are. Stories and pictures are set where each language's children live. Visitors can ask for their own language.
+- **Original books in eight languages**, at three reading levels (ages 3–5, 5–7, 7–9). Telugu, Kannada, Marathi, Swahili, isiZulu and Haitian Creole books are checked by native speakers; Nepali and Basque are marked "New" until their books are published. Stories and pictures are set where each language's children live. Visitors can ask for their own language.
 - **Two-language books**: the same story side by side, page by page, in any two of these languages or one of them and English.
 - **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
 - **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.

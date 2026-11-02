@@ -85,7 +85,7 @@ const ENTRIES: Entry[] = [
     hex: '#b4570e',
     storyFont: LATIN,
     speech: 'sw-KE',
-    reviewed: false,
+    reviewed: true,
   },
   {
     code: 'ne',
@@ -107,7 +107,7 @@ const ENTRIES: Entry[] = [
     hex: '#6b3fa0',
     storyFont: LATIN,
     speech: 'zu-ZA',
-    reviewed: false,
+    reviewed: true,
   },
   {
     code: 'ht',
@@ -118,7 +118,7 @@ const ENTRIES: Entry[] = [
     hex: '#a16207',
     storyFont: LATIN,
     speech: 'ht-HT',
-    reviewed: false,
+    reviewed: true,
   },
   {
     code: 'eu',
