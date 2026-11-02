@@ -188,6 +188,12 @@ export const en = {
   'my.read': 'Read',
   'my.edit': 'Edit',
   'my.review': 'Review',
+  'my.delete': 'Delete',
+  'my.deleteConfirm': "Delete “{title}”? This can't be undone.",
+  'my.deletePublished': 'It will also disappear from the library.',
+  'my.deleteYes': 'Yes, delete',
+  'my.deleting': 'Deleting…',
+  'my.deleted': '“{title}” was deleted.',
 
   // Sign in
   'signIn.title': 'Sign in',

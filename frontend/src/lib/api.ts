@@ -145,6 +145,7 @@ export const api = {
       body: JSON.stringify({ language, can_help: canHelp }),
     }),
   publishBook: (id: string) => request<Book>(`/books/${id}/publish`, { method: 'POST' }),
+  deleteBook: (id: string) => request<void>(`/books/${id}`, { method: 'DELETE' }),
 }
 
 export function toSummary(book: Book): BookSummary {

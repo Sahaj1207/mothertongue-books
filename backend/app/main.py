@@ -229,6 +229,13 @@ async def ask_for_language(request: LanguageRequest, user: MaybeSignedIn) -> Non
     await store.save_language_request(request, user.id if user else None)
 
 
+@app.delete("/api/books/{book_id}", status_code=204)
+async def delete_book(book_id: str, user: SignedIn) -> None:
+    """The owner removes a book, draft or published. Corrections it taught the writer are kept."""
+    book = await _owned_book(book_id, user)
+    await store.delete_book(book.id)
+
+
 @app.post("/api/books/{book_id}/publish")
 async def publish_book(book_id: str, user: SignedIn) -> Book:
     book = await _owned_book(book_id, user)

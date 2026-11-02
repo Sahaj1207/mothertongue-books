@@ -16,6 +16,7 @@ class Store(Protocol):
     async def get_job(self, job_id: str) -> Job | None: ...
     async def save_book(self, book: Book) -> None: ...
     async def get_book(self, book_id: str) -> Book | None: ...
+    async def delete_book(self, book_id: str) -> None: ...
     async def list_books(self, published_only: bool = True) -> list[Book]: ...
     async def save_usage(self, job_id: str | None, entries: list[UsageEntry]) -> None: ...
     async def spent_today_usd(self) -> float: ...
@@ -83,6 +84,9 @@ class MemoryStore:
 
     async def get_book(self, book_id: str) -> Book | None:
         return self.books.get(book_id)
+
+    async def delete_book(self, book_id: str) -> None:
+        self.books.pop(book_id, None)
 
     async def list_books(self, published_only: bool = True) -> list[Book]:
         books = [b for b in self.books.values() if b.status == "published" or not published_only]
@@ -226,6 +230,11 @@ class SupabaseStore:
     async def get_book(self, book_id: str) -> Book | None:
         rows = await self._select("books", {"id": f"eq.{book_id}"})
         return _book_from_row(rows[0]) if rows else None
+
+    async def delete_book(self, book_id: str) -> None:
+        # Pictures stay in storage: a folk tale's versions in other languages share them.
+        r = await self.http.delete("/books", params={"id": f"eq.{book_id}"})
+        r.raise_for_status()
 
     async def list_books(self, published_only: bool = True) -> list[Book]:
         params = {"order": "published_at.desc.nullslast,created_at.desc", "limit": "200"}

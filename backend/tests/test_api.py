@@ -81,6 +81,16 @@ def test_only_the_owner_can_publish(store):
     assert store.books[book.id].status == "draft"
 
 
+def test_owner_can_delete_a_published_book(store):
+    book = draft_book(store)
+    client_as(OWNER).post(f"/api/books/{book.id}/publish")
+    assert client_as(OTHER).delete(f"/api/books/{book.id}").status_code == 404
+    assert client_as(None).delete(f"/api/books/{book.id}").status_code == 401
+    assert book.id in store.books
+    assert client_as(OWNER).delete(f"/api/books/{book.id}").status_code == 204
+    assert client_as(None).get(f"/api/books/{book.id}").status_code == 404
+
+
 def test_owner_edits_page_text_but_cannot_change_page_count(store):
     book = draft_book(store)
     ok = client_as(OWNER).put(
