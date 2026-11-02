@@ -16,6 +16,10 @@ const LEVEL_HINT = { 1: 'create.level1', 2: 'create.level2', 3: 'create.level3' 
 
 const TOPIC_IDEAS = ['create.idea1', 'create.idea2', 'create.idea3', 'create.idea4'] as const
 
+// A topic is a short idea or title; the story itself goes in the "your own story" box.
+const TOPIC_MAX = 120
+const STORY_MAX = 2500
+
 const TALE_IDEAS = {
   kn: ['tale.punyakoti', 'tale.monkeyCrocodile', 'tale.lionRabbit'],
   te: ['tale.tenaliThieves', 'tale.monkeyCrocodile', 'tale.thirstyCrow'],
@@ -44,6 +48,8 @@ export function CreatePage() {
   const [lookingUp, setLookingUp] = useState(false)
   const [level, setLevel] = useState<ReadingLevel | null>(null)
   const [topic, setTopic] = useState('')
+  // The adult's own story, told in their words; null until they choose to write one.
+  const [story, setStory] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
@@ -82,7 +88,10 @@ export function CreatePage() {
     if (folk) {
       if (tale.trim().length < 3) found.tale = t('create.error.tale')
       else if ((steps ?? '').trim().length < 40) found.steps = t('create.error.steps')
-    } else if (topic.trim().length < 3) found.topic = t('create.error.topic')
+    } else {
+      if (topic.trim().length < 3) found.topic = t('create.error.topic')
+      if (story && story.trim().length > 0 && story.trim().length < 40) found.story = t('create.error.story')
+    }
     setErrors(found)
     if (Object.keys(found).length > 0) return
 
@@ -95,6 +104,7 @@ export function CreatePage() {
         pair_language: secondLanguage,
         topic: folk ? tale.trim() : topic.trim(),
         ...(folk && { outline: steps!.trim(), source: source.trim() || null }),
+        ...(!folk && story?.trim() && { outline: story.trim() }),
       })
       navigate(`/making/${job.id}`)
     } catch (err) {
@@ -248,8 +258,8 @@ export function CreatePage() {
             </label>
             <textarea
               id="topic"
-              rows={3}
-              maxLength={200}
+              rows={2}
+              maxLength={TOPIC_MAX}
               value={topic}
               onChange={(e) => {
                 setTopic(e.target.value)
@@ -260,13 +270,20 @@ export function CreatePage() {
               placeholder={t('create.topicPlaceholder')}
               className="notebook w-full resize-none rounded-2xl border-2 border-rule py-[0.55rem] pr-4 pl-14 text-lg leading-[2.25rem] placeholder:text-ink-faint focus:border-ink focus:outline-none"
             />
-            {errors.topic ? (
-              <FieldError id="topic-error">{errors.topic}</FieldError>
-            ) : (
-              <p id="topic-hint" className="mt-2 text-sm text-ink-faint">
-                {t('create.topicHint')}
+            <div className="mt-2 flex items-start justify-between gap-3">
+              {errors.topic ? (
+                <FieldError id="topic-error">{errors.topic}</FieldError>
+              ) : (
+                <p id="topic-hint" className="text-sm text-ink-faint">
+                  {t('create.topicHint')}
+                </p>
+              )}
+              <p
+                className={`shrink-0 text-sm tabular-nums ${topic.length >= TOPIC_MAX ? 'font-semibold text-ink' : 'text-ink-faint'}`}
+              >
+                {t('create.count', { count: topic.length, max: TOPIC_MAX })}
               </p>
-            )}
+            </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {TOPIC_IDEAS.map((idea) => (
                 <button
@@ -282,6 +299,44 @@ export function CreatePage() {
                 </button>
               ))}
             </div>
+            {story === null ? (
+              <button
+                type="button"
+                onClick={() => setStory('')}
+                className="mt-5 text-sm font-medium text-ink-soft underline underline-offset-4 hover:text-ink"
+              >
+                {t('create.ownStory')}
+              </button>
+            ) : (
+              <div className="mt-8">
+                <label htmlFor="story" className="mb-1 block text-lg font-semibold">
+                  {t('create.storyLabel')} <span className="font-normal text-ink-faint">{t('common.optional')}</span>
+                </label>
+                <p id="story-hint" className="mb-3 text-sm text-ink-faint">
+                  {t('create.storyHint')}
+                </p>
+                <textarea
+                  id="story"
+                  rows={8}
+                  maxLength={STORY_MAX}
+                  value={story}
+                  onChange={(e) => {
+                    setStory(e.target.value)
+                    if (errors.story) clearError('story')
+                  }}
+                  aria-invalid={Boolean(errors.story)}
+                  aria-describedby={errors.story ? 'story-error story-hint' : 'story-hint'}
+                  placeholder={t('create.storyPlaceholder')}
+                  className="notebook w-full rounded-2xl border-2 border-rule py-[0.55rem] pr-4 pl-14 text-base leading-[2.25rem] placeholder:text-ink-faint focus:border-ink focus:outline-none"
+                />
+                <div className="mt-2 flex items-start justify-between gap-3">
+                  {errors.story ? <FieldError id="story-error">{errors.story}</FieldError> : <span />}
+                  <p className="shrink-0 text-sm text-ink-faint tabular-nums">
+                    {t('create.count', { count: story.length, max: STORY_MAX })}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

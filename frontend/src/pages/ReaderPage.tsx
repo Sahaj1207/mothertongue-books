@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BookEnd } from '../components/BookEnd'
 import { BookWords } from '../components/BookWords'
+import { ListenButton } from '../components/ListenButton'
 import { BookSkeleton } from '../components/Skeleton'
 import { TapLayer } from '../components/TapLayer'
 import { Tips } from '../components/Tips'
@@ -228,6 +229,7 @@ export function ReaderPage() {
                   {second.pages[page]?.text}
                 </p>
               )}
+              <ListenButton language={main.language} text={main.pages[page].text} className="mt-[2.25rem]" />
             </div>
           </article>
 

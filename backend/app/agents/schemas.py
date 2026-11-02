@@ -14,7 +14,8 @@ class BookRequest(BaseModel):
     level: Literal[1, 2, 3]
     kind: BookKind = "original"
     topic: str = Field(min_length=3, max_length=200)
-    # Folk tales only: the tradition it comes from, and the outline the adult checked and edited.
+    # Folk tales: the tradition it comes from, and the outline the adult checked and edited.
+    # Other books may have an outline too: a story the adult wrote or knows, told in their own words.
     source: str | None = Field(default=None, max_length=80)
     outline: str | None = Field(default=None, max_length=2500)
 
@@ -28,8 +29,10 @@ class BookRequest(BaseModel):
             raise ValueError("Only two-language books and folk tales take a second language.")
         if self.kind == "folk-tale" and (not self.outline or len(self.outline.strip()) < 40):
             raise ValueError("Folk tales need an outline of the story to retell.")
-        if self.kind != "folk-tale" and (self.outline or self.source):
-            raise ValueError("Only folk tales take an outline and a source.")
+        if self.kind != "folk-tale" and self.source:
+            raise ValueError("Only folk tales take a source.")
+        if self.kind != "folk-tale" and self.outline is not None and len(self.outline.strip()) < 40:
+            raise ValueError("Write a few sentences of your story, or leave the story box empty.")
         return self
 
 

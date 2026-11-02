@@ -46,7 +46,12 @@ async def check_topic(client: ModelClient, request: BookRequest) -> TopicCheck:
             "abuse as a story's subject.\n" + CHILD_SAFE_RULES
         ),
         prompt=f"Topic: {request.topic}\nReading level: {request.level}"
-        + (f"\nRetold folk tale. Outline:\n{request.outline}" if request.outline else ""),
+        + (
+            f"\n{'Retold folk tale. Outline' if request.kind == 'folk-tale' else 'The adult wrote this story'}:\n"
+            f"{request.outline}"
+            if request.outline
+            else ""
+        ),
         schema=TopicCheck,
     )
 
@@ -87,7 +92,13 @@ async def plan_story(client: ModelClient, request: BookRequest) -> StoryPlan:
                 "Follow this outline closely, keeping its characters and ending, one step per page:\n"
                 f"{request.outline}"
                 if request.kind == "folk-tale"
-                else ""
+                else (
+                    "\nThe adult wrote or told this story in their own words (in any language). Keep its "
+                    "characters, events and ending, and its setting if it gives one; one step per page:\n"
+                    f"{request.outline}"
+                    if request.outline
+                    else ""
+                )
             )
         ),
         schema=StoryPlan,
