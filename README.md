@@ -4,6 +4,8 @@ Original, illustrated children's picture books written natively in a child's own
 
 **Live:** https://mothertongue-books.vercel.app
 
+![The home page: "Your child speaks Nepali at home. Their books should too.", with a Kannada page to tap](docs/screenshots/home.jpg)
+
 Children learn to read best in their mother tongue, but most of the world's languages have very few children's books. UNESCO estimates that around 40% of people worldwide don't have access to education in a language they understand. In India, a child in Belagavi or Guntur finds shelves of English picture books and very few in the language spoken at home.
 
 MotherTongue Books lets a parent or teacher describe a story (or pick a folk tale), and a team of AI agents plans it, writes it **first in the language itself, not translated from English**, checks it for reading level and child safety, illustrates it and makes the pictures tappable for word learning. A person who speaks the language reviews every book before it is published.
@@ -23,6 +25,9 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 - **Five looks**: Notebook, Clay toys, Comic pop, Kolam (muggulu, rangoli) and Slate for bedtime, plus a Warm light switch for evening reading. Text contrast meets WCAG AA (4.5:1) in all five.
 - **The website itself in Kannada, Telugu, Marathi or English**, chosen on the first visit, with short first-time tips that can be skipped.
 - **Shares and installs like an app**: book links show their cover in WhatsApp and other apps, and the site can be added to a phone's home screen.
+- **Search the library** by title in any language, topic, tale, story text or tap word, so "lion" and "ಸಿಂಹ" find the same book.
+
+![Reading Punyakoti, a Kannada folk tale: the picture on the left, the page on ruled notebook paper on the right](docs/screenshots/reader.jpg)
 
 ## How a book is made
 
