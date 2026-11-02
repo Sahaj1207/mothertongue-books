@@ -19,6 +19,7 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 - **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
 - **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.
 - **Tap to learn**: tap the cow, the bus or the kite in a picture to see and hear its word. Muse Spark picks the objects and names them in each language; **SAM 3.1** finds where each one is.
+- **Read aloud**: Listen reads the page, and tapped words are spoken, in **Meta's MMS voices** for Kannada, Telugu, Marathi, Swahili, Haitian Creole and Basque, so it works in any browser. Each clip is made once and saved when a book is published. MMS has no isiZulu or Nepali voice, so those use the device's own voice where it has one.
 - **Native speakers stay in charge**: drafts are private; the adult reviews every page, fixes wording, redraws any picture, and only then publishes. "Fix a word" corrects the word everywhere in the book and teaches the writer, so later books get it right.
 - **A reader made for small hands**: swipe or tap to turn pages, buttons that stay within reach on a phone, a first-page glow that shows what can be tapped, an ending page to celebrate, and a "Words in this book" page to say the words again.
 - **Save as PDF** for printing, ending with the book's words cut out of their pictures.
@@ -65,6 +66,7 @@ Every step is shown live on the progress screen with the model that runs it.
 | Safety reviewer | Muse Spark Open (`muse-spark-open-1026`) | Baseten |
 | Object locations for tap-to-learn | SAM 3.1 | Meta Model API |
 | Illustrations | FLUX.1 [schnell] | Cloudflare Workers AI (free plan) |
+| Read aloud | MMS text-to-speech (`facebook/mms-tts-*`, CC BY-NC 4.0) | Modal CPUs (`backend/voice_app.py`) |
 
 Muse Image wasn't available in our region, so pictures use FLUX.1 schnell; the picture checker is still Muse Spark.
 
@@ -110,6 +112,7 @@ Useful scripts (from `backend/`):
 
 - `uv run python -m scripts.redraw_pictures <book-id>`: redraw a book's pictures and tap words.
 - `uv run python -m scripts.translate_ui`: draft website text for any phrases a language is missing.
+- `uv run python -m scripts.read_aloud [<book-id> ...]`: make the Meta-voice clips for published books ahead of time.
 - `uv run python -m scripts.starter_library make`: make the starter library within the day's free pictures.
 
 ## Adding a language
@@ -138,7 +141,7 @@ supabase/migrations/  database schema
 
 - Pictures sometimes come out wrong (a twisted pose, an extra animal). The checker catches most; the adult can redraw any page.
 - The website translations were drafted by Muse Spark and are being checked by native speakers.
-- Read-aloud uses the phone's own voice for tap words; full narration isn't built.
+- MMS voices sound plainer than a person reading, and have no isiZulu or Nepali voice yet.
 - Children's voices are never recorded, and children need no account to read. See the Privacy page on the site.
 
 ## License

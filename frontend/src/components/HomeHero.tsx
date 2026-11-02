@@ -120,7 +120,7 @@ export function HomeHero({ demo, firstBook }: { demo: DemoPage; firstBook: BookS
         <div className="overflow-hidden rounded-3xl border border-rule bg-sheet shadow-sm">
           <div className="relative aspect-square">
             <img src={demo.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <TapLayer words={demo.words} languages={[demo.language]} />
+            <TapLayer words={demo.words} languages={[demo.language]} bookId={demo.bookId} />
           </div>
           <p
             lang={demo.language}

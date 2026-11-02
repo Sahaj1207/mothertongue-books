@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app import main, share
+from app import main, share, speech
 from app.agents.schemas import BookRequest, StoryDraft, StoryPage, StoryPlan
 from app.auth import User, optional_user, require_user
 from app.models import Book
@@ -16,6 +16,7 @@ def store(monkeypatch):
     s = MemoryStore()
     monkeypatch.setattr(main, "store", s)
     monkeypatch.setattr(share, "store", s)
+    monkeypatch.setattr(speech, "store", s)
     return s
 
 
@@ -152,3 +153,46 @@ def test_anyone_can_ask_for_a_language(store):
     response = client_as(None).post("/api/language-requests", json={"language": "Konkani", "can_help": True})
     assert response.status_code == 204
     assert store.language_requests[0].language == "Konkani" and store.language_requests[0].can_help
+
+
+class FakeVoice:
+    def __init__(self) -> None:
+        self.said: list[tuple[str, str, float]] = []
+
+    async def speak(self, language: str, text: str, rate: float) -> bytes:
+        self.said.append((language, text, rate))
+        return b"mp3"
+
+
+@pytest.fixture
+def voice(monkeypatch):
+    v = FakeVoice()
+    monkeypatch.setattr(main, "get_voice", lambda: v)
+    return v
+
+
+def test_speech_reads_a_page_once_and_reuses_the_clip(store, voice):
+    book = draft_book(store)
+    body = {"book_id": book.id, "language": "te", "text": "పింకీ వచ్చాడు."}
+    first = client_as(OWNER).post("/api/speech", json=body)
+    assert first.status_code == 200
+    assert first.json()["kind"] == "page"
+    assert client_as(OWNER).post("/api/speech", json=body).json()["url"] == first.json()["url"]
+    assert voice.said == [("te", "పింకీ వచ్చాడు.", speech.RATES["page"])]
+
+
+def test_speech_only_reads_the_books_own_text_for_its_readers(store, voice):
+    book = draft_book(store)
+    other_text = {"book_id": book.id, "language": "te", "text": "anything else"}
+    assert client_as(OWNER).post("/api/speech", json=other_text).status_code == 422
+    page = {"book_id": book.id, "language": "te", "text": "పింకీ వచ్చాడు."}
+    assert client_as(OTHER).post("/api/speech", json=page).status_code == 404  # someone else's draft
+    assert client_as(OWNER).post("/api/speech", json=page | {"language": "zu"}).status_code == 404
+    assert voice.said == []
+
+
+def test_publishing_reads_the_whole_book_ahead(store, voice):
+    book = draft_book(store)
+    client_as(OWNER).post(f"/api/books/{book.id}/publish")
+    # The title and both pages, each at the page pace.
+    assert sorted(t for _, t, _ in voice.said) == sorted(["పింకీ మామిడి", "పింకీ వచ్చాడు.", "పింకీ నవ్వింది."])

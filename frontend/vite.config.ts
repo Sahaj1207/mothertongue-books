@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8000',
+      // API_PROXY=https://mothertongue-books.vercel.app tries the local site against the live API.
+      '/api': { target: process.env.API_PROXY ?? 'http://localhost:8000', changeOrigin: true },
     },
   },
 })

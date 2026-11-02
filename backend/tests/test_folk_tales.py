@@ -26,7 +26,13 @@ def test_a_folk_tale_needs_an_outline():
     with pytest.raises(ValueError):
         BookRequest(**folk(outline=None))
     with pytest.raises(ValueError):
-        BookRequest(language="kn", level=2, topic="rain", outline=OUTLINE)
+        BookRequest(language="kn", level=2, topic="rain", source="Panchatantra")
+
+
+def test_a_new_story_may_follow_the_adults_own_story():
+    assert BookRequest(language="kn", level=2, topic="Ajji's story", outline=OUTLINE).outline == OUTLINE
+    with pytest.raises(ValueError):
+        BookRequest(language="kn", level=2, topic="rain", outline="too short")
 
 
 def test_a_folk_tale_may_have_a_second_language():
@@ -55,6 +61,17 @@ def test_the_planner_retells_the_approved_outline():
     assert "Kannada folk song" in client.prompts["planner"]
     assert "tiger" in client.prompts["topic_check"]  # the outline is screened too, not just the name
     assert saved.books[job.book_id].request.source == "Kannada folk song"
+
+
+def test_the_planner_follows_the_adults_own_story():
+    client = PromptRecorder()
+    job = make_job(language="kn", level=2, topic="The cow who kept her word", outline=OUTLINE)
+    run(client, job)
+
+    assert job.status == "done"
+    assert "in their own words" in client.prompts["planner"]
+    assert "tiger is moved by her honesty" in client.prompts["planner"]
+    assert "The adult wrote this story" in client.prompts["topic_check"]
 
 
 def test_outline_helper_needs_sign_in(store):  # noqa: F811

@@ -25,6 +25,8 @@ class Store(Protocol):
     async def save_correction(self, c: Correction, book_id: str | None, user_id: str) -> None: ...
     async def list_corrections(self, language: str) -> list[Correction]: ...
     async def save_image(self, book_id: str, page: int, data: bytes, content_type: str) -> str: ...
+    async def speech_url(self, key: str) -> str | None: ...
+    async def save_speech(self, key: str, data: bytes) -> str: ...
     async def save_language_request(self, request: LanguageRequest, user_id: str | None) -> None: ...
 
 
@@ -51,6 +53,14 @@ class MemoryStore:
         path = f"{book_id}/page-{page}.{_EXTENSIONS[content_type]}"
         self.images[path] = data
         return f"memory://{path}"
+
+    async def speech_url(self, key: str) -> str | None:
+        path = f"speech/{key}.mp3"
+        return f"memory://{path}" if path in self.images else None
+
+    async def save_speech(self, key: str, data: bytes) -> str:
+        self.images[f"speech/{key}.mp3"] = data
+        return f"memory://speech/{key}.mp3"
 
     async def list_books_by_owner(self, owner_id: str) -> list[Book]:
         books = [b for b in self.books.values() if b.owner_id == owner_id]
@@ -215,6 +225,24 @@ class SupabaseStore:
         # Pictures are cached for a year; a redrawn page needs a new URL to be seen.
         version = hashlib.sha256(data).hexdigest()[:10]
         return f"{self.url}/storage/v1/object/public/book-assets/{path}?v={version}"
+
+    # Read-aloud clips are named by a hash of their language, rate and text, so a clip never changes
+    # and edited text simply gets a new one.
+    async def speech_url(self, key: str) -> str | None:
+        url = f"{self.url}/storage/v1/object/public/book-assets/speech/{key}.mp3"
+        r = await self.http.head(url)
+        return url if r.status_code == 200 else None
+
+    async def save_speech(self, key: str, data: bytes) -> str:
+        headers = {"Content-Type": "audio/mpeg", "x-upsert": "true", "Cache-Control": "max-age=31536000"}
+        r = await self.http.post(
+            f"{self.url}/storage/v1/object/book-assets/speech/{key}.mp3",
+            content=data,
+            headers=headers,
+            timeout=60,
+        )
+        r.raise_for_status()
+        return f"{self.url}/storage/v1/object/public/book-assets/speech/{key}.mp3"
 
     async def list_corrections(self, language: str) -> list[Correction]:
         rows = await self._select(

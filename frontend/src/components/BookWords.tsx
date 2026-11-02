@@ -1,14 +1,26 @@
+import { useEffect } from 'react'
 import type { AnyLanguage } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
 import type { BookWord } from '../lib/words'
-import { speak, useVoice } from './TapLayer'
+import { useSpeaker } from '../lib/speech'
 import { WordThumb } from './WordThumb'
 
 /** The end-of-book page: every word the child could tap, with its picture, to say again. */
-export function BookWords({ words, languages }: { words: BookWord[]; languages: AnyLanguage[] }) {
+export function BookWords({
+  words,
+  languages,
+  bookId,
+}: {
+  words: BookWord[]
+  languages: AnyLanguage[]
+  bookId: string
+}) {
   const [main, second] = languages
-  const voice = useVoice(main)
+  const speaker = useSpeaker(main, bookId)
+  useEffect(() => {
+    speaker.prepare(words.map((w) => w.words[main] ?? ''))
+  }, [words, main, speaker.available])
   const t = useT()
   const display = languageDisplay(main)
   return (
@@ -16,14 +28,14 @@ export function BookWords({ words, languages }: { words: BookWord[]; languages: 
       <h2 id="book-words" className="font-[family-name:var(--font-display)] text-2xl font-semibold">
         {t('words.title')}
       </h2>
-      <p className="mt-1 text-sm text-ink-soft">{voice ? t('words.tapToHear') : t('words.sayTogether')}</p>
+      <p className="mt-1 text-sm text-ink-soft">{speaker.available ? t('words.tapToHear') : t('words.sayTogether')}</p>
       <ul className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
         {words.map((w) => (
           <li key={w.english}>
             <button
               type="button"
-              onClick={() => speak(voice, w.words[main] ?? '')}
-              disabled={!voice}
+              onClick={() => speaker.say(w.words[main] ?? '', 'word')}
+              disabled={!speaker.available}
               aria-label={`${w.words[main] ?? w.english}, ${w.english}`}
               className="block w-full overflow-hidden rounded-2xl border border-rule bg-sheet text-center transition-colors enabled:hover:border-ink-faint"
             >

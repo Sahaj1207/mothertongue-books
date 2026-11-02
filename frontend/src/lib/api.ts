@@ -146,6 +146,8 @@ export const api = {
     }),
   publishBook: (id: string) => request<Book>(`/books/${id}/publish`, { method: 'POST' }),
   deleteBook: (id: string) => request<void>(`/books/${id}`, { method: 'DELETE' }),
+  speech: (body: { book_id: string; language: AnyLanguage; text: string }) =>
+    request<{ url: string }>('/speech', { method: 'POST', body: JSON.stringify(body) }),
 }
 
 export function toSummary(book: Book): BookSummary {

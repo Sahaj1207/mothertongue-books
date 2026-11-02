@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     cloudflare_account_id: str | None = None
     cloudflare_api_token: str | None = None
     illustrator_app: str = "mothertongue-illustrator"
+    # Read-aloud: Meta's MMS voices on Modal (voice_app.py).
+    voice_app: str = "mothertongue-voice"
     illustration_concurrency: int = 4
     # Times the picture checker may send a flawed picture back to be redrawn. One keeps a book near
     # 11 pictures, so the free illustrator (about 40 a day) makes about 3-4 books a day; the adult can

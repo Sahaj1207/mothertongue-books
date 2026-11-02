@@ -2,49 +2,31 @@ import { useEffect, useState } from 'react'
 import type { AnyLanguage, TapWord } from '../lib/api'
 import { useT } from '../lib/i18n'
 import { languageDisplay } from '../lib/languages'
-
-/** A voice for the language on this device, if it has one. Voices load asynchronously in most browsers. */
-export function useVoice(language: AnyLanguage): SpeechSynthesisVoice | null {
-  const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null)
-  useEffect(() => {
-    if (!('speechSynthesis' in window)) return
-    const prefix = languageDisplay(language).speech.slice(0, 2)
-    const pick = () =>
-      setVoice(speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(prefix)) ?? null)
-    pick()
-    speechSynthesis.addEventListener('voiceschanged', pick)
-    return () => speechSynthesis.removeEventListener('voiceschanged', pick)
-  }, [language])
-  return voice
-}
-
-/** Says a word slowly in the device's voice for its language; does nothing without one. */
-export function speak(voice: SpeechSynthesisVoice | null, text: string) {
-  if (!voice || !text) return
-  speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(text)
-  utterance.voice = voice
-  utterance.lang = voice.lang
-  utterance.rate = 0.8
-  speechSynthesis.speak(utterance)
-}
+import { useSpeaker } from '../lib/speech'
 
 interface Props {
   words: TapWord[]
   /** Book languages, main first. */
   languages: AnyLanguage[]
+  /** The book the words come from, for Meta's voice; without one the device's voice is used. */
+  bookId?: string | null
   /** Glow once over everything tappable, so children discover the words (a book's first page). */
   hint?: boolean
 }
 
-export function TapLayer({ words, languages, hint = false }: Props) {
+export function TapLayer({ words, languages, bookId, hint = false }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const [main, second] = languages
-  const voice = useVoice(main)
+  const speaker = useSpeaker(main, bookId)
   const t = useT()
   const word = selected === null ? null : words[selected]
 
-  const say = (text: string) => speak(voice, text)
+  const say = (text: string) => speaker.say(text, 'word')
+
+  // Get every word's clip ready, so a tap is heard at once.
+  useEffect(() => {
+    speaker.prepare(words.map((w) => w.words[main] ?? ''))
+  }, [words, main, speaker.available])
 
   function choose(index: number) {
     setSelected(index)
@@ -128,7 +110,7 @@ export function TapLayer({ words, languages, hint = false }: Props) {
                 {word.english}
               </p>
             </div>
-            {voice && (
+            {speaker.available && (
               <button
                 type="button"
                 onClick={() => say(word.words[main] ?? '')}

@@ -17,6 +17,7 @@ from app.models import Book, Correction, Job, LanguageRequest
 from app.pipeline import redraw_page, run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
 from app.share import router as share_router
+from app.speech import META_VOICES, Kind, clip_url, get_voice, prepare_book, readable_texts
 from app.store import store
 from app.usage import UsageMeter, current_meter
 
@@ -243,4 +244,36 @@ async def publish_book(book_id: str, user: SignedIn) -> Book:
         book.status = "published"
         book.published_at = datetime.now(UTC)
         await store.save_book(book)
+        # Read the published book aloud once now, so no reader waits for a clip.
+        if voice := get_voice():
+            task = asyncio.create_task(prepare_book(voice, book))
+            _tasks.add(task)
+            task.add_done_callback(_finish_task)
     return book
+
+
+class SpeechRequest(BaseModel):
+    book_id: str
+    language: str
+    text: str = Field(min_length=1, max_length=1500)
+
+
+class Speech(BaseModel):
+    url: str
+    kind: Kind
+
+
+@app.post("/api/speech")
+async def speech(request: SpeechRequest, user: MaybeSignedIn) -> Speech:
+    """A clip of Meta's voice reading a page, title or tap word of a book the caller may read."""
+    if request.language not in META_VOICES:
+        raise HTTPException(404, "No Meta voice for this language; the device's own voice is used.")
+    voice = get_voice()
+    if voice is None:
+        raise HTTPException(503, "Read-aloud is off in practice mode.")
+    book = await _readable_book(request.book_id, user)
+    # Only the book's own text, so this can't be used to read anything else aloud.
+    kind = readable_texts(book, request.language).get(request.text)
+    if kind is None:
+        raise HTTPException(422, "That text isn't in this book.")
+    return Speech(url=await clip_url(voice, request.language, request.text, kind), kind=kind)

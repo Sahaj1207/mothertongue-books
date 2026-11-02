@@ -1,48 +1,40 @@
 import { useEffect, useState } from 'react'
 import type { AnyLanguage } from '../lib/api'
 import { useT } from '../lib/i18n'
-import { useVoice } from './TapLayer'
+import { stopSpeaking, useSpeaker } from '../lib/speech'
 
 /**
- * Reads the page aloud in the device's voice for its language. Hidden on devices without one,
- * so a child never presses a button that stays silent.
+ * Reads the page aloud in Meta's voice for its language, or the device's voice where there isn't one.
+ * Hidden when there is neither, so a child never presses a button that stays silent.
  */
 export function ListenButton({
   language,
+  bookId,
   text,
   className = '',
 }: {
   language: AnyLanguage
+  bookId: string
   text: string
   className?: string
 }) {
-  const voice = useVoice(language)
+  const speaker = useSpeaker(language, bookId)
   const [speaking, setSpeaking] = useState(false)
   const t = useT()
 
-  // A new page, or leaving the book, stops the reading.
-  useEffect(
-    () => () => {
-      if ('speechSynthesis' in window) speechSynthesis.cancel()
-    },
-    [text],
-  )
+  // Get the page's clip ready while the child looks at the picture. A new page, or leaving the book,
+  // stops the reading.
+  useEffect(() => {
+    speaker.prepare([text])
+    return () => stopSpeaking()
+  }, [text, speaker.available])
 
-  if (!voice) return null
+  if (!speaker.available) return null
 
   function toggle() {
-    speechSynthesis.cancel()
-    if (speaking) {
-      setSpeaking(false)
-      return
-    }
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.voice = voice
-    utterance.lang = voice!.lang
-    utterance.rate = 0.85
-    utterance.onend = utterance.onerror = () => setSpeaking(false)
+    if (speaking) return stopSpeaking()
     setSpeaking(true)
-    speechSynthesis.speak(utterance)
+    speaker.say(text, 'page', () => setSpeaking(false))
   }
 
   return (

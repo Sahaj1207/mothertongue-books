@@ -201,6 +201,7 @@ export function ReaderPage() {
                       key={page}
                       words={tapWords}
                       languages={book.drafts.map((d) => d.language)}
+                      bookId={book.id}
                       hint={page === 0}
                     />
                   )}
@@ -229,7 +230,12 @@ export function ReaderPage() {
                   {second.pages[page]?.text}
                 </p>
               )}
-              <ListenButton language={main.language} text={main.pages[page].text} className="mt-[2.25rem]" />
+              <ListenButton
+                language={main.language}
+                bookId={book.id}
+                text={main.pages[page].text}
+                className="mt-[2.25rem]"
+              />
             </div>
           </article>
 
@@ -294,7 +300,7 @@ export function ReaderPage() {
       />
 
       {(isLast || finished) && words.length > 0 && (
-        <BookWords words={words} languages={book.drafts.map((d) => d.language)} />
+        <BookWords words={words} languages={book.drafts.map((d) => d.language)} bookId={book.id} />
       )}
     </main>
   )
