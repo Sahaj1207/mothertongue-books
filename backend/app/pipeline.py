@@ -30,7 +30,9 @@ def story_languages(job: Job) -> list[str]:
     return [req.language, req.pair_language] if req.pair_language else [req.language]
 
 
-def build_steps(job: Job, illustrate: bool = False, tap_words: bool = False) -> list[Step]:
+def build_steps(
+    job: Job, illustrate: bool = False, tap_words: bool = False, illustrator: str = "Muse Image"
+) -> list[Step]:
     steps = [
         Step(key="topic_check", label="Checking the topic"),
         Step(key="planner", label="Planning the story"),
@@ -43,7 +45,11 @@ def build_steps(job: Job, illustrate: bool = False, tap_words: bool = False) -> 
         ]
     if illustrate:
         steps.append(
-            Step(key="illustrator", label="Drawing and checking the pictures", model="FLUX.1 + Muse Spark")
+            Step(
+                key="illustrator",
+                label="Drawing and checking the pictures",
+                model=f"{illustrator} + Muse Spark",
+            )
         )
         if tap_words:
             steps.append(Step(key="tap_words", label="Finding words to tap", model="Muse Spark + SAM 3.1"))
@@ -218,7 +224,12 @@ async def run_pipeline(
     segmenter: Segmenter | None = None,
 ) -> None:
     illustrate = image_maker is not None
-    job.steps = build_steps(job, illustrate=illustrate, tap_words=illustrate and segmenter is not None)
+    job.steps = build_steps(
+        job,
+        illustrate=illustrate,
+        tap_words=illustrate and segmenter is not None,
+        illustrator=image_maker.model if image_maker else "",
+    )
     for step in job.steps:
         if step.key not in ("illustrator", "tap_words"):
             step.model = client.model_name(step.key.split(":")[0])
@@ -272,7 +283,7 @@ async def redraw_page(
 ) -> None:
     """Redraws one page the adult wasn't happy with, then finds its tap words again."""
     job.steps = [
-        Step(key="illustrator", label=f"Redrawing page {number}", model="FLUX.1 + Muse Spark"),
+        Step(key="illustrator", label=f"Redrawing page {number}", model=f"{image_maker.model} + Muse Spark"),
         *(
             [Step(key="tap_words", label="Finding words to tap", model="Muse Spark + SAM 3.1")]
             if segmenter

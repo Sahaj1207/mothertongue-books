@@ -96,7 +96,7 @@ const ENTRIES: Entry[] = [
     hex: '#0e7490',
     storyFont: DEVANAGARI,
     speech: 'ne-NP',
-    reviewed: false,
+    reviewed: true,
   },
   {
     code: 'zu',
@@ -129,7 +129,7 @@ const ENTRIES: Entry[] = [
     hex: '#b91c1c',
     storyFont: LATIN,
     speech: 'eu-ES',
-    reviewed: false,
+    reviewed: true,
   },
 ]
 

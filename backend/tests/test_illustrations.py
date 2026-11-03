@@ -1,8 +1,11 @@
 import asyncio
+import base64
+
+import httpx
 
 from app.agents.schemas import BookRequest, Character, PagePlan, StoryPlan
 from app.config import settings
-from app.illustrations import STYLE, book_seed, picture_prompt
+from app.illustrations import STYLE, MuseImageMaker, book_seed, picture_prompt
 from app.models import Job
 from app.pipeline import run_pipeline
 from app.store import MemoryStore
@@ -46,6 +49,7 @@ PICTURE = tiny_png()
 
 class FakePainter:
     content_type = "image/png"
+    model = "Fake painter"
 
     def __init__(self, fail_page: int | None = None):
         self.prompts: list[str] = []
@@ -152,3 +156,30 @@ def test_checker_gets_a_small_copy():
     small, mime = checker_copy(buf.getvalue())
     assert mime == "image/jpeg"
     assert Image.open(io.BytesIO(small)).size == (512, 512)
+
+
+class FakeFlux:
+    content_type = "image/jpeg"
+    model = "FLUX.1"
+
+    async def draw(self, prompt: str, seed: int) -> bytes:
+        return b"flux picture"
+
+
+def muse_answering(handler) -> MuseImageMaker:
+    maker = MuseImageMaker("key", fallback=FakeFlux())
+    maker.http = httpx.AsyncClient(base_url="https://meta.test", transport=httpx.MockTransport(handler))
+    return maker
+
+
+def test_muse_image_draws_the_page():
+    picture = base64.b64encode(b"muse picture").decode()
+    maker = muse_answering(lambda r: httpx.Response(200, json={"data": [{"b64_json": picture}]}))
+    assert asyncio.run(maker.draw("a kite", 1)) == b"muse picture"
+    assert maker.model == "Muse Image"
+
+
+def test_flux_draws_the_page_when_muse_image_fails():
+    maker = muse_answering(lambda r: httpx.Response(500, json={"error": "down"}))
+    assert asyncio.run(maker.draw("a kite", 1)) == b"flux picture"
+    assert "FLUX" in maker.model

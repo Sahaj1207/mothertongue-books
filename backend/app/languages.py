@@ -48,7 +48,7 @@ LANGUAGES: dict[str, Language] = {
             "Swahili and East African folk tales, such as the Abunuwasi stories",
             reviewed=True,
         ),
-        Language("ne", "Nepali", "Nepal", "Nepali folk tales and Panchatantra", reviewed=False),
+        Language("ne", "Nepali", "Nepal", "Nepali folk tales and Panchatantra", reviewed=True),
         Language(
             "zu",
             "isiZulu",
@@ -68,7 +68,7 @@ LANGUAGES: dict[str, Language] = {
             "Basque",
             "the Basque Country, in Spain and France",
             "Basque folk tales and legends, such as those of Olentzero",
-            reviewed=False,
+            reviewed=True,
         ),
     ]
 }

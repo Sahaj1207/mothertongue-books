@@ -1,6 +1,8 @@
-"""Page illustrations: prompts built from the plan, drawn by FLUX.1 [schnell], stored in Supabase.
+"""Page illustrations: prompts built from the plan, drawn by Muse Image, stored in Supabase.
 
-FLUX runs on Cloudflare Workers AI (free plan, no card) or, if a card is on file, on a Modal GPU.
+Muse Image (Meta Model API) draws by default. FLUX.1 [schnell] on Cloudflare Workers AI (free plan,
+about 40 pictures a day) takes over if a Muse Image call fails, and can be chosen instead; it can also
+run on a Modal GPU if a card is on file.
 """
 
 import asyncio
@@ -45,14 +47,55 @@ class PicturesUsedUp(Exception):
 
 class ImageMaker(Protocol):
     content_type: str
+    model: str  # shown on the progress screen
 
     async def draw(self, prompt: str, seed: int) -> bytes: ...
+
+
+# Muse Image's listed price is a flat $0.01 a picture.
+MUSE_IMAGE_USD_PER_PICTURE = 0.01
+
+
+class MuseImageMaker:
+    """Muse Image on the Meta Model API, falling back to FLUX if a call fails so a book still gets drawn."""
+
+    content_type = "image/webp"
+
+    def __init__(self, api_key: str, fallback: "ImageMaker | None" = None) -> None:
+        self.http = httpx.AsyncClient(
+            base_url=settings.meta_base_url, headers={"Authorization": f"Bearer {api_key}"}, timeout=180
+        )
+        self.fallback = fallback
+        self.model = "Muse Image"
+
+    async def draw(self, prompt: str, seed: int) -> bytes:
+        try:
+            r = await self.http.post(
+                "/images/generations",
+                json={"model": "muse-image-1.0", "prompt": prompt, "n": 1, "size": "1024x768"},
+            )
+            r.raise_for_status()
+            item = r.json()["data"][0]
+            data = (
+                base64.b64decode(item["b64_json"])
+                if item.get("b64_json")
+                else (await self.http.get(item["url"])).content
+            )
+        except Exception:
+            if self.fallback is None:
+                raise
+            log.exception("Muse Image failed; drawing this page with FLUX instead")
+            self.model = "Muse Image or FLUX.1"
+            return await self.fallback.draw(prompt, seed)
+        record_cost("meta", "muse-image-1.0", "illustrator", MUSE_IMAGE_USD_PER_PICTURE)
+        return data
 
 
 class CloudflareImageMaker:
     """FLUX.1 [schnell] on Cloudflare Workers AI. It takes no seed, so the fixed character looks carry consistency."""
 
     content_type = "image/jpeg"
+    model = "FLUX.1"
 
     def __init__(self, account_id: str, api_token: str) -> None:
         self.http = httpx.AsyncClient(
@@ -79,6 +122,7 @@ class ModalImageMaker:
     """Calls the deployed illustrator (illustrator_app.py) and records the GPU time it used."""
 
     content_type = "image/webp"
+    model = "FLUX.1"
 
     def __init__(self, app_name: str) -> None:
         import modal
@@ -102,7 +146,7 @@ def scene_looks(plan: StoryPlan, page: PagePlan) -> list[str]:
 def picture_prompt(plan: StoryPlan, page: PagePlan, fixes: list[str] | None = None) -> str:
     """Style, the scene with each character described instead of named, and any fixes from the checker.
 
-    FLUX tends to write any name it sees into the picture, so names never reach the prompt.
+    Image models tend to write any name they see into the picture, so names never reach the prompt.
     """
     in_scene = [c for c in plan.characters if c.look and c.name.lower() in page.scene.lower()]
     # The setting places the pictures where the language's children live (Karnataka, Nairobi, Kathmandu).
@@ -116,7 +160,7 @@ def picture_prompt(plan: StoryPlan, page: PagePlan, fixes: list[str] | None = No
 
 
 def without_names(plan: StoryPlan, text: str) -> str:
-    """Drops quoted words, then replaces character names with their looks, so FLUX has no text to copy."""
+    """Drops quoted words, then replaces character names with their looks, so the illustrator has no text to copy."""
     text = re.sub(r"[\"“”][^\"“”]{0,60}[\"“”]", "", text)
     text = re.sub(r"(?<![A-Za-z])'[^']{1,60}'(?![A-Za-z])", "", text)
     for c in plan.characters:

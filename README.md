@@ -1,150 +1,152 @@
-# MotherTongue Books
-
-Original, illustrated children's picture books written natively in a child's own language: **Telugu, Kannada and Marathi**, and new in **Swahili, Nepali, isiZulu, Haitian Creole and Basque**.
-
-**Live:** https://mothertongue-books.vercel.app
-
-![The home page: "Your child speaks Nepali at home. Their books should too.", with a Kannada page to tap](docs/screenshots/home.jpg)
-
-Children learn to read best in their mother tongue, but most of the world's languages have very few children's books. UNESCO estimates that around 40% of people worldwide don't have access to education in a language they understand. In India, a child in Belagavi or Guntur finds shelves of English picture books and very few in the language spoken at home.
-
-MotherTongue Books lets a parent or teacher describe a story (or pick a folk tale), and a team of AI agents plans it, writes it **first in the language itself, not translated from English**, checks it for reading level and child safety, illustrates it and makes the pictures tappable for word learning. A person who speaks the language reviews every book before it is published.
-
-Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), Indie Dev track. All code in this repository was written during the hackathon.
-
-## What it does
-
-- **Original books in eight languages**, at three reading levels (ages 3–5, 5–7, 7–9). Telugu, Kannada, Marathi, Swahili, isiZulu and Haitian Creole books are checked by native speakers; Nepali and Basque are marked "New" until their books are published. Stories and pictures are set where each language's children live. Visitors can ask for their own language.
-- **Two-language books**: the same story side by side, page by page, in any two of these languages or one of them and English.
-- **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
-- **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.
-- **Tap to learn**: tap the cow, the bus or the kite in a picture to see and hear its word. Muse Spark picks the objects and names them in each language; **SAM 3.1** finds where each one is.
-- **Read aloud**: Listen reads the page, and tapped words are spoken, in **Meta's MMS voices** for Kannada, Telugu, Marathi, Swahili, Haitian Creole and Basque, so it works in any browser. Pages are read sentence by sentence with short pauses. Before a page is saved, **Muse Voice Transcribe** listens to it, and a reading it doesn't hear as the text is read again; the closest of three is kept (it heard 175 of our 203 pages right first time). Each clip is made once and saved when a book is published. MMS has no isiZulu or Nepali voice, so those use the device's own voice where it has one.
-- **Native speakers stay in charge**: drafts are private; the adult reviews every page, fixes wording, redraws any picture, and only then publishes. "Fix a word" corrects the word everywhere in the book and teaches the writer, so later books get it right.
-- **A reader made for small hands**: swipe or tap to turn pages, buttons that stay within reach on a phone, a first-page glow that shows what can be tapped, an ending page to celebrate, and a "Words in this book" page to say the words again.
-- **Save as PDF** for printing, ending with the book's words cut out of their pictures.
-- **Five looks**: Notebook, Clay toys, Comic pop, Kolam (muggulu, rangoli) and Slate for bedtime, plus a Warm light switch for evening reading. Text contrast meets WCAG AA (4.5:1) in all five.
-- **The website itself in Kannada, Telugu, Marathi or English**, chosen on the first visit, with short first-time tips that can be skipped.
-- **Shares and installs like an app**: book links show their cover in WhatsApp and other apps, and the site can be added to a phone's home screen.
-- **Search the library** by title in any language, topic, tale, story text or tap word, so "lion" and "ಸಿಂಹ" find the same book.
-
-![Reading Punyakoti, a Kannada folk tale: the picture on the left, the page on ruled notebook paper on the right](docs/screenshots/reader.jpg)
-
-## How a book is made
-
-```mermaid
-flowchart TD
-    A[Adult: language, age, topic or folk tale] --> B[Topic check<br/>Muse Spark]
-    B -->|blocked| X[Explains why, nothing is written]
-    B --> C[Planner<br/>Muse Spark: characters with fixed looks, one event per page]
-    C --> D[Writer, once per language<br/>Muse Spark, with native speakers' saved corrections]
-    D --> E[Reading-level checker<br/>Muse Spark]
-    D --> F[Safety reviewer<br/>Muse Spark Open on Baseten]
-    E -->|problems| D
-    F -->|problems, hard gate| D
-    E & F --> G[Illustrator<br/>FLUX.1 schnell]
-    G --> H[Picture checker<br/>Muse Spark vision]
-    H -->|flawed| G
-    H --> I[Word finder<br/>Muse Spark picks objects, SAM 3.1 finds them]
-    I --> J[Private draft]
-    J --> K[Adult reviews, fixes, redraws, publishes]
-```
-
-Every step is shown live on the progress screen with the model that runs it.
-
-- **The plan is language-neutral.** Every language version of a two-language book is written natively from the same plan, so neither is a translation of the other.
-- **Safety is checked by a different model from the one that writes.** The safety reviewer (Muse Spark Open) is a hard gate: a story that still fails after two rewrites is not saved. The reading-level check is advisory; its remaining notes go to the adult.
-- **Reasons before verdicts.** Every checker lists the problems it found before it decides, and its verdict must agree with them.
-- **Pictures never contain names or text.** Character names are replaced with their fixed looks before the picture prompt, because image models tend to write any name they see.
-
-## Models
-
-| Step | Model | Where |
-| --- | --- | --- |
-| Topic check, planner, writer, reading level | Muse Spark (`muse-spark-1.3`) | Meta Model API |
-| Folk-tale steps, word finder, picture checker (vision) | Muse Spark | Meta Model API |
-| Safety reviewer | Muse Spark Open (`muse-spark-open-1026`) | Baseten |
-| Object locations for tap-to-learn | SAM 3.1 | Meta Model API |
-| Illustrations | FLUX.1 [schnell] | Cloudflare Workers AI (free plan) |
-| Read aloud | MMS text-to-speech (`facebook/mms-tts-*`, CC BY-NC 4.0) | Modal CPUs (`backend/voice_app.py`) |
-| Read-aloud checker | Muse Voice Transcribe (`muse-voice-transcribe-1.0`) | Meta Model API |
-
-Muse Image wasn't available in our region, so pictures use FLUX.1 schnell; the picture checker is still Muse Spark.
-
-## What it costs
-
-Measured from the `model_usage` table, which records every call:
-
-| | Cost |
-| --- | --- |
-| One illustrated 8-page book (story, checks, pictures, picture checks, tap words) | about $0.25 |
-| Of which: picture checks | about $0.003 each |
-| Of which: SAM 3.1 boxes | $0.0025 per object |
-| Folk-tale steps | about $0.005 |
-| Drafting the website's three translations | about $0.30 in all, once |
-
-Spending is capped: a daily budget, a lifetime budget per provider, and hard `max_tokens` limits per call. The free illustrator draws about 40 pictures a day, so three or four books a day.
-
-## Stack
-
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, on Vercel.
-- **Backend:** Python 3.12, FastAPI, on Modal.
-- **Data:** Supabase (Postgres with row-level security, Auth, Storage). Pictures are stored as WebP.
-
-## Run it locally
-
-Without any keys the backend runs in practice mode, with sample text instead of model calls.
-
-```bash
-cd backend
-uv sync
-uv run uvicorn app.main:app --reload --port 8000
-```
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-For real models, copy `backend/.env.example` to `backend/.env`, set `USE_MOCK_AI=false` and fill in the keys it lists. Tests: `cd backend && uv run pytest`.
-
-Useful scripts (from `backend/`):
-
-- `uv run python -m scripts.redraw_pictures <book-id>`: redraw a book's pictures and tap words.
-- `uv run python -m scripts.translate_ui`: draft website text for any phrases a language is missing.
-- `uv run python -m scripts.read_aloud [<book-id> ...]`: make the Meta-voice clips for published books ahead of time.
-- `uv run python -m scripts.starter_library make`: make the starter library within the day's free pictures.
-
-## Adding a language
-
-A language is one entry in each of two lists; a test fails if they ever disagree.
-
-1. Add it to `backend/app/languages.py`: code, English name, the region its children live in (stories and pictures are set there), folk-tale traditions, and `reviewed=False`.
-2. Add the same code to `frontend/src/lib/languages.ts`: its own-script name, a letter for the cover, one colour (pale and dark-theme versions are worked out from it), a story font, and the phone voice tag. If the script needs a font that isn't loaded, add it to the Google Fonts link in `frontend/index.html`.
-3. Add `'lang.<code>'` to `frontend/src/locales/en.ts`, then run `uv run python -m scripts.translate_ui` from `backend/` to name it in the other website languages.
-4. Run the tests. Set `reviewed` to true once native speakers have checked books in it; until then the site marks it "New".
-
-The database only checks that a language code looks like one, so no migration is needed. Requests from visitors ("Ask for your language") are in the `language_requests` table.
-
-## Repository layout
-
-```
-backend/app/agents/   the agents, their prompts and schemas, and the model clients
-backend/app/          pipeline, pictures, tap-to-learn, storage, API
-backend/tests/        pytest suite
-frontend/src/pages/   library, create, progress, reader, review, PDF
-frontend/src/locales/ website text in English, Telugu, Kannada and Marathi
-supabase/migrations/  database schema
-```
-
-## Limits
-
-- Pictures sometimes come out wrong (a twisted pose, an extra animal). The checker catches most; the adult can redraw any page.
-- The website translations were drafted by Muse Spark and are being checked by native speakers.
-- MMS voices sound plainer than a person reading, and have no isiZulu or Nepali voice yet.
-- Children's voices are never recorded, and children need no account to read. See the Privacy page on the site.
-
-## License
-
-Code: MIT. Published books: CC BY 4.0.
+# MotherTongue Books
+
+Original, illustrated children's picture books written natively in a child's own language: **Telugu, Kannada and Marathi**, and new in **Swahili, Nepali, isiZulu, Haitian Creole and Basque**.
+
+**Live:** https://mothertongue-books.vercel.app
+
+![The home page: "Your child speaks Nepali at home. Their books should too.", with a Kannada page to tap](docs/screenshots/home.jpg)
+
+Children learn to read best in their mother tongue, but most of the world's languages have very few children's books. UNESCO estimates that around 40% of people worldwide don't have access to education in a language they understand. In India, a child in Belagavi or Guntur finds shelves of English picture books and very few in the language spoken at home.
+
+MotherTongue Books lets a parent or teacher describe a story (or pick a folk tale), and a team of AI agents plans it, writes it **first in the language itself, not translated from English**, checks it for reading level and child safety, illustrates it and makes the pictures tappable for word learning. A person who speaks the language reviews every book before it is published.
+
+Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), Indie Dev track. All code in this repository was written during the hackathon.
+
+## What it does
+
+- **Original books in eight languages**, at three reading levels (ages 3–5, 5–7, 7–9). Every published book, in all eight languages, was checked by a native speaker. Stories and pictures are set where each language's children live. Visitors can ask for their own language.
+- **Two-language books**: the same story side by side, page by page, in any two of these languages or one of them and English.
+- **Retold folk tales**: Muse Spark writes down how a traditional tale goes, softened for young children, and says so when it doesn't know a tale instead of inventing one. The adult edits the steps before the book is made.
+- **Pictures** for every page, with a consistent look for each character, checked by a vision model and redrawn when flawed.
+- **Tap to learn**: tap the cow, the bus or the kite in a picture to see and hear its word. Muse Spark picks the objects and names them in each language; **SAM 3.1** finds where each one is.
+- **Read aloud**: Listen reads the page, and tapped words are spoken, in **Meta's MMS voices** for Kannada, Telugu, Marathi, Swahili, Haitian Creole and Basque, so it works in any browser. Pages are read sentence by sentence with short pauses. Before a page is saved, **Muse Voice Transcribe** listens to it, and a reading it doesn't hear as the text is read again; the closest of three is kept (it heard 175 of our 203 pages right first time). Each clip is made once and saved when a book is published. MMS has no isiZulu or Nepali voice, so those use the device's own voice where it has one.
+- **Native speakers stay in charge**: drafts are private; the adult reviews every page, fixes wording, redraws any picture, and only then publishes. "Fix a word" corrects the word everywhere in the book and teaches the writer, so later books get it right.
+- **A reader made for small hands**: swipe or tap to turn pages, buttons that stay within reach on a phone, a first-page glow that shows what can be tapped, an ending page to celebrate, and a "Words in this book" page to say the words again.
+- **Save as PDF** for printing, ending with the book's words cut out of their pictures.
+- **Five looks**: Notebook, Clay toys, Comic pop, Kolam (muggulu, rangoli) and Slate for bedtime, plus a Warm light switch for evening reading. Text contrast meets WCAG AA (4.5:1) in all five.
+- **The website itself in Kannada, Telugu, Marathi or English**, chosen on the first visit, with short first-time tips that can be skipped.
+- **Shares and installs like an app**: book links show their cover in WhatsApp and other apps, and the site can be added to a phone's home screen.
+- **Search the library** by title in any language, topic, tale, story text or tap word, so "lion" and "ಸಿಂಹ" find the same book.
+
+![Reading Punyakoti, a Kannada folk tale: the picture on the left, the page on ruled notebook paper on the right](docs/screenshots/reader.jpg)
+
+## How a book is made
+
+```mermaid
+flowchart TD
+    A[Adult: language, age, topic or folk tale] --> B[Topic check<br/>Muse Spark]
+    B -->|blocked| X[Explains why, nothing is written]
+    B --> C[Planner<br/>Muse Spark: characters with fixed looks, one event per page]
+    C --> D[Writer, once per language<br/>Muse Spark, with native speakers' saved corrections]
+    D --> E[Reading-level checker<br/>Muse Spark]
+    D --> F[Safety reviewer<br/>Muse Spark Open on Baseten]
+    E -->|problems| D
+    F -->|problems, hard gate| D
+    E & F --> G[Illustrator<br/>Muse Image, FLUX.1 schnell as fallback]
+    G --> H[Picture checker<br/>Muse Spark vision]
+    H -->|flawed| G
+    H --> I[Word finder<br/>Muse Spark picks objects, SAM 3.1 finds them]
+    I --> J[Private draft]
+    J --> K[Adult reviews, fixes, redraws, publishes]
+```
+
+Every step is shown live on the progress screen with the model that runs it.
+
+- **The plan is language-neutral.** Every language version of a two-language book is written natively from the same plan, so neither is a translation of the other.
+- **Safety is checked by a different model from the one that writes.** The safety reviewer (Muse Spark Open) is a hard gate: a story that still fails after two rewrites is not saved. The reading-level check is advisory; its remaining notes go to the adult.
+- **Reasons before verdicts.** Every checker lists the problems it found before it decides, and its verdict must agree with them.
+- **Pictures never contain names or text.** Character names are replaced with their fixed looks before the picture prompt, because image models tend to write any name they see.
+
+## Models
+
+| Step | Model | Where |
+| --- | --- | --- |
+| Topic check, planner, writer, reading level | Muse Spark (`muse-spark-1.3`) | Meta Model API |
+| Folk-tale steps, word finder, picture checker (vision) | Muse Spark | Meta Model API |
+| Safety reviewer | Muse Spark Open (`muse-spark-open-1026`) | Baseten |
+| Object locations for tap-to-learn | SAM 3.1 | Meta Model API |
+| Illustrations | Muse Image (`muse-image-1.0`) | Meta Model API |
+| Illustrations, fallback | FLUX.1 [schnell] | Cloudflare Workers AI (free plan) |
+| Read aloud | MMS text-to-speech (`facebook/mms-tts-*`, CC BY-NC 4.0) | Modal CPUs (`backend/voice_app.py`) |
+| Read-aloud checker | Muse Voice Transcribe (`muse-voice-transcribe-1.0`) | Meta Model API |
+
+Muse Image wasn't available in our region at first, so the first books were drawn with FLUX.1 schnell. It is now the illustrator; FLUX takes over for any picture Muse Image fails to draw.
+
+## What it costs
+
+Measured from the `model_usage` table, which records every call:
+
+| | Cost |
+| --- | --- |
+| One illustrated 8-page book (story, checks, pictures, picture checks, tap words) | about $0.35 |
+| Of which: Muse Image pictures | $0.01 each |
+| Of which: picture checks | about $0.003 each |
+| Of which: SAM 3.1 boxes | $0.0025 per object |
+| Folk-tale steps | about $0.005 |
+| Drafting the website's three translations | about $0.30 in all, once |
+
+Spending is capped: a daily budget, a lifetime budget per provider, and hard `max_tokens` limits per call. The daily budget ($15) allows about 40 books a day.
+
+## Stack
+
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, on Vercel.
+- **Backend:** Python 3.12, FastAPI, on Modal.
+- **Data:** Supabase (Postgres with row-level security, Auth, Storage). Pictures are stored as WebP.
+
+## Run it locally
+
+Without any keys the backend runs in practice mode, with sample text instead of model calls.
+
+```bash
+cd backend
+uv sync
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+For real models, copy `backend/.env.example` to `backend/.env`, set `USE_MOCK_AI=false` and fill in the keys it lists. Tests: `cd backend && uv run pytest`.
+
+Useful scripts (from `backend/`):
+
+- `uv run python -m scripts.redraw_pictures <book-id>`: redraw a book's pictures and tap words.
+- `uv run python -m scripts.translate_ui`: draft website text for any phrases a language is missing.
+- `uv run python -m scripts.read_aloud [<book-id> ...]`: make the Meta-voice clips for published books ahead of time.
+- `uv run python -m scripts.starter_library make`: make the starter library within the day's free pictures.
+
+## Adding a language
+
+A language is one entry in each of two lists; a test fails if they ever disagree.
+
+1. Add it to `backend/app/languages.py`: code, English name, the region its children live in (stories and pictures are set there), folk-tale traditions, and `reviewed=False`.
+2. Add the same code to `frontend/src/lib/languages.ts`: its own-script name, a letter for the cover, one colour (pale and dark-theme versions are worked out from it), a story font, and the phone voice tag. If the script needs a font that isn't loaded, add it to the Google Fonts link in `frontend/index.html`.
+3. Add `'lang.<code>'` to `frontend/src/locales/en.ts`, then run `uv run python -m scripts.translate_ui` from `backend/` to name it in the other website languages.
+4. Run the tests. Set `reviewed` to true once native speakers have checked books in it; until then the site marks it "New".
+
+The database only checks that a language code looks like one, so no migration is needed. Requests from visitors ("Ask for your language") are in the `language_requests` table.
+
+## Repository layout
+
+```
+backend/app/agents/   the agents, their prompts and schemas, and the model clients
+backend/app/          pipeline, pictures, tap-to-learn, storage, API
+backend/tests/        pytest suite
+frontend/src/pages/   library, create, progress, reader, review, PDF
+frontend/src/locales/ website text in English, Telugu, Kannada and Marathi
+supabase/migrations/  database schema
+```
+
+## Limits
+
+- Pictures sometimes come out wrong (a twisted pose, an extra animal). The checker catches most; the adult can redraw any page.
+- The website translations were drafted by Muse Spark and are being checked by native speakers.
+- MMS voices sound plainer than a person reading, and have no isiZulu or Nepali voice yet.
+- Children's voices are never recorded, and children need no account to read. See the Privacy page on the site.
+
+## License
+
+Code: MIT. Published books: CC BY 4.0.

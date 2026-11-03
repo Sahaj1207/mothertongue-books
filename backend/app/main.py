@@ -12,7 +12,7 @@ from app.agents.client import get_client
 from app.agents.schemas import BookRequest, FolkOutline, OutlineRequest, StoryPage
 from app.auth import User, optional_user, require_user
 from app.config import settings
-from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker
+from app.illustrations import CloudflareImageMaker, ImageMaker, ModalImageMaker, MuseImageMaker
 from app.models import Book, Correction, Job, LanguageRequest
 from app.pipeline import redraw_page, run_pipeline
 from app.segmentation import apply_corrections, get_segmenter
@@ -75,10 +75,14 @@ def get_image_maker() -> ImageMaker | None:
         return None
     if settings.illustrator == "modal":
         return ModalImageMaker(settings.illustrator_app)
+    flux = None
     if settings.cloudflare_account_id and settings.cloudflare_api_token:
-        return CloudflareImageMaker(settings.cloudflare_account_id, settings.cloudflare_api_token)
-    log.warning("Illustrations are on but Cloudflare keys are missing; books will have no pictures.")
-    return None
+        flux = CloudflareImageMaker(settings.cloudflare_account_id, settings.cloudflare_api_token)
+    if settings.illustrator == "muse" and settings.model_api_key:
+        return MuseImageMaker(settings.model_api_key, fallback=flux)
+    if flux is None:
+        log.warning("Illustrations are on but no illustrator keys are set; books will have no pictures.")
+    return flux
 
 
 def providers_in_use() -> list[str]:
