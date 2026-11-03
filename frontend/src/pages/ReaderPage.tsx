@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { BookEnd } from '../components/BookEnd'
 import { BookWords } from '../components/BookWords'
 import { ListenButton } from '../components/ListenButton'
+import { ShareButton } from '../components/ShareButton'
 import { BookSkeleton } from '../components/Skeleton'
 import { TapLayer } from '../components/TapLayer'
 import { Tips } from '../components/Tips'
@@ -145,9 +146,12 @@ export function ReaderPage() {
           )}
         </div>
         <div className="shrink-0 pb-2 text-right text-sm">
-          <Link to={`/books/${book.id}/print`} className="text-ink-soft underline underline-offset-4 hover:text-ink">
-            {t('reader.savePdf')}
-          </Link>
+          <div className="flex justify-end gap-4">
+            {book.status === 'published' && <ShareButton title={main.title} path={`/books/${book.id}`} />}
+            <Link to={`/books/${book.id}/print`} className="text-ink-soft underline underline-offset-4 hover:text-ink">
+              {t('reader.savePdf')}
+            </Link>
+          </div>
           <p className="mt-1 text-ink-faint" aria-live="polite">
             {t('reader.pageOf', { page: page + 1, total })}
           </p>
