@@ -30,6 +30,8 @@ Built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026), In
 
 ![Reading Punyakoti, a Kannada folk tale: the picture on the left, the page on ruled notebook paper on the right](docs/screenshots/reader.jpg)
 
+![The library: eight language tiles (Telugu, Kannada, Marathi, Kiswahili, Nepali, isiZulu, Kreyòl, Euskara), search and filters, and the newest books](docs/screenshots/library.jpg)
+
 ## How a book is made
 
 ```mermaid
