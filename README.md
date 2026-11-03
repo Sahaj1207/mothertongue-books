@@ -48,6 +48,7 @@ flowchart TD
     H --> I[Word finder<br/>Muse Spark picks objects, SAM 3.1 finds them]
     I --> J[Private draft]
     J --> K[Adult reviews, fixes, redraws, publishes]
+    K --> L[Read aloud<br/>Meta MMS voices, each page checked by Muse Voice Transcribe]
 ```
 
 Every step is shown live on the progress screen with the model that runs it.
@@ -83,6 +84,7 @@ Measured from the `model_usage` table, which records every call:
 | Of which: picture checks | about $0.003 each |
 | Of which: SAM 3.1 boxes | $0.0025 per object |
 | Folk-tale steps | about $0.005 |
+| Read-aloud checks for a published book (Muse Voice Transcribe) | about $0.01 |
 | Drafting the website's three translations | about $0.30 in all, once |
 
 Spending is capped: a daily budget, a lifetime budget per provider, and hard `max_tokens` limits per call. The daily budget ($15) allows about 40 books a day.
