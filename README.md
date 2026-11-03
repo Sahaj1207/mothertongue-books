@@ -4,6 +4,8 @@ Original, illustrated children's picture books written natively in a child's own
 
 **Live:** https://mothertongue-books.vercel.app
 
+**Demo video (3 min):** https://youtu.be/VkYc4fTJgp0
+
 ![The home page: "Your child speaks Nepali at home. Their books should too.", with a Kannada page to tap](docs/screenshots/home.jpg)
 
 Children learn to read best in their mother tongue, but most of the world's languages have very few children's books. UNESCO estimates that around 40% of people worldwide don't have access to education in a language they understand. In India, a child in Belagavi or Guntur finds shelves of English picture books and very few in the language spoken at home.
